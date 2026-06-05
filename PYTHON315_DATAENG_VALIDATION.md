@@ -84,19 +84,29 @@ This repository contains the full validation suite for evaluating **Python 3.15 
 ---
 ## Repository Structure and Directory Tree
 
-```text
+```
 python315_test/
-├── PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf
-├── PYTHON315_DATAENG_VALIDATION.md
+├── README.md                                  # Project overview and quick-start
+├── STATUS.md                                  # Current project status and validation log
+├── ROADMAP.md                                 # Planned releases and milestones
+├── PROJECT_STRUCTURE.md                       # Full directory reference
+├── PORTFOLIO_SUMMARY.md                       # Portfolio-facing project summary
+├── RELEASE_NOTES_v1.0.0.md                   # v1.0.0 release notes
+├── PYTHON315_DATAENG_VALIDATION.md            # This document
+├── PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf # Formal Phase 8 assessment report
 ├── requirements-py315-dataeng-lite.txt
 ├── requirements-py315-dataeng-jupyter.txt
-├── test_py315.py
-├── Dockerfile
+├── test_py315.py                              # Original pytest suite
+├── data/                                      # Benchmark CSVs and generated charts
+│   ├── benchmark_pandas_polars.csv
+│   └── benchmark_duckdb_pyarrow.csv
+├── docker_pyarrow_lab/
+│   └── Dockerfile                           # Python 3.14 + OpenJDK 21 + PyArrow + PySpark
 ├── notebooks/
-│   ├── 01_core_stack_validation.ipynb
-│   ├── 02_benchmark_results.ipynb
-│   ├── 03_extended_stack_compatibility.ipynb
-│   └── 04_docker_pyarrow_py314_validation.ipynb
+│   ├── 01_core_stack_validation.ipynb       # Phase 1 & 2 — runtime + stack smoke tests
+│   ├── 02_benchmark_results.ipynb           # Phase 7 — benchmark charts and analysis
+│   ├── 03_extended_stack_compatibility.ipynb # Phase 6 — compatibility matrix
+│   └── 04_docker_pyarrow_py314_validation.ipynb # Phase 5 — Docker container validation
 ├── scripts/
 │   ├── logger.py
 │   ├── validate_core.py
@@ -104,10 +114,43 @@ python315_test/
 │   ├── validate_extended.py
 │   ├── benchmark_pandas_polars.py
 │   └── benchmark_duckdb_pyarrow.py
+├── duckdb_tests/                              # DuckDB per-library validation suite
+│   ├── test_duckdb_basic.py
+│   ├── test_duckdb_pandas.py
+│   ├── test_duckdb_native_parquet.py
+│   ├── verify_duckdb_parquet.py
+│   ├── benchmark_duckdb.py
+│   ├── run_duckdb_validation.sh
+│   ├── data/ + logs/
+├── polars_tests/                              # Polars per-library validation suite
+│   ├── test_polars_version.py
+│   ├── test_polars_dataframe.py
+│   ├── test_polars_groupby.py
+│   ├── test_polars_join.py
+│   ├── benchmark_polars.py
+│   ├── run_polars_validation.sh
+│   ├── data/ + logs/
+├── sqlalchemy_tests/                          # SQLAlchemy per-library validation suite
+│   ├── test_sqlalchemy_version.py
+│   ├── test_sqlalchemy_core.py + orm + reflection + transactions
+│   ├── benchmark_sqlalchemy.py
+│   ├── run_sqlalchemy_validation.sh
+│   ├── data/ + logs/
+├── sqlite_tests/                              # SQLite per-library validation suite
+│   ├── test_sqlite_version.py
+│   ├── test_sqlite_crud.py + aggregate + file_db
+│   ├── benchmark_sqlite.py
+│   ├── run_sqlite_validation.sh
+│   └── employees.db
+├── pyarrow_tests/                             # Blocked — no cp315 wheels
+│   ├── data/ + logs/
 ├── logs/
-├── data/
-├── outputs/
-└── docs/
+│   ├── validate_core.log + validate_stack.log + validate_extended.log
+│   ├── benchmark_duckdb_pyarrow.log
+│   └── pyarrow_failure_20260605.md
+├── releases/
+│   └── README.md
+└── .venv/                                     # Python 3.15 virtual environment (uv-managed)
 ```
 
 ### Repository Notes
