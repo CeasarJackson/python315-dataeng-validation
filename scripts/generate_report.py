@@ -255,6 +255,9 @@ def write_manifest(release_dir, release, results, counts):
         "packages_fail": counts["FAIL"],
         "results": results,
     }
+    # Ensure production_readiness_pct is always present
+    if "production_readiness_pct" not in manifest:
+        manifest["production_readiness_pct"] = _readiness_pct(counts)
     (release_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
 
 

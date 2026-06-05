@@ -89,5 +89,7 @@
       "version": "not installed",
       "reason": "deferred"
     }
-  }
+  },
+  "production_readiness_pct": 85,
+  "packages_blocked": 2
 }
