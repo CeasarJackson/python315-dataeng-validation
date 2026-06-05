@@ -255,9 +255,10 @@ def write_manifest(release_dir, release, results, counts):
         "packages_fail": counts["FAIL"],
         "results": results,
     }
-    # Ensure production_readiness_pct is always present
-    if "production_readiness_pct" not in manifest:
-        manifest["production_readiness_pct"] = _readiness_pct(counts)
+    # Compute readiness inline (BLOCKED = upstream gap, partial credit)
+    _eff = sum(counts.values()) - counts.get("SKIP", 0)
+    _wp  = counts["PASS"] + counts.get("BLOCKED", 0) * 0.3
+    manifest["production_readiness_pct"] = min(int((_wp / _eff) * 100), 95) if _eff else 0
     (release_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
 
 
