@@ -12,8 +12,8 @@
   "suite_version": "1.2.0",
   "packages_tested": 17,
   "packages_pass": 13,
-  "packages_incompat": 1,
-  "packages_skip": 1,
+  "packages_incompat": 2,
+  "packages_skip": 0,
   "packages_fail": 0,
   "results": {
     "numpy": {
@@ -67,8 +67,9 @@
       "reason": "runtime pyarrow dep"
     },
     "prefect": {
-      "status": "PASS",
-      "version": "3.7.3"
+      "status": "INCOMPAT",
+      "version": "3.7.3",
+      "reason": "typing.no_type_check_decorator removed in Python 3.15"
     },
     "mlflow": {
       "status": "PASS",
@@ -85,11 +86,10 @@
       "note": "via Docker py314 + OpenJDK 21"
     },
     "apache-airflow": {
-      "status": "SKIP",
-      "version": "not installed",
-      "reason": "deferred"
+      "status": "PASS",
+      "version": "3.2.2",
+      "note": "DAG + PythonOperator; operators moved to providers.standard in 3.x"
     }
   },
-  "production_readiness_pct": 85,
-  "packages_blocked": 2
+  "production_readiness_pct": 80
 }

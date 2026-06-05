@@ -28,8 +28,7 @@ TEMPLATE = REPORTS / "template"
 
 def run(cmd, cwd=None, capture=True):
     result = subprocess.run(
-        cmd, shell=True, capture_output=capture,
-        text=True, cwd=cwd or REPO
+        cmd, shell=True, capture_output=capture, text=True, cwd=cwd or REPO
     )
     stdout = result.stdout.strip() if result.stdout is not None else ""
     return stdout, result.returncode
@@ -73,8 +72,17 @@ def collect_results():
     results = {}
 
     # Core packages
-    for pkg in ["numpy", "pandas", "polars", "duckdb", "sqlalchemy",
-                "pydantic", "matplotlib", "plotly", "jupyterlab"]:
+    for pkg in [
+        "numpy",
+        "pandas",
+        "polars",
+        "duckdb",
+        "sqlalchemy",
+        "pydantic",
+        "matplotlib",
+        "plotly",
+        "jupyterlab",
+    ]:
         status, ver = probe_package(pkg)
         results[pkg] = {"status": status, "version": ver}
         print(f"    {pkg}: {status} ({ver})")
@@ -82,10 +90,8 @@ def collect_results():
     # sqlite3 — stdlib
     try:
         import sqlite3
-        results["sqlite3"] = {
-            "status": "PASS",
-            "version": sqlite3.sqlite_version
-        }
+
+        results["sqlite3"] = {"status": "PASS", "version": sqlite3.sqlite_version}
         print(f"    sqlite3: PASS ({sqlite3.sqlite_version})")
     except Exception:
         results["sqlite3"] = {"status": "FAIL", "version": "stdlib"}
@@ -94,76 +100,148 @@ def collect_results():
     print("  Probing extended stack...")
     try:
         import pyarrow as pa
+
         results["pyarrow"] = {"status": "PASS", "version": pa.__version__}
         print(f"    pyarrow: PASS ({pa.__version__})")
     except ImportError:
-        results["pyarrow"] = {"status": "BLOCKED", "version": "unavailable", "reason": "no cp315 wheels on PyPI; source build fails at CMake config"}
+        results["pyarrow"] = {
+            "status": "BLOCKED",
+            "version": "unavailable",
+            "reason": "no cp315 wheels on PyPI; source build fails at CMake config",
+        }
         print("    pyarrow: BLOCKED (no cp315 wheels)")
 
     # dask
     try:
         import dask.dataframe  # noqa: F401
+
         results["dask.dataframe"] = {"status": "PASS", "version": get_version("dask")}
-        print(f"    dask.dataframe: PASS")
+        print("    dask.dataframe: PASS")
     except ImportError as e:
         if "pyarrow" in str(e):
             results["dask.dataframe"] = {
                 "status": "INCOMPAT",
                 "version": get_version("dask"),
-                "reason": "runtime pyarrow dep"
+                "reason": "runtime pyarrow dep",
             }
-            print(f"    dask.dataframe: INCOMPAT (pyarrow dep)")
+            print("    dask.dataframe: INCOMPAT (pyarrow dep)")
         else:
             results["dask.dataframe"] = {"status": "SKIP", "version": "not installed"}
-            print(f"    dask.dataframe: SKIP")
+            print("    dask.dataframe: SKIP")
 
-    # prefect
+    # prefect — Python 3.15 compatibility probe.
+    # validate_extended.py currently exposes Prefect 3.7.x as incompatible
+    # because Python 3.15 removed typing.no_type_check_decorator.
     try:
-        import prefect  # noqa: F401
-        results["prefect"] = {"status": "PASS", "version": get_version("prefect")}
-        print(f"    prefect: PASS")
+        from packaging.version import Version
+
+        prefect_version = get_version("prefect")
+        if (
+            sys.version_info >= (3, 15)
+            and prefect_version != "not installed"
+            and Version(prefect_version) < Version("3.8.0")
+        ):
+            results["prefect"] = {
+                "status": "INCOMPAT",
+                "version": prefect_version,
+                "reason": "typing.no_type_check_decorator removed in Python 3.15",
+            }
+            print("    prefect: INCOMPAT (stdlib change)")
+        else:
+            from prefect import flow, task
+
+            @task
+            def _extract() -> list[int]:
+                return list(range(100))
+
+            @task
+            def _transform(data: list[int]) -> int:
+                return sum(data)
+
+            @flow(name="python315-report-probe")
+            def _prefect_probe() -> int:
+                data = _extract()
+                return _transform(data)
+
+            result = _prefect_probe()
+            expected = sum(range(100))
+            if result != expected:
+                raise RuntimeError(
+                    f"unexpected Prefect flow result: {result!r}; expected {expected!r}"
+                )
+
+            results["prefect"] = {"status": "PASS", "version": prefect_version}
+            print("    prefect: PASS")
     except ImportError as e:
         if "no_type_check_decorator" in str(e):
             results["prefect"] = {
                 "status": "INCOMPAT",
                 "version": get_version("prefect"),
-                "reason": "typing.no_type_check_decorator removed in 3.15"
+                "reason": "typing.no_type_check_decorator removed in Python 3.15",
             }
-            print(f"    prefect: INCOMPAT (stdlib change)")
+            print("    prefect: INCOMPAT (stdlib change)")
         else:
-            results["prefect"] = {"status": "SKIP", "version": "not installed"}
-            print(f"    prefect: SKIP")
+            results["prefect"] = {
+                "status": "SKIP",
+                "version": get_version("prefect"),
+                "reason": str(e),
+            }
+            print(f"    prefect: SKIP ({e})")
+    except Exception as e:
+        message = str(e)
+        if "no_type_check_decorator" in message:
+            results["prefect"] = {
+                "status": "INCOMPAT",
+                "version": get_version("prefect"),
+                "reason": "typing.no_type_check_decorator removed in Python 3.15",
+            }
+            print("    prefect: INCOMPAT (stdlib change)")
+        else:
+            results["prefect"] = {
+                "status": "FAIL",
+                "version": get_version("prefect"),
+                "reason": message,
+            }
+            print(f"    prefect: FAIL ({e})")
 
     # mlflow
     try:
         import mlflow  # noqa: F401
+
         results["mlflow"] = {"status": "PASS", "version": get_version("mlflow")}
-        print(f"    mlflow: PASS")
+        print("    mlflow: PASS")
     except (ImportError, Exception) as e:
         if "pyarrow" in str(e).lower() or "opentelemetry" in str(e).lower():
             results["mlflow"] = {
                 "status": "INCOMPAT",
                 "version": get_version("mlflow"),
-                "reason": "pyarrow hard dep"
+                "reason": "pyarrow hard dep",
             }
-            print(f"    mlflow: INCOMPAT (pyarrow dep)")
+            print("    mlflow: INCOMPAT (pyarrow dep)")
         else:
             results["mlflow"] = {"status": "SKIP", "version": "not installed"}
-            print(f"    mlflow: SKIP")
+            print("    mlflow: SKIP")
 
     # ray
     try:
         import ray  # noqa: F401
+
         results["ray"] = {"status": "PASS", "version": get_version("ray")}
-        print(f"    ray: PASS")
+        print("    ray: PASS")
     except ImportError:
-        results["ray"] = {"status": "BLOCKED", "version": "unavailable", "reason": "no cp315 wheels on PyPI"}
-        print(f"    ray: BLOCKED (no cp315 wheels)")
+        results["ray"] = {
+            "status": "BLOCKED",
+            "version": "unavailable",
+            "reason": "no cp315 wheels on PyPI",
+        }
+        print("    ray: BLOCKED (no cp315 wheels)")
 
     # pyspark via docker — uses file mount to avoid stdin hang
     if check_docker_image():
         print("  Testing PySpark via Docker...")
-        import tempfile, os as _os
+        import os as _os
+        import tempfile
+
         _spark_script = (
             "import json, pyspark\n"
             "from pyspark.sql import SparkSession\n"
@@ -176,17 +254,28 @@ def collect_results():
             "spark.stop()\n"
             "print(json.dumps({'status':'pass','version':pyspark.__version__}))\n"
         )
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py',
-                                         delete=False, prefix='spark_probe_') as _f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".py", delete=False, prefix="spark_probe_"
+        ) as _f:
             _f.write(_spark_script)
             _tmp = _f.name
         try:
             import subprocess as _sp
+
             _r = _sp.run(
-                ["docker", "run", "--rm",
-                 "-v", f"{_tmp}:/tmp/spark_probe.py:ro",
-                 "pyarrow-dataeng:py314", "python3", "/tmp/spark_probe.py"],
-                capture_output=True, text=True, timeout=120
+                [
+                    "docker",
+                    "run",
+                    "--rm",
+                    "-v",
+                    f"{_tmp}:/tmp/spark_probe.py:ro",
+                    "pyarrow-dataeng:py314",
+                    "python3",
+                    "/tmp/spark_probe.py",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=120,
             )
             out, rc = _r.stdout, _r.returncode
         except _sp.TimeoutExpired:
@@ -199,29 +288,61 @@ def collect_results():
                 results["pyspark"] = {
                     "status": "PASS",
                     "version": payload["version"],
-                    "note": "via Docker py314 + OpenJDK 21"
+                    "note": "via Docker py314 + OpenJDK 21",
                 }
                 print(f"    pyspark: PASS ({payload['version']} via Docker)")
             else:
-                results["pyspark"] = {"status": "FAIL", "version": "unknown",
-                                       "reason": "Docker test failed"}
+                results["pyspark"] = {
+                    "status": "FAIL",
+                    "version": "unknown",
+                    "reason": "Docker test failed",
+                }
                 print("    pyspark: FAIL")
         except Exception:
-            results["pyspark"] = {"status": "INCOMPAT", "version": "unknown",
-                                   "reason": "Docker test error"}
+            results["pyspark"] = {
+                "status": "INCOMPAT",
+                "version": "unknown",
+                "reason": "Docker test error",
+            }
             print("    pyspark: INCOMPAT")
     else:
         results["pyspark"] = {
             "status": "SKIP",
             "version": "unknown",
-            "reason": "Docker image not available"
+            "reason": "Docker image not available",
         }
         print("    pyspark: SKIP (Docker image not found)")
 
     # apache-airflow
-    results["apache-airflow"] = {"status": "SKIP", "version": "not installed",
-                                  "reason": "deferred"}
-    print("    airflow: SKIP (deferred)")
+    try:
+        from datetime import datetime as _dt
+
+        import airflow as _af
+        from airflow.providers.standard.operators.python import PythonOperator as _PO
+        from airflow.sdk import DAG as _DAG
+
+        _dag = _DAG("probe", start_date=_dt(2026, 1, 1), schedule=None)
+        _PO(task_id="t", python_callable=lambda: None, dag=_dag)
+        results["apache-airflow"] = {
+            "status": "PASS",
+            "version": _af.__version__,
+            "note": "DAG + PythonOperator; operators moved to providers.standard in 3.x",
+        }
+        print(f"    airflow: PASS ({_af.__version__})")
+    except ImportError:
+        results["apache-airflow"] = {
+            "status": "SKIP",
+            "version": "not installed",
+            "reason": "not installed",
+        }
+        print("    airflow: SKIP (not installed)")
+    except Exception as e:
+        results["apache-airflow"] = {
+            "status": "INCOMPAT",
+            "version": "unknown",
+            "reason": str(e),
+        }
+        print(f"    airflow: INCOMPAT ({e})")
 
     return results
 
@@ -257,20 +378,44 @@ def write_manifest(release_dir, release, results, counts):
     }
     # Compute readiness inline (BLOCKED = upstream gap, partial credit)
     _eff = sum(counts.values()) - counts.get("SKIP", 0)
-    _wp  = counts["PASS"] + counts.get("BLOCKED", 0) * 0.3
-    manifest["production_readiness_pct"] = min(int((_wp / _eff) * 100), 95) if _eff else 0
+    _wp = counts["PASS"] + counts.get("BLOCKED", 0) * 0.3
+    manifest["production_readiness_pct"] = (
+        min(int((_wp / _eff) * 100), 95) if _eff else 0
+    )
     (release_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
 
 
 def write_compat_report(release_dir, release, results, counts):
     def badge(status):
-        return {"PASS": "✅ PASS", "FAIL": "❌ FAIL",
-                "INCOMPAT": "⚠️ INCOMPAT", "BLOCKED": "🚫 BLOCKED", "SKIP": "⏭️ SKIP"}.get(status, status)
+        return {
+            "PASS": "✅ PASS",
+            "FAIL": "❌ FAIL",
+            "INCOMPAT": "⚠️ INCOMPAT",
+            "BLOCKED": "🚫 BLOCKED",
+            "SKIP": "⏭️ SKIP",
+        }.get(status, status)
 
-    core = ["numpy","pandas","polars","duckdb","sqlalchemy",
-            "pydantic","matplotlib","plotly","jupyterlab","sqlite3"]
-    extended = ["pyspark","dask.dataframe","pyarrow","mlflow",
-                "prefect","ray","apache-airflow"]
+    core = [
+        "numpy",
+        "pandas",
+        "polars",
+        "duckdb",
+        "sqlalchemy",
+        "pydantic",
+        "matplotlib",
+        "plotly",
+        "jupyterlab",
+        "sqlite3",
+    ]
+    extended = [
+        "pyspark",
+        "dask.dataframe",
+        "pyarrow",
+        "mlflow",
+        "prefect",
+        "ray",
+        "apache-airflow",
+    ]
 
     lines = [
         f"# Compatibility Report \u2014 Python {release}",
@@ -323,7 +468,7 @@ def write_compat_report(release_dir, release, results, counts):
         "## Changes from Previous Cycle",
         "",
         "*Compare with previous report using:*",
-        f"```bash",
+        "```bash",
         f"python scripts/compare_reports.py <previous> {release}",
         "```",
         "",
@@ -337,10 +482,18 @@ def write_compat_report(release_dir, release, results, counts):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate a versioned compatibility report")
-    parser.add_argument("--release", required=True, help="Python release, e.g. 3.15.0rc1")
-    parser.add_argument("--auto-commit", action="store_true", help="Git commit after generating")
-    parser.add_argument("--dry-run", action="store_true", help="Print results without writing")
+    parser = argparse.ArgumentParser(
+        description="Generate a versioned compatibility report"
+    )
+    parser.add_argument(
+        "--release", required=True, help="Python release, e.g. 3.15.0rc1"
+    )
+    parser.add_argument(
+        "--auto-commit", action="store_true", help="Git commit after generating"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Print results without writing"
+    )
     args = parser.parse_args()
 
     release = args.release
@@ -354,8 +507,10 @@ def main():
     results = collect_results()
     counts = tally(results)
 
-    print(f"\nResults: PASS={counts['PASS']}  FAIL={counts['FAIL']}  "
-          f"INCOMPAT={counts['INCOMPAT']}  SKIP={counts['SKIP']}")
+    print(
+        f"\nResults: PASS={counts['PASS']}  FAIL={counts['FAIL']}  "
+        f"INCOMPAT={counts['INCOMPAT']}  SKIP={counts['SKIP']}"
+    )
 
     if args.dry_run:
         print("\nDry run — no files written.")
@@ -377,8 +532,7 @@ def main():
     if args.auto_commit:
         run(f"git add reports/{release}/", capture=False)
         run(
-            f'git commit -m "report: add {release} compatibility report"',
-            capture=False
+            f'git commit -m "report: add {release} compatibility report"', capture=False
         )
         print(f"\nCommitted: report: add {release} compatibility report")
 
