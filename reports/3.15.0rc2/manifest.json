@@ -90,5 +90,6 @@
       "reason": "deferred"
     }
   },
-  "production_readiness_pct": 85
+  "production_readiness_pct": 85,
+  "packages_blocked": 2
 }
