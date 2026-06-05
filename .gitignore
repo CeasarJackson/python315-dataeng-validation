@@ -32,3 +32,13 @@ dist/
 # Temporary
 *.tmp
 *.bak
+
+# Release Packages
+*.zip
+
+# PDF Build Artifacts
+*.aux
+*.out
+*.toc
+*.lof
+*.lot
