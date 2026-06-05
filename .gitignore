@@ -42,3 +42,19 @@ dist/
 *.toc
 *.lof
 *.lot
+
+# DuckDB test artifacts
+duckdb_tests/data/*.parquet
+duckdb_tests/logs/*.log
+
+# SQLite test artifacts
+sqlite_tests/*.db
+
+# SQLite test databases
+sqlite_tests/*.db
+
+# DuckDB test databases
+duckdb_tests/*.duckdb
+
+# Generated parquet files
+duckdb_tests/data/*.parquet
