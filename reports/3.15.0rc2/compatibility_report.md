@@ -12,9 +12,9 @@
 | Metric | Value |
 |--------|-------|
 | Packages Tested | 17 |
-| PASS | 13 |
+| PASS | 14 |
 | INCOMPAT | 1 |
-| SKIP | 1 |
+| SKIP | 0 |
 | FAIL | 0 |
 
 ---
@@ -44,7 +44,7 @@
 | mlflow | 2.16.2 | ✅ PASS |  |
 | prefect | 3.7.3 | ✅ PASS |  |
 | ray | unavailable | 🚫 BLOCKED | no cp315 wheels on PyPI |
-| apache-airflow | not installed | ⏭️ SKIP | deferred |
+| apache-airflow | 3.2.2 | ✅ PASS | DAG + PythonOperator; operators moved to providers.standard in 3.x |
 
 ---
 
