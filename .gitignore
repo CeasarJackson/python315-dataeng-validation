@@ -54,3 +54,22 @@ sqlite_tests/*.db
 # SQLAlchemy test artifacts
 sqlalchemy_tests/logs/*.log
 sqlalchemy_tests/data/*
+# Logs — track directory structure but not log files
+logs/*.log
+logs/__main__.log
+
+# Build artifacts
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Virtual environment
+.venv/
+
+# Test databases
+sqlite_tests/*.db
+
+# Release archives (stored outside repo)
+*.zip
+*.tar.gz
