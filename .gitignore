@@ -46,15 +46,11 @@ dist/
 # DuckDB test artifacts
 duckdb_tests/data/*.parquet
 duckdb_tests/logs/*.log
+duckdb_tests/*.duckdb
 
 # SQLite test artifacts
 sqlite_tests/*.db
 
-# SQLite test databases
-sqlite_tests/*.db
-
-# DuckDB test databases
-duckdb_tests/*.duckdb
-
-# Generated parquet files
-duckdb_tests/data/*.parquet
+# SQLAlchemy test artifacts
+sqlalchemy_tests/logs/*.log
+sqlalchemy_tests/data/*
