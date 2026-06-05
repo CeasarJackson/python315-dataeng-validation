@@ -1,0 +1,93 @@
+{
+  "project": "Python 3.15 Data Engineering Validation Suite",
+  "release": "3.15.0rc1",
+  "release_type": "rc",
+  "test_date": "2026-06-05",
+  "platform": "macOS 26.5.1 ARM64",
+  "python_build": "cpython-3.15.0rc1-macos-aarch64-none",
+  "python_runtime": "3.15.0b2",
+  "package_manager": "uv",
+  "docker_image": "pyarrow-dataeng:py314",
+  "tester": "Dr. Ceasar Jackson Jr.",
+  "suite_version": "1.2.0",
+  "packages_tested": 17,
+  "packages_pass": 13,
+  "packages_incompat": 1,
+  "packages_skip": 1,
+  "packages_fail": 0,
+  "results": {
+    "numpy": {
+      "status": "PASS",
+      "version": "2.4.6"
+    },
+    "pandas": {
+      "status": "PASS",
+      "version": "3.0.3"
+    },
+    "polars": {
+      "status": "PASS",
+      "version": "1.41.2"
+    },
+    "duckdb": {
+      "status": "PASS",
+      "version": "1.5.3"
+    },
+    "sqlalchemy": {
+      "status": "PASS",
+      "version": "2.0.50"
+    },
+    "pydantic": {
+      "status": "PASS",
+      "version": "2.13.4"
+    },
+    "matplotlib": {
+      "status": "PASS",
+      "version": "3.10.9"
+    },
+    "plotly": {
+      "status": "PASS",
+      "version": "6.7.0"
+    },
+    "jupyterlab": {
+      "status": "PASS",
+      "version": "4.5.7"
+    },
+    "sqlite3": {
+      "status": "PASS",
+      "version": "3.53.1"
+    },
+    "pyarrow": {
+      "status": "BLOCKED",
+      "version": "unavailable",
+      "reason": "no cp315 wheels on PyPI; source build fails at CMake config"
+    },
+    "dask.dataframe": {
+      "status": "INCOMPAT",
+      "version": "2026.3.0",
+      "reason": "runtime pyarrow dep"
+    },
+    "prefect": {
+      "status": "PASS",
+      "version": "3.7.3"
+    },
+    "mlflow": {
+      "status": "PASS",
+      "version": "2.16.2"
+    },
+    "ray": {
+      "status": "BLOCKED",
+      "version": "unavailable",
+      "reason": "no cp315 wheels on PyPI"
+    },
+    "pyspark": {
+      "status": "PASS",
+      "version": "4.1.2",
+      "note": "via Docker py314 + OpenJDK 21"
+    },
+    "apache-airflow": {
+      "status": "SKIP",
+      "version": "not installed",
+      "reason": "deferred"
+    }
+  }
+}
