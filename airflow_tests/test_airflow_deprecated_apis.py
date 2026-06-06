@@ -1,4 +1,41 @@
-"""test_airflow_deprecated_apis.py — Airflow 3.x API change validation."""
+"""
+===============================================================================
+test_airflow_deprecated_apis.py — Airflow 3.x API change validation.
+===============================================================================
+Project : Python 3.15 Data Engineering Validation Suite
+Author  : Dr. Ceasar Jackson Jr.
+Path    : airflow_tests/test_airflow_deprecated_apis.py
+
+Purpose
+-------
+Validate Airflow compatibility, behavior, and regression safety under Python 3.15.
+
+Usage
+-----
+python -m pytest airflow_tests/test_airflow_deprecated_apis.py
+
+Validation
+----------
+python -m py_compile airflow_tests/test_airflow_deprecated_apis.py
+python -m ruff check airflow_tests/test_airflow_deprecated_apis.py
+python -m black --check airflow_tests/test_airflow_deprecated_apis.py
+python -m pytest airflow_tests/test_airflow_deprecated_apis.py
+
+Exit Codes
+----------
+0   Success.
+1   Failure or validation error.
+130 User interrupted execution.
+
+Operational Notes
+-----------------
+- Keep this script compatible with the active Python 3.15 validation environment.
+- Prefer deterministic inputs and explicit validation commands.
+- Preserve readable output suitable for terminal review and release notes.
+- Keep this header intact for portfolio, audit, and future-maintainer reference.
+
+===============================================================================
+"""
 
 import warnings
 import pytest

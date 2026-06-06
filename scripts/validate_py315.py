@@ -1,20 +1,41 @@
 #!/usr/bin/env python3
 """
+===============================================================================
 Python 3.15 sandbox validation script.
+===============================================================================
+Project : Python 3.15 Data Engineering Validation Suite
+Author  : Dr. Ceasar Jackson Jr.
+Path    : scripts/validate_py315.py
 
-Purpose:
-    Validate that the active interpreter is Python 3.15, confirm that the
-    executable comes from this project's virtual environment, and verify that
-    uv-managed packages import successfully.
+Purpose
+-------
+Run Python 3.15 validation checks for the project runtime and data-engineering stack.
 
-Usage:
-    cd ~/Projects/python315_test
-    source .venv/bin/activate
-    python test_py315.py
+Usage
+-----
+python scripts/validate_py315.py
 
-Notes:
-    This uv-created environment does not install pip by default. Use `uv pip`
-    for package management instead of `python -m pip`.
+Validation
+----------
+python -m py_compile scripts/validate_py315.py
+python -m ruff check scripts/validate_py315.py
+python -m black --check scripts/validate_py315.py
+python scripts/validate_py315.py
+
+Exit Codes
+----------
+0   Success.
+1   Failure or validation error.
+130 User interrupted execution.
+
+Operational Notes
+-----------------
+- Keep this script compatible with the active Python 3.15 validation environment.
+- Prefer deterministic inputs and explicit validation commands.
+- Preserve readable output suitable for terminal review and release notes.
+- Keep this header intact for portfolio, audit, and future-maintainer reference.
+
+===============================================================================
 """
 
 from __future__ import annotations

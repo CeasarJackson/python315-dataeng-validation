@@ -1,54 +1,40 @@
 """
+===============================================================================
 ================================================================================
-validate_stack.py — Phase 2: Data Engineering Lite Stack Validation
-================================================================================
-Project  : Python 3.15 Data Engineering Validation Suite
-Author   : Dr. Ceasar Jackson Jr.
-Platform : macOS 26.5 ARM64
-Manager  : uv
-================================================================================
+===============================================================================
+Project : Python 3.15 Data Engineering Validation Suite
+Author  : Dr. Ceasar Jackson Jr.
+Path    : scripts/validate_stack.py
 
-PURPOSE
+Purpose
 -------
-Validates the full data engineering lite stack under Python 3.15.  Goes beyond
-simple imports: each package is exercised with a representative smoke test to
-confirm runtime correctness, not just install completeness.
+Run Python 3.15 validation checks for the project runtime and data-engineering stack.
 
-WHAT IS TESTED
---------------
-  numpy   — Array creation, dtype inference, vectorized arithmetic
-  pandas  — DataFrame construction, groupby, CSV round-trip
-  polars  — LazyFrame construction, filter, collect
-  duckdb  — In-memory SQL: CREATE TABLE, INSERT, SELECT, aggregation
-  sqlalchemy — Engine creation, metadata reflection (SQLite in-memory)
-  pydantic   — Model definition, validation, .model_dump()
-  matplotlib — Figure creation, Axes, savefig (non-interactive Agg backend)
-  plotly     — go.Figure construction, .to_json() serialization
-  tqdm       — Progress bar iteration over a small list
-
-EXPECTED OUTCOME
-----------------
-  All checks [PASS] with exit code 0.
-  A timestamped log is written to logs/validate_stack.log.
-
-USAGE
+Usage
 -----
-  python scripts/validate_stack.py
+python scripts/validate_stack.py
 
-EXIT CODES
+Validation
 ----------
-  0 — All packages validated
-  1 — One or more packages failed import or smoke test
+python -m py_compile scripts/validate_stack.py
+python -m ruff check scripts/validate_stack.py
+python -m black --check scripts/validate_stack.py
+python scripts/validate_stack.py
 
-NOTES
------
-  - matplotlib is tested in non-interactive mode (Agg backend) to avoid
-    display requirements in headless CI environments.
-  - DuckDB tests use an in-memory database (:memory:) — no files are written.
-  - The SQLAlchemy test uses sqlite:// which requires only stdlib sqlite3.
-  - tqdm output is suppressed (file=open(os.devnull)) to keep log output clean;
-    only the timing result is logged.
-================================================================================
+Exit Codes
+----------
+0   Success.
+1   Failure or validation error.
+130 User interrupted execution.
+
+Operational Notes
+-----------------
+- Keep this script compatible with the active Python 3.15 validation environment.
+- Prefer deterministic inputs and explicit validation commands.
+- Preserve readable output suitable for terminal review and release notes.
+- Keep this header intact for portfolio, audit, and future-maintainer reference.
+
+===============================================================================
 """
 
 from __future__ import annotations

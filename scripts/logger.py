@@ -1,63 +1,39 @@
 """
+===============================================================================
 ================================================================================
-logger.py — Shared Colored Logging Module
-================================================================================
-Project  : Python 3.15 Data Engineering Validation Suite
-Author   : Dr. Ceasar Jackson Jr.
-Platform : macOS 26.5 ARM64
-Manager  : uv
-================================================================================
+===============================================================================
+Project : Python 3.15 Data Engineering Validation Suite
+Author  : Dr. Ceasar Jackson Jr.
+Path    : scripts/logger.py
 
-PURPOSE
+Purpose
 -------
-Provides a single, consistent logging configuration for all validation and
-benchmark scripts in this project. Each script calls `get_logger(__name__)` to
-receive a logger that writes:
+Provide shared colorized console and file logging helpers for validation scripts.
 
-  1. Colored output to the terminal (stdout) via `colorlog`.
-  2. Plain-text, timestamped entries to a rotating log file under logs/.
-
-TERMINAL COLOR SCHEME
----------------------
-  DEBUG    → Cyan        — Detailed internals, raw version strings
-  INFO     → Green       — Normal progress, [PASS] results
-  WARNING  → Yellow      — Soft failures, version mismatches, [SKIP]
-  ERROR    → Red         — Hard failures, import errors, exceptions
-  CRITICAL → Bold Red    — Fatal conditions requiring immediate attention
-
-LOG FILE FORMAT
----------------
-  YYYY-MM-DD HH:MM:SS | LEVEL    | module:lineno — message
-
-ROTATION POLICY
----------------
-  Max file size : 5 MB
-  Backup count  : 3  (logs/<name>.log, .log.1, .log.2, .log.3)
-
-USAGE
+Usage
 -----
-  from logger import get_logger
-  log = get_logger(__name__)
+Imported by validation and benchmark scripts.
 
-  log.debug("raw value: %s", value)
-  log.info("[PASS] numpy %s imported", numpy.__version__)
-  log.warning("[SKIP] pyarrow not available under Python 3.15 beta")
-  log.error("[FAIL] import failed: %s", exc)
-  log.critical("Fatal — cannot continue without virtual environment")
+Validation
+----------
+python -m py_compile scripts/logger.py
+python -m ruff check scripts/logger.py
+python -m black --check scripts/logger.py
 
-DEPENDENCIES
-------------
-  colorlog >= 6.0  (install: uv pip install colorlog)
+Exit Codes
+----------
+0   Success.
+1   Failure or validation error.
+130 User interrupted execution.
 
-NOTES
------
-  - The logs/ directory is created automatically relative to the project root,
-    which is inferred as two levels above this file (scripts/../).
-  - If colorlog is unavailable the module falls back to standard logging with
-    no colors. A WARNING is emitted to notify the operator.
-  - This module is intentionally dependency-light; it must import successfully
-    even before the full data engineering stack is installed.
-================================================================================
+Operational Notes
+-----------------
+- Keep this script compatible with the active Python 3.15 validation environment.
+- Prefer deterministic inputs and explicit validation commands.
+- Preserve readable output suitable for terminal review and release notes.
+- Keep this header intact for portfolio, audit, and future-maintainer reference.
+
+===============================================================================
 """
 
 from __future__ import annotations

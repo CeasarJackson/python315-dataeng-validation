@@ -1,53 +1,40 @@
 """
+===============================================================================
 ================================================================================
-validate_core.py — Phase 1: Python 3.15 Runtime & Tooling Validation
-================================================================================
-Project  : Python 3.15 Data Engineering Validation Suite
-Author   : Dr. Ceasar Jackson Jr.
-Platform : macOS 26.5 ARM64
-Manager  : uv
-================================================================================
+===============================================================================
+Project : Python 3.15 Data Engineering Validation Suite
+Author  : Dr. Ceasar Jackson Jr.
+Path    : scripts/validate_core.py
 
-PURPOSE
+Purpose
 -------
-Validates the foundational Python 3.15 environment before any data engineering
-packages are tested.  This script must pass cleanly before running any other
-validator in the suite.
+Run Python 3.15 validation checks for the project runtime and data-engineering stack.
 
-WHAT IS TESTED
---------------
-  1. Python version — asserts >= 3.15
-  2. Platform detection — confirms macOS ARM64 (darwin / arm64)
-  3. Virtual environment integrity — confirms .venv is active
-  4. uv availability — checks that uv is on PATH
-  5. Development tool imports:
-       pytest, ruff, black, mypy, rich, requests, packaging, wheel
-
-EXPECTED OUTCOME
-----------------
-  All checks [PASS] with exit code 0.
-  A timestamped log is written to logs/validate_core.log.
-
-USAGE
+Usage
 -----
-  python scripts/validate_core.py
+python scripts/validate_core.py
 
-  # With explicit verbosity (DEBUG level exposed to terminal)
-  LOG_LEVEL=DEBUG python scripts/validate_core.py
-
-EXIT CODES
+Validation
 ----------
-  0 — All checks passed
-  1 — One or more checks failed (see log for details)
+python -m py_compile scripts/validate_core.py
+python -m ruff check scripts/validate_core.py
+python -m black --check scripts/validate_core.py
+python scripts/validate_core.py
 
-NOTES
------
-  - This script intentionally has zero data engineering dependencies so it
-    can run immediately after environment creation.
-  - The uv check uses shutil.which(), which respects the current PATH.
-    If uv is installed but not on PATH, the check will warn rather than fail
-    hard, since the virtual environment itself is the critical dependency.
-================================================================================
+Exit Codes
+----------
+0   Success.
+1   Failure or validation error.
+130 User interrupted execution.
+
+Operational Notes
+-----------------
+- Keep this script compatible with the active Python 3.15 validation environment.
+- Prefer deterministic inputs and explicit validation commands.
+- Preserve readable output suitable for terminal review and release notes.
+- Keep this header intact for portfolio, audit, and future-maintainer reference.
+
+===============================================================================
 """
 
 from __future__ import annotations

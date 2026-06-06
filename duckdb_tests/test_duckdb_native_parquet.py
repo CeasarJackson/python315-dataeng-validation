@@ -1,4 +1,41 @@
-"""test_duckdb_native_parquet.py — DuckDB native Parquet I/O under Python 3.15."""
+"""
+===============================================================================
+test_duckdb_native_parquet.py — DuckDB native Parquet I/O under Python 3.15.
+===============================================================================
+Project : Python 3.15 Data Engineering Validation Suite
+Author  : Dr. Ceasar Jackson Jr.
+Path    : duckdb_tests/test_duckdb_native_parquet.py
+
+Purpose
+-------
+Validate Duckdb compatibility, behavior, and regression safety under Python 3.15.
+
+Usage
+-----
+python -m pytest duckdb_tests/test_duckdb_native_parquet.py
+
+Validation
+----------
+python -m py_compile duckdb_tests/test_duckdb_native_parquet.py
+python -m ruff check duckdb_tests/test_duckdb_native_parquet.py
+python -m black --check duckdb_tests/test_duckdb_native_parquet.py
+python -m pytest duckdb_tests/test_duckdb_native_parquet.py
+
+Exit Codes
+----------
+0   Success.
+1   Failure or validation error.
+130 User interrupted execution.
+
+Operational Notes
+-----------------
+- Keep this script compatible with the active Python 3.15 validation environment.
+- Prefer deterministic inputs and explicit validation commands.
+- Preserve readable output suitable for terminal review and release notes.
+- Keep this header intact for portfolio, audit, and future-maintainer reference.
+
+===============================================================================
+"""
 
 import duckdb
 import pathlib

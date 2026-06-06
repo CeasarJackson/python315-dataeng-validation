@@ -1,12 +1,40 @@
 #!/usr/bin/env python3
 """
+===============================================================================
 scripts/compare_reports.py
-===========================
-Diffs two report cycles and shows what changed between them.
+===============================================================================
+Project : Python 3.15 Data Engineering Validation Suite
+Author  : Dr. Ceasar Jackson Jr.
+Path    : scripts/compare_reports.py
 
-Usage:
-    python scripts/compare_reports.py 3.15.0b1 3.15.0b2
-    python scripts/compare_reports.py 3.15.0b2 3.15.0rc1 --format markdown
+Purpose
+-------
+Support Python 3.15 data-engineering validation workflows.
+
+Usage
+-----
+python scripts/compare_reports.py
+
+Validation
+----------
+python -m py_compile scripts/compare_reports.py
+python -m ruff check scripts/compare_reports.py
+python -m black --check scripts/compare_reports.py
+
+Exit Codes
+----------
+0   Success.
+1   Failure or validation error.
+130 User interrupted execution.
+
+Operational Notes
+-----------------
+- Keep this script compatible with the active Python 3.15 validation environment.
+- Prefer deterministic inputs and explicit validation commands.
+- Preserve readable output suitable for terminal review and release notes.
+- Keep this header intact for portfolio, audit, and future-maintainer reference.
+
+===============================================================================
 """
 
 import argparse

@@ -1,72 +1,40 @@
 """
+===============================================================================
 ================================================================================
-validate_extended.py — Phase 6: Extended Data Engineering Stack Validation
-================================================================================
-Project  : Python 3.15 Data Engineering Validation Suite
-Author   : Dr. Ceasar Jackson Jr.
-Platform : macOS 26.5 ARM64
-Manager  : uv
-================================================================================
+===============================================================================
+Project : Python 3.15 Data Engineering Validation Suite
+Author  : Dr. Ceasar Jackson Jr.
+Path    : scripts/validate_extended.py
 
-PURPOSE
+Purpose
 -------
-Tests compatibility of the broader data engineering ecosystem with Python 3.15
-beta.  Unlike Phase 2 (core stack), many packages here are expected to be
-partially or fully incompatible.  The goal is to *document* the compatibility
-landscape, not to achieve 100% pass rates.
+Run Python 3.15 validation checks for the project runtime and data-engineering stack.
 
-Each test is designed to SKIP gracefully when a package is not installed
-rather than ERROR, so the overall suite remains runnable on a minimal
-environment.
-
-PACKAGES TESTED
----------------
-  Distributed computation:
-    pyspark      — SparkSession creation (local mode)
-    dask         — dask.dataframe.from_pandas() + compute()
-    ray          — ray.init() + remote function
-
-  Delta Lake / table formats:
-    delta        — DeltaTable read/write on a temp path
-
-  ML lifecycle:
-    mlflow       — mlflow.set_tracking_uri() + create_experiment()
-
-  Orchestration:
-    prefect      — Flow definition and local execution
-    apache-airflow — DAG import and instantiation (no scheduler required)
-
-RESULT CODES
-------------
-  [PASS]  — Package imported and smoke test completed without error
-  [WARN]  — Package imported but produced deprecation warnings or partial failures
-  [SKIP]  — Package not installed; not yet tested
-  [FAIL]  — Package installed but import or smoke test raised an exception
-  [INCOMPAT] — Known incompatibility with Python 3.15 beta documented
-
-EXPECTED OUTCOME
-----------------
-  Many [SKIP] and [INCOMPAT] results are expected at this stage.
-  A timestamped log is written to logs/validate_extended.log.
-
-USAGE
+Usage
 -----
-  python scripts/validate_extended.py
+python scripts/validate_extended.py
 
-EXIT CODES
+Validation
 ----------
-  0 — All installed packages passed (SKIPs are not failures)
-  1 — Any installed package failed or is known incompatible
+python -m py_compile scripts/validate_extended.py
+python -m ruff check scripts/validate_extended.py
+python -m black --check scripts/validate_extended.py
+python scripts/validate_extended.py
 
-NOTES
------
-  - PySpark requires JAVA_HOME to be set.  The check tests for this and
-    emits a [SKIP] if Java is not detected, rather than hanging on JVM init.
-  - Ray spawns worker processes; these are shut down cleanly via ray.shutdown().
-  - Prefect and Airflow DAG tests use purely local in-process execution —
-    no scheduler, broker, or database is required.
-  - All temp files (Delta Lake) are written to /tmp and cleaned up on exit.
-================================================================================
+Exit Codes
+----------
+0   Success.
+1   Failure or validation error.
+130 User interrupted execution.
+
+Operational Notes
+-----------------
+- Keep this script compatible with the active Python 3.15 validation environment.
+- Prefer deterministic inputs and explicit validation commands.
+- Preserve readable output suitable for terminal review and release notes.
+- Keep this header intact for portfolio, audit, and future-maintainer reference.
+
+===============================================================================
 """
 
 from __future__ import annotations
