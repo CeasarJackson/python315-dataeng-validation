@@ -72,6 +72,7 @@ NOTES
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import os
 import shutil
 import sys
@@ -103,6 +104,7 @@ INCOMPAT = "INCOMPAT"
 # Helper: safe import check
 # ---------------------------------------------------------------------------
 
+
 def _is_installed(package: str) -> bool:
     """Return True if *package* can be found in the current environment."""
     spec = importlib.util.find_spec(package)
@@ -112,6 +114,7 @@ def _is_installed(package: str) -> bool:
 # ---------------------------------------------------------------------------
 # Individual package tests
 # ---------------------------------------------------------------------------
+
 
 def test_pyspark() -> str:
     """Test PySpark via the pyarrow-dataeng:py314 Docker container.
@@ -130,21 +133,23 @@ def test_pyspark() -> str:
 
     Skips gracefully if Docker is unavailable or the image is not built.
     """
-    import subprocess  # noqa: PLC0415
     import json as _json  # noqa: PLC0415
+    import subprocess  # noqa: PLC0415
 
     DOCKER_IMAGE = "pyarrow-dataeng:py314"
 
     try:
         check = subprocess.run(
             ["docker", "image", "inspect", DOCKER_IMAGE],
-            capture_output=True, timeout=10,
+            capture_output=True,
+            timeout=10,
         )
         if check.returncode != 0:
             log.warning(
                 "[SKIP] pyspark — Docker image %s not found. "
                 "Build with: cd docker_pyarrow_lab && docker build -t %s .",
-                DOCKER_IMAGE, DOCKER_IMAGE,
+                DOCKER_IMAGE,
+                DOCKER_IMAGE,
             )
             return SKIP
     except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
@@ -197,24 +202,35 @@ except Exception as exc:
     try:
         result = subprocess.run(
             ["docker", "run", "--rm", "--interactive", DOCKER_IMAGE, "python3", "-"],
-            input=spark_script, capture_output=True, text=True, timeout=120,
+            input=spark_script,
+            capture_output=True,
+            text=True,
+            timeout=120,
         )
         if result.returncode != 0:
-            log.error("[FAIL] pyspark — container exited %d: %s",
-                      result.returncode, result.stderr[:500])
+            log.error(
+                "[FAIL] pyspark — container exited %d: %s",
+                result.returncode,
+                result.stderr[:500],
+            )
             return FAIL
         lines = [l for l in result.stdout.strip().splitlines() if l.strip()]
         if not lines:
-            log.error("[FAIL] pyspark — no output from container: %s", result.stderr[:400])
+            log.error(
+                "[FAIL] pyspark — no output from container: %s", result.stderr[:400]
+            )
             return FAIL
         payload = _json.loads(lines[-1])
         if payload.get("status") == "pass":
             log.info(
                 "[PASS] pyspark %s (Python %s in Docker py314) — "
                 "rows=%d  agg_groups=%d  filtered=%d  sql_products=%d",
-                payload["pyspark_version"], payload["python_version"],
-                payload["rows"], payload["agg_groups"],
-                payload["filtered"], payload["sql_products"],
+                payload["pyspark_version"],
+                payload["python_version"],
+                payload["rows"],
+                payload["agg_groups"],
+                payload["filtered"],
+                payload["sql_products"],
             )
             return PASS
         else:
@@ -238,21 +254,33 @@ def test_dask() -> str:
         return SKIP
 
     import dask  # noqa: PLC0415
-    log.info("[INFO] dask %s — checking dask.dataframe availability...", dask.__version__)
+
+    log.info(
+        "[INFO] dask %s — checking dask.dataframe availability...", dask.__version__
+    )
     try:
         import dask.dataframe as dd  # noqa: PLC0415
         import pandas as pd  # noqa: PLC0415
+
         pdf = pd.DataFrame({"x": range(10_000), "y": range(10_000, 20_000)})
         ddf = dd.from_pandas(pdf, npartitions=4)
         result = ddf.groupby("x")["y"].sum().compute()
         assert len(result) == 10_000
-        log.info("[PASS] dask %s — from_pandas + groupby + compute OK (%d rows)", dask.__version__, len(result))
+        log.info(
+            "[PASS] dask %s — from_pandas + groupby + compute OK (%d rows)",
+            dask.__version__,
+            len(result),
+        )
         return PASS
     except ImportError as exc:
         if "pyarrow" in str(exc):
-            log.warning("[INCOMPAT] dask %s — dask.dataframe requires pyarrow at runtime. "
-                        "No cp315 wheels for pyarrow under Python 3.15 beta. "
-                        "dask.array/dask.bag remain functional. Blocker: %s", dask.__version__, exc)
+            log.warning(
+                "[INCOMPAT] dask %s — dask.dataframe requires pyarrow at runtime. "
+                "No cp315 wheels for pyarrow under Python 3.15 beta. "
+                "dask.array/dask.bag remain functional. Blocker: %s",
+                dask.__version__,
+                exc,
+            )
             return INCOMPAT
         log.error("[FAIL] dask — unexpected ImportError: %s", exc)
         return FAIL
@@ -269,17 +297,18 @@ def test_ray() -> str:
 
     try:
         import ray  # noqa: PLC0415
+
         log.info("[INFO] ray %s — initializing local cluster...", ray.__version__)
 
         ray.init(num_cpus=2, ignore_reinit_error=True, logging_level="error")
 
         @ray.remote
         def square(x: float) -> float:
-            return x ** 2
+            return x**2
 
         futures = [square.remote(i) for i in range(10)]
         results = ray.get(futures)
-        assert results == [i ** 2 for i in range(10)]
+        assert results == [i**2 for i in range(10)]
         ray.shutdown()
 
         log.info("[PASS] ray %s — remote function + ray.get() OK", ray.__version__)
@@ -298,6 +327,7 @@ def test_delta() -> str:
     try:
         import deltalake  # noqa: PLC0415
         import pyarrow as pa  # noqa: PLC0415  — deltalake requires pyarrow
+
         log.info("[INFO] deltalake %s — testing write + read...", deltalake.__version__)
 
         tmp_dir = tempfile.mkdtemp(prefix="py315_delta_")
@@ -318,7 +348,8 @@ def test_delta() -> str:
         # Most likely pyarrow is not installed (Python 3.15 blocker)
         log.warning(
             "[INCOMPAT] deltalake requires pyarrow, which is not available "
-            "under Python 3.15 beta: %s", exc
+            "under Python 3.15 beta: %s",
+            exc,
         )
         return INCOMPAT
     except Exception as exc:  # noqa: BLE001
@@ -334,7 +365,10 @@ def test_mlflow() -> str:
 
     try:
         import mlflow  # noqa: PLC0415
-        log.info("[INFO] mlflow %s — testing experiment creation...", mlflow.__version__)
+
+        log.info(
+            "[INFO] mlflow %s — testing experiment creation...", mlflow.__version__
+        )
 
         tmp_dir = tempfile.mkdtemp(prefix="py315_mlflow_")
         try:
@@ -348,12 +382,18 @@ def test_mlflow() -> str:
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
-        log.info("[PASS] mlflow %s — experiment + run + log_param/metric OK", mlflow.__version__)
+        log.info(
+            "[PASS] mlflow %s — experiment + run + log_param/metric OK",
+            mlflow.__version__,
+        )
         return PASS
     except ImportError as exc:
-        log.warning("[INCOMPAT] mlflow — incomplete install due to pyarrow hard dependency "
-                    "under Python 3.15 beta. Missing transitive dep: %s. "
-                    "Install mlflow normally once pyarrow cp315 wheels are published.", exc)
+        log.warning(
+            "[INCOMPAT] mlflow — incomplete install due to pyarrow hard dependency "
+            "under Python 3.15 beta. Missing transitive dep: %s. "
+            "Install mlflow normally once pyarrow cp315 wheels are published.",
+            exc,
+        )
         return INCOMPAT
     except Exception as exc:  # noqa: BLE001
         log.error("[FAIL] mlflow — %s", exc)
@@ -369,6 +409,7 @@ def test_prefect() -> str:
     try:
         import prefect  # noqa: PLC0415
         from prefect import flow, task  # noqa: PLC0415
+
         log.info("[INFO] prefect %s — testing flow execution...", prefect.__version__)
 
         @task
@@ -387,14 +428,21 @@ def test_prefect() -> str:
         result = smoke_pipeline()
         assert result == sum(range(100)), f"Expected {sum(range(100))}, got {result}"
 
-        log.info("[PASS] prefect %s — @flow + @task execution OK (result=%d)", prefect.__version__, result)
+        log.info(
+            "[PASS] prefect %s — @flow + @task execution OK (result=%d)",
+            prefect.__version__,
+            result,
+        )
         return PASS
     except ImportError as exc:
         if "no_type_check_decorator" in str(exc):
-            log.warning("[INCOMPAT] prefect — typing.no_type_check_decorator was removed "
-                        "in Python 3.15 (deprecated since 3.13). Prefect 3.7.x references "
-                        "this symbol at import time. Track https://github.com/PrefectHQ/prefect "
-                        "for a Python 3.15 fix. Error: %s", exc)
+            log.warning(
+                "[INCOMPAT] prefect — typing.no_type_check_decorator was removed "
+                "in Python 3.15 (deprecated since 3.13). Prefect 3.7.x references "
+                "this symbol at import time. Track https://github.com/PrefectHQ/prefect "
+                "for a Python 3.15 fix. Error: %s",
+                exc,
+            )
             return INCOMPAT
         log.error("[FAIL] prefect — unexpected ImportError: %s", exc)
         return FAIL
@@ -419,10 +467,13 @@ def test_airflow() -> str:
         tmp_home = tempfile.mkdtemp(prefix="py315_airflow_")
         os.environ.setdefault("AIRFLOW_HOME", tmp_home)
 
+        from datetime import datetime  # noqa: PLC0415
+
         import airflow  # noqa: PLC0415
         from airflow import DAG  # noqa: PLC0415
-        from airflow.operators.python import PythonOperator  # noqa: PLC0415
-        from datetime import datetime  # noqa: PLC0415
+        from airflow.providers.standard.operators.python import (
+            PythonOperator,  # noqa: PLC0415
+        )
 
         log.info("[INFO] airflow %s — testing DAG construction...", airflow.__version__)
 
@@ -447,7 +498,8 @@ def test_airflow() -> str:
 
         log.info(
             "[PASS] airflow %s — DAG construction + task dependency OK (%d tasks)",
-            airflow.__version__, len(dag.tasks),
+            airflow.__version__,
+            len(dag.tasks),
         )
         return PASS
     except Exception as exc:  # noqa: BLE001
@@ -459,6 +511,7 @@ def test_airflow() -> str:
 # Main runner
 # ---------------------------------------------------------------------------
 
+
 def main() -> int:
     log.info("=" * 70)
     log.info("Phase 6 — Extended Data Engineering Stack Validation")
@@ -468,13 +521,13 @@ def main() -> int:
     log.info("=" * 70)
 
     checks: list[tuple[str, Callable[[], str]]] = [
-        ("PySpark",         test_pyspark),
-        ("Dask",            test_dask),
-        ("Ray",             test_ray),
-        ("Delta Lake",      test_delta),
-        ("MLflow",          test_mlflow),
-        ("Prefect",         test_prefect),
-        ("Apache Airflow",  test_airflow),
+        ("PySpark", test_pyspark),
+        ("Dask", test_dask),
+        ("Ray", test_ray),
+        ("Delta Lake", test_delta),
+        ("MLflow", test_mlflow),
+        ("Prefect", test_prefect),
+        ("Apache Airflow", test_airflow),
     ]
 
     results: dict[str, str] = {}
@@ -503,17 +556,33 @@ def main() -> int:
     log.info("-" * 70)
     log.info(
         "Results — PASS: %d  WARN: %d  SKIP: %d  FAIL: %d  INCOMPAT: %d",
-        counts[PASS], counts[WARN], counts[SKIP], counts[FAIL], counts[INCOMPAT],
+        counts[PASS],
+        counts[WARN],
+        counts[SKIP],
+        counts[FAIL],
+        counts[INCOMPAT],
     )
 
-    # Only installed-and-failed packages constitute a true failure
-    hard_failures = counts[FAIL] + counts[INCOMPAT]
+    # Only true FAIL results should produce a non-zero exit code.
+    # INCOMPAT results represent documented upstream ecosystem issues
+    # and should not fail the validation suite.
+    hard_failures = counts[FAIL]
+
+    if counts[INCOMPAT]:
+        log.warning(
+            "%d package(s) are currently incompatible with Python 3.15.",
+            counts[INCOMPAT],
+        )
+
     if hard_failures == 0:
-        log.info("No hard failures.  Extended stack validation complete.")
+        log.info("No hard failures. Extended stack validation complete.")
         return 0
-    else:
-        log.error("%d package(s) failed or are incompatible — see details above.", hard_failures)
-        return 1
+
+    log.error(
+        "%d package(s) failed validation.",
+        hard_failures,
+    )
+    return 1
 
 
 if __name__ == "__main__":
