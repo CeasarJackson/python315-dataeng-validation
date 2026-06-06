@@ -24,7 +24,7 @@ against the data engineering validation suite.
 3.15.0b1  75%  •  baseline — 4 INCOMPAT, 0 BLOCKED classified
 3.15.0b2  85%  •  prefect PASS, mlflow PASS, pyarrow/ray reclassified BLOCKED
 3.15.0rc1 85%  •  no changes from b2
-3.15.0rc2 85%  •  no changes from rc1
+3.15.0rc2 85%  •  Prefect probe corrected; PASS=14 FAIL=0 INCOMPAT=1 BLOCKED=2
 ```
 
 The remaining 15% gap to 100%: PyArrow cp315 wheels (upstream blocked).

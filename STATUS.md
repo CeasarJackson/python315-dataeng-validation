@@ -1,7 +1,7 @@
 # Project Status
 
-**Version:** 1.3.0
-**Status:** ACTIVE — RC Validation Complete
+**Version:** 1.4.0
+**Status:** ACTIVE — Pre-GA Baseline Complete
 **Production Readiness:** 85%
 **Last Updated:** June 2026
 
@@ -22,7 +22,7 @@
 | 9 | Per-Library Test Suites | ✅ Complete |
 | 10 | Versioned Report System | ✅ Complete |
 | 11 | RC Validation (rc1, rc2) | ✅ Complete |
-| 12 | Airflow Validation | 🚧 In Progress |
+| 12 | Airflow Validation | ✅ Complete |
 | 13 | PyArrow cp315 Retesting | ⏳ Waiting — upstream |
 | 14 | GA Assessment | ⏳ Waiting — Python 3.15 GA |
 
@@ -48,7 +48,7 @@
 | 3.15.0b1 | 2026-06-04 | 75% | Baseline |
 | 3.15.0b2 | 2026-06-05 | 85% | Prefect + MLflow PASS |
 | 3.15.0rc1 | 2026-06-05 | 85% | No regressions |
-| 3.15.0rc2 | 2026-06-05 | 85% | No regressions |
+| 3.15.0rc2 | 2026-06-05 | 85% | Prefect probe corrected; final pre-GA baseline |
 
 ---
 
@@ -79,14 +79,14 @@ Heavy optional install deferred from v1.0.0. Validation in progress for v1.3.0.
 | SQLAlchemy | `sqlalchemy_tests/` | ✅ PASS |
 | SQLite | `sqlite_tests/` | ✅ PASS |
 | PyArrow | `pyarrow_tests/` | 🚫 BLOCKED |
-| Airflow | `airflow_tests/` | 🚧 Planned |
+| Airflow | `airflow_tests/` | ✅ PASS |
 
 ---
 
 ## Next Milestones
 
-- **v1.3.0** — Airflow validation (in progress)
-- **v1.4.0** — PyArrow cp315 retesting when wheels publish
+- **v1.5.0** — benchmark_summary.md for all cycles; run_all_validations.sh
+- **v2.0.0** — Python 3.15 GA assessment (waiting on PyArrow cp315 wheels)
 - **v2.0.0** — Python 3.15 GA production assessment
 
 ---
