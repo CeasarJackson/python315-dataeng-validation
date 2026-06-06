@@ -12,9 +12,9 @@
 | Metric | Value |
 |--------|-------|
 | Packages Tested | 17 |
-| PASS | 14 |
-| INCOMPAT | 1 |
-| SKIP | 0 |
+| PASS | 12 |
+| INCOMPAT | 2 |
+| SKIP | 1 |
 | FAIL | 0 |
 
 ---
@@ -38,11 +38,11 @@
 
 | Package | Version | Result | Notes |
 |---------|---------|--------|-------|
-| pyspark | 4.1.2 | ✅ PASS | via Docker py314 + OpenJDK 21 |
+| pyspark | unknown | ⏭️ SKIP | Docker image not available |
 | dask.dataframe | 2026.3.0 | ⚠️ INCOMPAT | runtime pyarrow dep |
 | pyarrow | unavailable | 🚫 BLOCKED | no cp315 wheels on PyPI; source build fails at CMake config |
 | mlflow | 2.16.2 | ✅ PASS |  |
-| prefect | 3.7.3 | ✅ PASS |  |
+| prefect | 3.7.3 | ⚠️ INCOMPAT | typing.no_type_check_decorator removed in Python 3.15 |
 | ray | unavailable | 🚫 BLOCKED | no cp315 wheels on PyPI |
 | apache-airflow | 3.2.2 | ✅ PASS | DAG + PythonOperator; operators moved to providers.standard in 3.x |
 
