@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+import os
 import importlib.metadata
 import json
 import platform
@@ -65,7 +66,7 @@ def check_docker_image(image="pyarrow-dataeng:py314"):
     return rc == 0
 
 
-def collect_results():
+def collect_results(docker_image="pyarrow-dataeng:py314"):
     """Run quick import probes for all tracked packages."""
     print("  Probing core stack...")
 
@@ -192,7 +193,7 @@ def collect_results():
         print("    ray: BLOCKED (no cp315 wheels)")
 
     # pyspark via docker — uses file mount to avoid stdin hang
-    if check_docker_image():
+    if check_docker_image(docker_image):
         print("  Testing PySpark via Docker...")
         import os as _os
         import tempfile
@@ -224,7 +225,7 @@ def collect_results():
                     "--rm",
                     "-v",
                     f"{_tmp}:/tmp/spark_probe.py:ro",
-                    "pyarrow-dataeng:py314",
+                    docker_image,
                     "python3",
                     "/tmp/spark_probe.py",
                 ],
@@ -323,7 +324,7 @@ def write_manifest(release_dir, release, results, counts):
         "python_build": f"cpython-{release}-macos-aarch64-none",
         "python_runtime": py_ver,
         "package_manager": "uv",
-        "docker_image": "pyarrow-dataeng:py314",
+        "docker_image": args.docker_image,
         "tester": "Dr. Ceasar Jackson Jr.",
         "suite_version": "1.2.0",
         "packages_tested": sum(counts.values()),
@@ -452,6 +453,14 @@ def main():
     parser.add_argument(
         "--dry-run", action="store_true", help="Print results without writing"
     )
+    parser.add_argument(
+        "--docker-image",
+        default=os.environ.get("DATAENG_DOCKER_IMAGE", "pyarrow-dataeng:py314"),
+        help=(
+            "Docker image for PySpark/PyArrow isolation "
+            "(default: pyarrow-dataeng:py314, or DATAENG_DOCKER_IMAGE env var)"
+        ),
+    )
     args = parser.parse_args()
 
     release = args.release
@@ -462,7 +471,7 @@ def main():
     print(f"Output: {release_dir}")
     print("=" * 60)
 
-    results = collect_results()
+    results = collect_results(docker_image=args.docker_image)
     counts = tally(results)
 
     print(
