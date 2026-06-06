@@ -76,6 +76,15 @@ python315_test/
 ├── pyarrow_tests/                             # PyArrow validation suite (blocked — no cp315 wheels)
 │   ├── data/
 │   └── logs/
+├── airflow_tests/                             # Airflow 3.x per-library validation suite
+│   ├── test_airflow_version.py
+│   ├── test_airflow_dag.py
+│   ├── test_airflow_models.py
+│   ├── test_airflow_deprecated_apis.py
+│   ├── benchmark_airflow.py
+│   ├── run_airflow_validation.sh
+│   ├── data/
+│   └── logs/
 ├── logs/                                      # Execution logs and failure reports
 │   ├── validate_core.log
 │   ├── validate_stack.log
