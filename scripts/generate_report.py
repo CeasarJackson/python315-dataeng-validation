@@ -131,10 +131,14 @@ def collect_results():
 
     # prefect — real import test (version heuristic was unreliable)
     try:
-        from prefect import flow, task
+        from prefect import flow
+
         prefect_ver = get_version("prefect")
+
         @flow
-        def _probe_flow(): return "ok"
+        def _probe_flow():
+            return "ok"
+
         results["prefect"] = {"status": "PASS", "version": prefect_ver}
         print(f"    prefect: PASS ({prefect_ver})")
     except ImportError as e:
@@ -142,7 +146,7 @@ def collect_results():
             results["prefect"] = {
                 "status": "INCOMPAT",
                 "version": get_version("prefect"),
-                "reason": "typing.no_type_check_decorator removed in Python 3.15"
+                "reason": "typing.no_type_check_decorator removed in Python 3.15",
             }
             print("    prefect: INCOMPAT (stdlib change)")
         else:
@@ -152,7 +156,7 @@ def collect_results():
         results["prefect"] = {
             "status": "INCOMPAT",
             "version": get_version("prefect"),
-            "reason": str(e)
+            "reason": str(e),
         }
         print(f"    prefect: INCOMPAT ({e})")
     # mlflow
@@ -234,7 +238,9 @@ def collect_results():
         finally:
             _os.unlink(_tmp)
         try:
-            payload = json.loads([l for l in out.splitlines() if l.strip()][-1])
+            payload = json.loads(
+                [line for line in out.splitlines() if line.strip()][-1]
+            )
             if rc == 0 and payload.get("status") == "pass":
                 results["pyspark"] = {
                     "status": "PASS",
@@ -385,6 +391,7 @@ def write_compat_report(release_dir, release, results, counts):
         f"| Packages Tested | {sum(counts.values())} |",
         f"| PASS | {counts['PASS']} |",
         f"| INCOMPAT | {counts['INCOMPAT']} |",
+        f"| BLOCKED | {counts.get('BLOCKED', 0)} |",
         f"| SKIP | {counts['SKIP']} |",
         f"| FAIL | {counts['FAIL']} |",
         "",
@@ -460,7 +467,8 @@ def main():
 
     print(
         f"\nResults: PASS={counts['PASS']}  FAIL={counts['FAIL']}  "
-        f"INCOMPAT={counts['INCOMPAT']}  SKIP={counts['SKIP']}"
+        f"INCOMPAT={counts['INCOMPAT']}  BLOCKED={counts.get('BLOCKED', 0)}  "
+        f"SKIP={counts['SKIP']}"
     )
 
     if args.dry_run:
