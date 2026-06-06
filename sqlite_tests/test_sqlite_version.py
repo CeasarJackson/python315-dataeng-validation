@@ -1,4 +1,5 @@
 """test_sqlite_version.py — SQLite version and import validation."""
+
 import sqlite3
 
 

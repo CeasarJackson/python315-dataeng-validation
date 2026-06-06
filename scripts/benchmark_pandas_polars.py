@@ -1,61 +1,40 @@
 """
-================================================================================
-benchmark_pandas_polars.py — Benchmark: Pandas vs. Polars
-================================================================================
-Project  : Python 3.15 Data Engineering Validation Suite
-Author   : Dr. Ceasar Jackson Jr.
-Platform : macOS 26.5 ARM64
-Manager  : uv
-================================================================================
+===============================================================================
+Python 3.15 Data Engineering Validation Suite
+===============================================================================
 
-PURPOSE
--------
-Measures and compares execution time for equivalent analytical operations
-performed in Pandas and Polars across three dataset sizes.  Results are logged
-to the terminal (colored) and saved as a CSV to data/benchmark_pandas_polars.csv
-for archiving and later visualization.
+Script:
+    benchmark_pandas_polars.py
 
-BENCHMARK OPERATIONS
---------------------
-  1. DataFrame creation from Python lists
-  2. Filter  — select rows matching a condition
-  3. GroupBy — aggregate sum and mean by a categorical column
-  4. Sort    — order by a numeric column, descending
-  5. Join    — inner join of two tables on a key column
+Author:
+    Dr. Ceasar Jackson Jr.
 
-DATASET SIZES
--------------
-  Small  :   100,000 rows
-  Medium : 1,000,000 rows
-  Large  : 5,000,000 rows
+Project:
+    Python 3.15 Data Engineering Validation Suite
 
-Note: "Large" may take 30–60 seconds on first run depending on available
-memory.  Reduce SIZES below if memory is constrained.
+Purpose:
+    Benchmark Pandas versus Polars performance under Python 3.15.
 
-OUTPUT
-------
-  Terminal : Colored timing table via logger
-  CSV      : data/benchmark_pandas_polars.csv
-             Columns: size, operation, pandas_s, polars_s, speedup_x
+Usage:
+    python scripts/benchmark_pandas_polars.py
 
-INTERPRETATION
---------------
-  speedup_x > 1.0  → Polars is faster than Pandas for that operation/size
-  speedup_x < 1.0  → Pandas is faster (rare, usually small-dataset overhead)
+Validation:
+    python -m py_compile scripts/benchmark_pandas_polars.py
+    python -m ruff check scripts/benchmark_pandas_polars.py
+    python -m black --check scripts/benchmark_pandas_polars.py
+    python scripts/benchmark_pandas_polars.py
 
-USAGE
------
-  python scripts/benchmark_pandas_polars.py
+Exit Codes:
+    0 = Success
+    1 = Failure
+    130 = User interrupted
 
-NOTES
------
-  - Each benchmark is run RUNS=3 times; the median is reported to reduce
-    noise from JIT warm-up (Polars) and GC pauses (both).
-  - Polars LazyFrame API is used where applicable for a fair comparison
-    against Pandas' standard eager API.
-  - Results depend heavily on available RAM and CPU cores.  Record the
-    hardware spec alongside benchmark results for reproducibility.
-================================================================================
+Logging:
+    - Colorized console output
+    - File logging through logger.py
+    - Timestamped benchmark results
+
+===============================================================================
 """
 
 from __future__ import annotations
@@ -84,21 +63,24 @@ SIZES: list[int] = [100_000, 1_000_000, 5_000_000]
 RUNS: int = 3  # Median over this many runs per operation
 
 CATEGORIES = ["alpha", "beta", "gamma", "delta", "epsilon"]
-OUTPUT_CSV = Path(__file__).resolve().parent.parent / "data" / "benchmark_pandas_polars.csv"
+OUTPUT_CSV = (
+    Path(__file__).resolve().parent.parent / "data" / "benchmark_pandas_polars.csv"
+)
 
 
 # ---------------------------------------------------------------------------
 # Data generation
 # ---------------------------------------------------------------------------
 
+
 def generate_data(n: int) -> dict[str, list]:
     """Generate a reproducible synthetic dataset of n rows."""
     rng = random.Random(42)
     return {
-        "id":       list(range(n)),
+        "id": list(range(n)),
         "category": [rng.choice(CATEGORIES) for _ in range(n)],
-        "value_a":  [rng.uniform(0, 1000) for _ in range(n)],
-        "value_b":  [rng.uniform(0, 500)  for _ in range(n)],
+        "value_a": [rng.uniform(0, 1000) for _ in range(n)],
+        "value_b": [rng.uniform(0, 500) for _ in range(n)],
         "join_key": [rng.randint(0, n // 10) for _ in range(n)],
     }
 
@@ -108,13 +90,14 @@ def generate_lookup(n: int) -> dict[str, list]:
     keys = list(range(n // 10 + 1))
     return {
         "join_key": keys,
-        "label":    [f"label_{k}" for k in keys],
+        "label": [f"label_{k}" for k in keys],
     }
 
 
 # ---------------------------------------------------------------------------
 # Timer helper
 # ---------------------------------------------------------------------------
+
 
 def timed(fn: Callable, runs: int = RUNS) -> float:
     """Run *fn* *runs* times and return the median elapsed time in seconds."""
@@ -129,6 +112,7 @@ def timed(fn: Callable, runs: int = RUNS) -> float:
 # ---------------------------------------------------------------------------
 # Pandas benchmarks
 # ---------------------------------------------------------------------------
+
 
 def bench_pandas(data: dict, lookup: dict) -> dict[str, float]:
     """Run all operations in Pandas and return timing dict."""
@@ -149,10 +133,12 @@ def bench_pandas(data: dict, lookup: dict) -> dict[str, float]:
 
     # 3. GroupBy
     results["groupby"] = timed(
-        lambda: df.groupby("category").agg(
+        lambda: df.groupby("category")
+        .agg(
             sum_a=("value_a", "sum"),
             mean_b=("value_b", "mean"),
-        ).reset_index()
+        )
+        .reset_index()
     )
 
     # 4. Sort
@@ -167,6 +153,7 @@ def bench_pandas(data: dict, lookup: dict) -> dict[str, float]:
 # ---------------------------------------------------------------------------
 # Polars benchmarks
 # ---------------------------------------------------------------------------
+
 
 def bench_polars(data: dict, lookup: dict) -> dict[str, float]:
     """Run all operations in Polars (LazyFrame where applicable) and return timing dict."""
@@ -189,10 +176,13 @@ def bench_polars(data: dict, lookup: dict) -> dict[str, float]:
 
     # 3. GroupBy (LazyFrame)
     results["groupby"] = timed(
-        lambda: df.lazy().group_by("category").agg(
+        lambda: df.lazy()
+        .group_by("category")
+        .agg(
             pl.col("value_a").sum().alias("sum_a"),
             pl.col("value_b").mean().alias("mean_b"),
-        ).collect()
+        )
+        .collect()
     )
 
     # 4. Sort (LazyFrame)
@@ -211,6 +201,7 @@ def bench_polars(data: dict, lookup: dict) -> dict[str, float]:
 # ---------------------------------------------------------------------------
 # Main runner
 # ---------------------------------------------------------------------------
+
 
 def main() -> int:
     log.info("=" * 70)
@@ -245,7 +236,10 @@ def main() -> int:
         log.info("")
         log.info(
             "  %-12s  %10s  %10s  %10s",
-            "Operation", "Pandas (s)", "Polars (s)", "Speedup"
+            "Operation",
+            "Pandas (s)",
+            "Polars (s)",
+            "Speedup",
         )
         log.info("  " + "-" * 48)
 
@@ -255,26 +249,42 @@ def main() -> int:
             speedup = pd_t / pl_t if pl_t > 0 else float("inf")
 
             if speedup >= 1.5:
-                log.info("  %-12s  %10.4f  %10.4f  %8.2fx  ← Polars faster", op, pd_t, pl_t, speedup)
+                log.info(
+                    "  %-12s  %10.4f  %10.4f  %8.2fx  ← Polars faster",
+                    op,
+                    pd_t,
+                    pl_t,
+                    speedup,
+                )
             elif speedup <= 0.7:
-                log.warning("  %-12s  %10.4f  %10.4f  %8.2fx  ← Pandas faster", op, pd_t, pl_t, speedup)
+                log.warning(
+                    "  %-12s  %10.4f  %10.4f  %8.2fx  ← Pandas faster",
+                    op,
+                    pd_t,
+                    pl_t,
+                    speedup,
+                )
             else:
                 log.info("  %-12s  %10.4f  %10.4f  %8.2fx", op, pd_t, pl_t, speedup)
 
-            all_rows.append({
-                "size":       size,
-                "operation":  op,
-                "pandas_s":   round(pd_t, 6),
-                "polars_s":   round(pl_t, 6),
-                "speedup_x":  round(speedup, 3),
-            })
+            all_rows.append(
+                {
+                    "size": size,
+                    "operation": op,
+                    "pandas_s": round(pd_t, 6),
+                    "polars_s": round(pl_t, 6),
+                    "speedup_x": round(speedup, 3),
+                }
+            )
 
     # ------------------------------------------------------------------
     # Write CSV
     # ------------------------------------------------------------------
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     with OUTPUT_CSV.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["size", "operation", "pandas_s", "polars_s", "speedup_x"])
+        writer = csv.DictWriter(
+            f, fieldnames=["size", "operation", "pandas_s", "polars_s", "speedup_x"]
+        )
         writer.writeheader()
         writer.writerows(all_rows)
 

@@ -1,4 +1,5 @@
 """test_sqlalchemy_core.py — SQLAlchemy Core API under Python 3.15."""
+
 from sqlalchemy import create_engine, text
 
 
@@ -27,8 +28,10 @@ def test_sqlalchemy_core_aggregation():
     engine = create_engine("sqlite:///:memory:")
     with engine.connect() as conn:
         conn.execute(text("CREATE TABLE nums (n INTEGER)"))
-        conn.execute(text("INSERT INTO nums VALUES (:n)"), [{"n": i} for i in range(1, 6)])
+        conn.execute(
+            text("INSERT INTO nums VALUES (:n)"), [{"n": i} for i in range(1, 6)]
+        )
         conn.commit()
         result = conn.execute(text("SELECT SUM(n), COUNT(n) FROM nums")).fetchone()
-    assert result[0] == 15   # 1+2+3+4+5
+    assert result[0] == 15  # 1+2+3+4+5
     assert result[1] == 5

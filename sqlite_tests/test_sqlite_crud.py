@@ -1,4 +1,5 @@
 """test_sqlite_crud.py — SQLite CRUD operations under Python 3.15."""
+
 import sqlite3
 
 
@@ -6,7 +7,7 @@ def test_sqlite_create_insert_select():
     """SQLite creates a table, inserts rows, and queries them."""
     conn = sqlite3.connect(":memory:")
     conn.execute("CREATE TABLE t (id INTEGER, name TEXT)")
-    conn.executemany("INSERT INTO t VALUES (?,?)", [(1,"Alice"),(2,"Bob")])
+    conn.executemany("INSERT INTO t VALUES (?,?)", [(1, "Alice"), (2, "Bob")])
     conn.commit()
     rows = conn.execute("SELECT * FROM t ORDER BY id").fetchall()
     assert len(rows) == 2
@@ -32,7 +33,7 @@ def test_sqlite_delete():
     """SQLite deletes a row correctly."""
     conn = sqlite3.connect(":memory:")
     conn.execute("CREATE TABLE t (id INTEGER)")
-    conn.executemany("INSERT INTO t VALUES (?)", [(1,),(2,),(3,)])
+    conn.executemany("INSERT INTO t VALUES (?)", [(1,), (2,), (3,)])
     conn.commit()
     conn.execute("DELETE FROM t WHERE id = 2")
     conn.commit()

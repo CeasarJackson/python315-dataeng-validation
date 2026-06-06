@@ -64,7 +64,6 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
-import os
 import sys
 from pathlib import Path
 
@@ -182,6 +181,7 @@ def get_logger(name: str, level: int = logging.DEBUG) -> logging.Logger:
     if name == "__main__":
         import sys as _sys
         from pathlib import Path as _Path
+
         main_path = getattr(_sys.modules.get("__main__"), "__file__", None)
         log_stem = _Path(main_path).stem if main_path else "__main__"
     else:

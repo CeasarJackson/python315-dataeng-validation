@@ -1,24 +1,20 @@
-"""
-benchmark_airflow.py
-Airflow DAG construction performance benchmark under Python 3.15.
-Measures DAG and task instantiation overhead.
-"""
+from datetime import datetime
 import sys
 import time
-from datetime import datetime
-
-print("=" * 60)
-print("AIRFLOW BENCHMARK")
-print("=" * 60)
-print(f"Python  : {sys.version.split()[0]}")
 
 import airflow
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+
+print("AIRFLOW BENCHMARK")
+print(f"Python  : {sys.version.split()[0]}")
 print(f"Airflow : {airflow.__version__}")
 print()
 
-def noop(): pass
+
+def noop():
+    pass
+
 
 # Benchmark: DAG instantiation
 N_DAGS = 100
@@ -30,7 +26,9 @@ for i in range(N_DAGS):
         schedule=None,
     )
 elapsed = time.perf_counter() - t0
-print(f"DAG instantiation x{N_DAGS}   : {elapsed*1000:.1f} ms  ({elapsed/N_DAGS*1000:.2f} ms/dag)")
+print(
+    f"DAG instantiation x{N_DAGS}   : {elapsed*1000:.1f} ms  ({elapsed/N_DAGS*1000:.2f} ms/dag)"
+)
 
 # Benchmark: task creation
 N_TASKS = 500
@@ -45,7 +43,9 @@ for i in range(N_TASKS):
     )
     tasks.append(t)
 elapsed = time.perf_counter() - t0
-print(f"Task creation x{N_TASKS}      : {elapsed*1000:.1f} ms  ({elapsed/N_TASKS*1000:.2f} ms/task)")
+print(
+    f"Task creation x{N_TASKS}      : {elapsed*1000:.1f} ms  ({elapsed/N_TASKS*1000:.2f} ms/task)"
+)
 
 # Benchmark: task chaining
 t0 = time.perf_counter()

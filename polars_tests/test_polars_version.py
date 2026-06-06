@@ -1,4 +1,5 @@
 """test_polars_version.py — Polars version and import validation."""
+
 import polars as pl
 
 

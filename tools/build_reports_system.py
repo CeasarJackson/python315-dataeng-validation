@@ -1,10 +1,12 @@
-import pathlib, json
+import json
+import pathlib
+import shutil
 
 REPO = pathlib.Path.home() / "Projects/python315_test"
 
 T = "\u251c\u2500\u2500"
 L = "\u2514\u2500\u2500"
-I = "\u2502"
+PIPE = "\u2502"
 D = "\u2014"
 
 # ── reports/README.md ────────────────────────────────────────────────────────
@@ -115,7 +117,7 @@ manifest_b1 = {
     "packages_fail": 1,
     "key_blockers": [
         "pyarrow — no cp315 wheels",
-        "prefect 3.7.x — typing.no_type_check_decorator removed"
+        "prefect 3.7.x — typing.no_type_check_decorator removed",
     ],
     "notable_findings": [
         "PySpark 4.1.2 PASS via Docker + OpenJDK 21",
@@ -124,20 +126,18 @@ manifest_b1 = {
         "PyArrow 77x faster hash join than DuckDB (5M rows)",
         "SQLite 3.50.4 PASS — sqlite3.version API removed in 3.14",
         "DuckDB native Parquet PASS without pyarrow or fastparquet",
-        "fastparquet blocked by PyO3 0.25 (Python <= 3.14 only)"
+        "fastparquet blocked by PyO3 0.25 (Python <= 3.14 only)",
     ],
     "per_library_suites": {
         "duckdb": "PASS",
         "polars": "PASS",
         "sqlalchemy": "PASS",
         "sqlite": "PASS",
-        "pyarrow": "FAIL"
-    }
+        "pyarrow": "FAIL",
+    },
 }
 
-(REPO / "reports/3.15.0b1/manifest.json").write_text(
-    json.dumps(manifest_b1, indent=2)
-)
+(REPO / "reports/3.15.0b1/manifest.json").write_text(json.dumps(manifest_b1, indent=2))
 print("reports/3.15.0b1/manifest.json written")
 
 
@@ -341,7 +341,7 @@ PyArrow runs inside `pyarrow-dataeng:py314` Docker container.
 print("reports/3.15.0b1/benchmark_summary.md written")
 
 # Copy PDF into the report directory
-import shutil
+
 pdf_src = REPO / "PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf"
 pdf_dst = REPO / "reports/3.15.0b1/PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf"
 if pdf_src.exists():
@@ -378,8 +378,8 @@ manifest_template = {
         "polars": "PENDING",
         "sqlalchemy": "PENDING",
         "sqlite": "PENDING",
-        "pyarrow": "PENDING"
-    }
+        "pyarrow": "PENDING",
+    },
 }
 
 (REPO / "reports/template/manifest.json").write_text(

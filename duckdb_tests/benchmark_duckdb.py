@@ -24,4 +24,4 @@ FROM numbers
 elapsed = time.time() - start
 
 print("Result:", result)
-print("Elapsed:", round(elapsed,3),"seconds")
+print("Elapsed:", round(elapsed, 3), "seconds")

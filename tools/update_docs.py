@@ -229,4 +229,4 @@ print(f"reports/README.md  {(REPO / 'reports/README.md').stat().st_size:,} bytes
 ga_dir = REPO / "reports/3.15.0ga"
 ga_dir.mkdir(exist_ok=True)
 (ga_dir / ".gitkeep").write_text("")
-print(f"reports/3.15.0ga/  placeholder created")
+print("reports/3.15.0ga/  placeholder created")

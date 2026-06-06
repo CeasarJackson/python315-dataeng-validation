@@ -313,7 +313,9 @@ def tally(results):
     return counts
 
 
-def write_manifest(release_dir, release, results, counts):
+def write_manifest(
+    release_dir, release, results, counts, docker_image="pyarrow-dataeng:py314"
+):
     py_ver = platform.python_version()
     manifest = {
         "project": "Python 3.15 Data Engineering Validation Suite",
@@ -324,7 +326,7 @@ def write_manifest(release_dir, release, results, counts):
         "python_build": f"cpython-{release}-macos-aarch64-none",
         "python_runtime": py_ver,
         "package_manager": "uv",
-        "docker_image": args.docker_image,
+        "docker_image": docker_image,
         "tester": "Dr. Ceasar Jackson Jr.",
         "suite_version": "1.2.0",
         "packages_tested": sum(counts.values()),

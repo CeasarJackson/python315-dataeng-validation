@@ -1,4 +1,5 @@
 """test_duckdb_basic.py — DuckDB basic SQL validation under Python 3.15."""
+
 import duckdb
 
 
@@ -28,7 +29,7 @@ def test_duckdb_create_and_query():
         SELECT * FROM employees ORDER BY salary DESC
     """).fetchall()
     assert len(rows) == 3
-    assert rows[0][1] == "Bob"       # highest salary
+    assert rows[0][1] == "Bob"  # highest salary
     assert rows[0][2] == 125000.0
     assert rows[-1][1] == "Charlie"  # lowest salary
     con.close()
@@ -39,7 +40,7 @@ def test_duckdb_aggregation():
     con = duckdb.connect(":memory:")
     con.execute("CREATE TABLE nums AS SELECT * FROM range(1, 101) t(n)")
     result = con.execute("SELECT SUM(n), AVG(n), COUNT(n) FROM nums").fetchone()
-    assert result[0] == 5050      # sum 1..100
-    assert result[1] == 50.5      # avg
-    assert result[2] == 100       # count
+    assert result[0] == 5050  # sum 1..100
+    assert result[1] == 50.5  # avg
+    assert result[2] == 100  # count
     con.close()

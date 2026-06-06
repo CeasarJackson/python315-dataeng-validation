@@ -18,10 +18,10 @@ REPORTS = REPO / "reports"
 
 STATUS_RANK = {"PASS": 0, "INCOMPAT": 1, "SKIP": 2, "FAIL": 3}
 STATUS_BADGE = {
-    "PASS":    "✅ PASS",
-    "FAIL":    "❌ FAIL",
-    "INCOMPAT":"⚠️  INCOMPAT",
-    "SKIP":    "⏭️  SKIP",
+    "PASS": "✅ PASS",
+    "FAIL": "❌ FAIL",
+    "INCOMPAT": "⚠️  INCOMPAT",
+    "SKIP": "⏭️  SKIP",
     "PENDING": "🔲 PENDING",
 }
 
@@ -71,38 +71,67 @@ def compare(old_release, new_release, fmt="terminal"):
             o_rank = STATUS_RANK.get(os_, 9)
             n_rank = STATUS_RANK.get(ns_, 9)
             if n_rank < o_rank:
-                improvements.append((pkg, os_, ns_, n.get("version",""), n.get("note","")))
+                improvements.append(
+                    (pkg, os_, ns_, n.get("version", ""), n.get("note", ""))
+                )
             else:
-                regressions.append((pkg, os_, ns_, n.get("version",""), n.get("reason","")))
+                regressions.append(
+                    (pkg, os_, ns_, n.get("version", ""), n.get("reason", ""))
+                )
             changes.append((pkg, os_, ns_, n.get("reason", n.get("note", ""))))
 
     if fmt == "markdown":
-        _print_markdown(old_release, new_release, old, new,
-                        improvements, regressions, unchanged, new_entries)
+        _print_markdown(
+            old_release,
+            new_release,
+            old,
+            new,
+            improvements,
+            regressions,
+            unchanged,
+            new_entries,
+        )
     else:
-        _print_terminal(old_release, new_release, old, new,
-                        improvements, regressions, unchanged, new_entries)
+        _print_terminal(
+            old_release,
+            new_release,
+            old,
+            new,
+            improvements,
+            regressions,
+            unchanged,
+            new_entries,
+        )
 
 
-def _print_terminal(old_rel, new_rel, old, new,
-                    improvements, regressions, unchanged, new_entries):
+def _print_terminal(
+    old_rel, new_rel, old, new, improvements, regressions, unchanged, new_entries
+):
     print(f"\n{'='*60}")
     print(f"Compatibility Delta: {old_rel} → {new_rel}")
     print(f"{'='*60}")
-    print(f"  Old date : {old.get('test_date','?')}  "
-          f"({old.get('packages_pass','?')} PASS / "
-          f"{old.get('packages_fail','?')} FAIL / "
-          f"{old.get('packages_incompat','?')} INCOMPAT)")
-    print(f"  New date : {new.get('test_date','?')}  "
-          f"({new.get('packages_pass','?')} PASS / "
-          f"{new.get('packages_fail','?')} FAIL / "
-          f"{new.get('packages_incompat','?')} INCOMPAT)")
+    print(
+        f"  Old date : {old.get('test_date','?')}  "
+        f"({old.get('packages_pass','?')} PASS / "
+        f"{old.get('packages_fail','?')} FAIL / "
+        f"{old.get('packages_incompat','?')} INCOMPAT)"
+    )
+    print(
+        f"  New date : {new.get('test_date','?')}  "
+        f"({new.get('packages_pass','?')} PASS / "
+        f"{new.get('packages_fail','?')} FAIL / "
+        f"{new.get('packages_incompat','?')} INCOMPAT)"
+    )
 
-    prod_delta = new.get("production_readiness_pct", 0) - old.get("production_readiness_pct", 0)
+    prod_delta = new.get("production_readiness_pct", 0) - old.get(
+        "production_readiness_pct", 0
+    )
     if prod_delta != 0:
         arrow = "▲" if prod_delta > 0 else "▼"
-        print(f"  Readiness: {old.get('production_readiness_pct')}% → "
-              f"{new.get('production_readiness_pct')}%  ({arrow}{abs(prod_delta)}%)")
+        print(
+            f"  Readiness: {old.get('production_readiness_pct')}% → "
+            f"{new.get('production_readiness_pct')}%  ({arrow}{abs(prod_delta)}%)"
+        )
 
     if improvements:
         print(f"\n  ✅ Improvements ({len(improvements)})")
@@ -125,8 +154,9 @@ def _print_terminal(old_rel, new_rel, old, new,
     print()
 
 
-def _print_markdown(old_rel, new_rel, old, new,
-                    improvements, regressions, unchanged, new_entries):
+def _print_markdown(
+    old_rel, new_rel, old, new, improvements, regressions, unchanged, new_entries
+):
     from datetime import date
 
     lines = [
@@ -147,25 +177,34 @@ def _print_markdown(old_rel, new_rel, old, new,
     ]
 
     if improvements:
-        lines += ["## Improvements", "",
-                  "| Package | Previous | Current | Notes |",
-                  "|---------|----------|---------|-------|"]
+        lines += [
+            "## Improvements",
+            "",
+            "| Package | Previous | Current | Notes |",
+            "|---------|----------|---------|-------|",
+        ]
         for pkg, os_, ns_, ver, note in improvements:
             lines.append(f"| {pkg} | {os_} | {ns_} | {note} |")
         lines.append("")
 
     if regressions:
-        lines += ["## Regressions", "",
-                  "| Package | Previous | Current | Reason |",
-                  "|---------|----------|---------|--------|"]
+        lines += [
+            "## Regressions",
+            "",
+            "| Package | Previous | Current | Reason |",
+            "|---------|----------|---------|--------|",
+        ]
         for pkg, os_, ns_, ver, note in regressions:
             lines.append(f"| {pkg} | {os_} | {ns_} | {note} |")
         lines.append("")
 
     if new_entries:
-        lines += ["## New Packages", "",
-                  "| Package | Status | Version |",
-                  "|---------|--------|---------|"]
+        lines += [
+            "## New Packages",
+            "",
+            "| Package | Status | Version |",
+            "|---------|--------|---------|",
+        ]
         for pkg, r in new_entries:
             lines.append(f"| {pkg} | {r['status']} | {r.get('version','')} |")
         lines.append("")
@@ -175,11 +214,17 @@ def _print_markdown(old_rel, new_rel, old, new,
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Compare two compatibility report cycles")
+    parser = argparse.ArgumentParser(
+        description="Compare two compatibility report cycles"
+    )
     parser.add_argument("old", help="Previous release, e.g. 3.15.0b1")
     parser.add_argument("new", help="New release, e.g. 3.15.0b2")
-    parser.add_argument("--format", choices=["terminal", "markdown"],
-                        default="terminal", help="Output format (default: terminal)")
+    parser.add_argument(
+        "--format",
+        choices=["terminal", "markdown"],
+        default="terminal",
+        help="Output format (default: terminal)",
+    )
     args = parser.parse_args()
 
     try:

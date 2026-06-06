@@ -214,7 +214,7 @@ except Exception as exc:
                 result.stderr[:500],
             )
             return FAIL
-        lines = [l for l in result.stdout.strip().splitlines() if l.strip()]
+        lines = [line for line in result.stdout.strip().splitlines() if line.strip()]
         if not lines:
             log.error(
                 "[FAIL] pyspark — no output from container: %s", result.stderr[:400]

@@ -1,6 +1,6 @@
 """test_duckdb_native_parquet.py — DuckDB native Parquet I/O under Python 3.15."""
+
 import duckdb
-import tempfile
 import pathlib
 
 
@@ -16,7 +16,9 @@ def test_duckdb_parquet_write_and_read(tmp_path):
     con.execute(f"COPY employees TO '{parquet_file}' (FORMAT PARQUET)")
     assert pathlib.Path(parquet_file).exists()
     assert pathlib.Path(parquet_file).stat().st_size > 0
-    result = con.execute(f"SELECT COUNT(*) FROM read_parquet('{parquet_file}')").fetchone()
+    result = con.execute(
+        f"SELECT COUNT(*) FROM read_parquet('{parquet_file}')"
+    ).fetchone()
     assert result[0] == 3
     con.close()
 

@@ -1,4 +1,5 @@
 """test_sqlite_aggregate.py — SQLite aggregate queries under Python 3.15."""
+
 import sqlite3
 
 

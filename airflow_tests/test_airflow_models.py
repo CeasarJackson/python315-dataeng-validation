@@ -1,4 +1,5 @@
 """test_airflow_models.py — Airflow model imports under Python 3.15."""
+
 from airflow.models import DAG, TaskInstance, DagRun
 from airflow.utils.state import DagRunState, TaskInstanceState
 

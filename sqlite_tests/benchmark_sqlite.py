@@ -15,10 +15,7 @@ CREATE TABLE numbers(
 
 rows = [(i, i * 0.5) for i in range(100000)]
 
-cur.executemany(
-    "INSERT INTO numbers VALUES (?,?)",
-    rows
-)
+cur.executemany("INSERT INTO numbers VALUES (?,?)", rows)
 
 conn.commit()
 

@@ -1,4 +1,5 @@
 """test_polars_join.py — Polars join operations under Python 3.15."""
+
 import polars as pl
 
 

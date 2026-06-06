@@ -1,4 +1,5 @@
 """test_polars_dataframe.py — Polars DataFrame operations under Python 3.15."""
+
 import polars as pl
 
 

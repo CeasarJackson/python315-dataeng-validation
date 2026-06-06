@@ -15,17 +15,14 @@ with engine.begin() as conn:
         )
     """))
 
-    rows = [
-        {"id": i, "value": i * 0.5}
-        for i in range(100000)
-    ]
+    rows = [{"id": i, "value": i * 0.5} for i in range(100000)]
 
     conn.execute(
         text("""
             INSERT INTO numbers(id,value)
             VALUES(:id,:value)
         """),
-        rows
+        rows,
     )
 
 with engine.connect() as conn:
@@ -42,4 +39,4 @@ elapsed = time.time() - start
 
 print("SQLALCHEMY BENCHMARK")
 print(result)
-print("Elapsed:", round(elapsed,3), "seconds")
+print("Elapsed:", round(elapsed, 3), "seconds")

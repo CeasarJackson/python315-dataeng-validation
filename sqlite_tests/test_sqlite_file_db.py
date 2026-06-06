@@ -1,4 +1,5 @@
 """test_sqlite_file_db.py — SQLite file-based database under Python 3.15."""
+
 import sqlite3
 import pathlib
 

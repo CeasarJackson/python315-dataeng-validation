@@ -1,6 +1,6 @@
 """test_airflow_dag.py — Airflow DAG construction under Python 3.15."""
+
 from datetime import datetime
-import airflow
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.providers.standard.operators.bash import BashOperator
@@ -46,7 +46,9 @@ def test_airflow_task_dependency():
 
 def test_airflow_dag_task_count():
     """DAG with multiple tasks reports correct task count."""
-    dag = DAG("test_count", start_date=datetime(2026, 1, 1), schedule=None, catchup=False)
+    dag = DAG(
+        "test_count", start_date=datetime(2026, 1, 1), schedule=None, catchup=False
+    )
     for i in range(5):
         PythonOperator(task_id=f"task_{i}", python_callable=lambda: None, dag=dag)
     assert len(dag.tasks) == 5

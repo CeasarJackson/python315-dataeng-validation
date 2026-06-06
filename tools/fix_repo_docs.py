@@ -1,10 +1,10 @@
-import pathlib, datetime
+import pathlib
 
 REPO = pathlib.Path.home() / "Projects/python315_test"
 
 T = "\u251c\u2500\u2500"
 L = "\u2514\u2500\u2500"
-I = "\u2502"
+PIPE = "\u2502"
 D = "\u2014"
 
 # ── 1. RELEASE_NOTES_v1.0.0.md ──────────────────────────────────────────────
@@ -114,7 +114,9 @@ See `ROADMAP.md` for the full release plan.
 """
 
 (REPO / "RELEASE_NOTES_v1.0.0.md").write_text(release_notes)
-print(f"RELEASE_NOTES_v1.0.0.md  {(REPO / 'RELEASE_NOTES_v1.0.0.md').stat().st_size:,} bytes")
+print(
+    f"RELEASE_NOTES_v1.0.0.md  {(REPO / 'RELEASE_NOTES_v1.0.0.md').stat().st_size:,} bytes"
+)
 
 
 # ── 2. PROJECT_STRUCTURE.md ──────────────────────────────────────────────────
@@ -142,69 +144,69 @@ python315_test/
 {T} requirements-py315-dataeng-jupyter.txt     # Full stack + Jupyter requirements
 {T} test_py315.py                              # Original pytest suite
 {T} data/                                      # Benchmark CSVs and chart outputs
-{I}   {T} benchmark_pandas_polars.csv
-{I}   {L} benchmark_duckdb_pyarrow.csv
+{PIPE}   {T} benchmark_pandas_polars.csv
+{PIPE}   {L} benchmark_duckdb_pyarrow.csv
 {T} docker_pyarrow_lab/
-{I}   {L} Dockerfile                           # Python 3.14 + OpenJDK 21 + PyArrow + PySpark
+{PIPE}   {L} Dockerfile                           # Python 3.14 + OpenJDK 21 + PyArrow + PySpark
 {T} notebooks/
-{I}   {T} 01_core_stack_validation.ipynb       # Phase 1 & 2 {D} runtime + stack smoke tests
-{I}   {T} 02_benchmark_results.ipynb           # Phase 7 {D} benchmark charts and analysis
-{I}   {T} 03_extended_stack_compatibility.ipynb # Phase 6 {D} compatibility matrix
-{I}   {L} 04_docker_pyarrow_py314_validation.ipynb # Phase 5 {D} Docker container validation
+{PIPE}   {T} 01_core_stack_validation.ipynb       # Phase 1 & 2 {D} runtime + stack smoke tests
+{PIPE}   {T} 02_benchmark_results.ipynb           # Phase 7 {D} benchmark charts and analysis
+{PIPE}   {T} 03_extended_stack_compatibility.ipynb # Phase 6 {D} compatibility matrix
+{PIPE}   {L} 04_docker_pyarrow_py314_validation.ipynb # Phase 5 {D} Docker container validation
 {T} scripts/                                   # Automated validation and benchmark runners
-{I}   {T} logger.py
-{I}   {T} validate_core.py
-{I}   {T} validate_stack.py
-{I}   {T} validate_extended.py
-{I}   {T} benchmark_pandas_polars.py
-{I}   {L} benchmark_duckdb_pyarrow.py
+{PIPE}   {T} logger.py
+{PIPE}   {T} validate_core.py
+{PIPE}   {T} validate_stack.py
+{PIPE}   {T} validate_extended.py
+{PIPE}   {T} benchmark_pandas_polars.py
+{PIPE}   {L} benchmark_duckdb_pyarrow.py
 {T} duckdb_tests/                              # DuckDB per-library validation suite
-{I}   {T} test_duckdb_basic.py
-{I}   {T} test_duckdb_pandas.py
-{I}   {T} test_duckdb_native_parquet.py
-{I}   {T} verify_duckdb_parquet.py
-{I}   {T} benchmark_duckdb.py
-{I}   {T} run_duckdb_validation.sh
-{I}   {T} data/
-{I}   {L} logs/
+{PIPE}   {T} test_duckdb_basic.py
+{PIPE}   {T} test_duckdb_pandas.py
+{PIPE}   {T} test_duckdb_native_parquet.py
+{PIPE}   {T} verify_duckdb_parquet.py
+{PIPE}   {T} benchmark_duckdb.py
+{PIPE}   {T} run_duckdb_validation.sh
+{PIPE}   {T} data/
+{PIPE}   {L} logs/
 {T} polars_tests/                              # Polars per-library validation suite
-{I}   {T} test_polars_version.py
-{I}   {T} test_polars_dataframe.py
-{I}   {T} test_polars_groupby.py
-{I}   {T} test_polars_join.py
-{I}   {T} benchmark_polars.py
-{I}   {T} run_polars_validation.sh
-{I}   {T} data/
-{I}   {L} logs/
+{PIPE}   {T} test_polars_version.py
+{PIPE}   {T} test_polars_dataframe.py
+{PIPE}   {T} test_polars_groupby.py
+{PIPE}   {T} test_polars_join.py
+{PIPE}   {T} benchmark_polars.py
+{PIPE}   {T} run_polars_validation.sh
+{PIPE}   {T} data/
+{PIPE}   {L} logs/
 {T} sqlalchemy_tests/                          # SQLAlchemy per-library validation suite
-{I}   {T} test_sqlalchemy_version.py
-{I}   {T} test_sqlalchemy_core.py
-{I}   {T} test_sqlalchemy_orm.py
-{I}   {T} test_sqlalchemy_reflection.py
-{I}   {T} test_sqlalchemy_transactions.py
-{I}   {T} benchmark_sqlalchemy.py
-{I}   {T} run_sqlalchemy_validation.sh
-{I}   {T} data/
-{I}   {L} logs/
+{PIPE}   {T} test_sqlalchemy_version.py
+{PIPE}   {T} test_sqlalchemy_core.py
+{PIPE}   {T} test_sqlalchemy_orm.py
+{PIPE}   {T} test_sqlalchemy_reflection.py
+{PIPE}   {T} test_sqlalchemy_transactions.py
+{PIPE}   {T} benchmark_sqlalchemy.py
+{PIPE}   {T} run_sqlalchemy_validation.sh
+{PIPE}   {T} data/
+{PIPE}   {L} logs/
 {T} sqlite_tests/                              # SQLite per-library validation suite
-{I}   {T} test_sqlite_version.py
-{I}   {T} test_sqlite_crud.py
-{I}   {T} test_sqlite_aggregate.py
-{I}   {T} test_sqlite_file_db.py
-{I}   {T} benchmark_sqlite.py
-{I}   {T} run_sqlite_validation.sh
-{I}   {L} employees.db
+{PIPE}   {T} test_sqlite_version.py
+{PIPE}   {T} test_sqlite_crud.py
+{PIPE}   {T} test_sqlite_aggregate.py
+{PIPE}   {T} test_sqlite_file_db.py
+{PIPE}   {T} benchmark_sqlite.py
+{PIPE}   {T} run_sqlite_validation.sh
+{PIPE}   {L} employees.db
 {T} pyarrow_tests/                             # PyArrow validation suite (blocked — no cp315 wheels)
-{I}   {T} data/
-{I}   {L} logs/
+{PIPE}   {T} data/
+{PIPE}   {L} logs/
 {T} logs/                                      # Execution logs and failure reports
-{I}   {T} validate_core.log
-{I}   {T} validate_stack.log
-{I}   {T} validate_extended.log
-{I}   {T} benchmark_duckdb_pyarrow.log
-{I}   {L} pyarrow_failure_20260605.md
+{PIPE}   {T} validate_core.log
+{PIPE}   {T} validate_stack.log
+{PIPE}   {T} validate_extended.log
+{PIPE}   {T} benchmark_duckdb_pyarrow.log
+{PIPE}   {L} pyarrow_failure_20260605.md
 {T} releases/
-{I}   {L} README.md                            # Release artifact location and tag index
+{PIPE}   {L} README.md                            # Release artifact location and tag index
 {L} .venv/                                     # Python 3.15 virtual environment (uv-managed)
 ```
 
@@ -245,7 +247,9 @@ Each per-library test suite (`*_tests/`) follows the same pattern:
 """
 
 (REPO / "PROJECT_STRUCTURE.md").write_text(project_structure)
-print(f"PROJECT_STRUCTURE.md     {(REPO / 'PROJECT_STRUCTURE.md').stat().st_size:,} bytes")
+print(
+    f"PROJECT_STRUCTURE.md     {(REPO / 'PROJECT_STRUCTURE.md').stat().st_size:,} bytes"
+)
 
 
 # ── 3. Inject updated tree into PYTHON315_DATAENG_VALIDATION.md ──────────────
@@ -267,58 +271,58 @@ python315_test/
 {T} requirements-py315-dataeng-jupyter.txt
 {T} test_py315.py                              # Original pytest suite
 {T} data/                                      # Benchmark CSVs and generated charts
-{I}   {T} benchmark_pandas_polars.csv
-{I}   {L} benchmark_duckdb_pyarrow.csv
+{PIPE}   {T} benchmark_pandas_polars.csv
+{PIPE}   {L} benchmark_duckdb_pyarrow.csv
 {T} docker_pyarrow_lab/
-{I}   {L} Dockerfile                           # Python 3.14 + OpenJDK 21 + PyArrow + PySpark
+{PIPE}   {L} Dockerfile                           # Python 3.14 + OpenJDK 21 + PyArrow + PySpark
 {T} notebooks/
-{I}   {T} 01_core_stack_validation.ipynb       # Phase 1 & 2 {D} runtime + stack smoke tests
-{I}   {T} 02_benchmark_results.ipynb           # Phase 7 {D} benchmark charts and analysis
-{I}   {T} 03_extended_stack_compatibility.ipynb # Phase 6 {D} compatibility matrix
-{I}   {L} 04_docker_pyarrow_py314_validation.ipynb # Phase 5 {D} Docker container validation
+{PIPE}   {T} 01_core_stack_validation.ipynb       # Phase 1 & 2 {D} runtime + stack smoke tests
+{PIPE}   {T} 02_benchmark_results.ipynb           # Phase 7 {D} benchmark charts and analysis
+{PIPE}   {T} 03_extended_stack_compatibility.ipynb # Phase 6 {D} compatibility matrix
+{PIPE}   {L} 04_docker_pyarrow_py314_validation.ipynb # Phase 5 {D} Docker container validation
 {T} scripts/
-{I}   {T} logger.py
-{I}   {T} validate_core.py
-{I}   {T} validate_stack.py
-{I}   {T} validate_extended.py
-{I}   {T} benchmark_pandas_polars.py
-{I}   {L} benchmark_duckdb_pyarrow.py
+{PIPE}   {T} logger.py
+{PIPE}   {T} validate_core.py
+{PIPE}   {T} validate_stack.py
+{PIPE}   {T} validate_extended.py
+{PIPE}   {T} benchmark_pandas_polars.py
+{PIPE}   {L} benchmark_duckdb_pyarrow.py
 {T} duckdb_tests/                              # DuckDB per-library validation suite
-{I}   {T} test_duckdb_basic.py
-{I}   {T} test_duckdb_pandas.py
-{I}   {T} test_duckdb_native_parquet.py
-{I}   {T} verify_duckdb_parquet.py
-{I}   {T} benchmark_duckdb.py
-{I}   {T} run_duckdb_validation.sh
-{I}   {T} data/ + logs/
+{PIPE}   {T} test_duckdb_basic.py
+{PIPE}   {T} test_duckdb_pandas.py
+{PIPE}   {T} test_duckdb_native_parquet.py
+{PIPE}   {T} verify_duckdb_parquet.py
+{PIPE}   {T} benchmark_duckdb.py
+{PIPE}   {T} run_duckdb_validation.sh
+{PIPE}   {T} data/ + logs/
 {T} polars_tests/                              # Polars per-library validation suite
-{I}   {T} test_polars_version.py
-{I}   {T} test_polars_dataframe.py
-{I}   {T} test_polars_groupby.py
-{I}   {T} test_polars_join.py
-{I}   {T} benchmark_polars.py
-{I}   {T} run_polars_validation.sh
-{I}   {T} data/ + logs/
+{PIPE}   {T} test_polars_version.py
+{PIPE}   {T} test_polars_dataframe.py
+{PIPE}   {T} test_polars_groupby.py
+{PIPE}   {T} test_polars_join.py
+{PIPE}   {T} benchmark_polars.py
+{PIPE}   {T} run_polars_validation.sh
+{PIPE}   {T} data/ + logs/
 {T} sqlalchemy_tests/                          # SQLAlchemy per-library validation suite
-{I}   {T} test_sqlalchemy_version.py
-{I}   {T} test_sqlalchemy_core.py + orm + reflection + transactions
-{I}   {T} benchmark_sqlalchemy.py
-{I}   {T} run_sqlalchemy_validation.sh
-{I}   {T} data/ + logs/
+{PIPE}   {T} test_sqlalchemy_version.py
+{PIPE}   {T} test_sqlalchemy_core.py + orm + reflection + transactions
+{PIPE}   {T} benchmark_sqlalchemy.py
+{PIPE}   {T} run_sqlalchemy_validation.sh
+{PIPE}   {T} data/ + logs/
 {T} sqlite_tests/                              # SQLite per-library validation suite
-{I}   {T} test_sqlite_version.py
-{I}   {T} test_sqlite_crud.py + aggregate + file_db
-{I}   {T} benchmark_sqlite.py
-{I}   {T} run_sqlite_validation.sh
-{I}   {L} employees.db
+{PIPE}   {T} test_sqlite_version.py
+{PIPE}   {T} test_sqlite_crud.py + aggregate + file_db
+{PIPE}   {T} benchmark_sqlite.py
+{PIPE}   {T} run_sqlite_validation.sh
+{PIPE}   {L} employees.db
 {T} pyarrow_tests/                             # Blocked — no cp315 wheels
-{I}   {T} data/ + logs/
+{PIPE}   {T} data/ + logs/
 {T} logs/
-{I}   {T} validate_core.log + validate_stack.log + validate_extended.log
-{I}   {T} benchmark_duckdb_pyarrow.log
-{I}   {L} pyarrow_failure_20260605.md
+{PIPE}   {T} validate_core.log + validate_stack.log + validate_extended.log
+{PIPE}   {T} benchmark_duckdb_pyarrow.log
+{PIPE}   {L} pyarrow_failure_20260605.md
 {T} releases/
-{I}   {L} README.md
+{PIPE}   {L} README.md
 {L} .venv/                                     # Python 3.15 virtual environment (uv-managed)
 ```"""
 
@@ -328,14 +332,19 @@ old_end_marker = "```\n\n### Repository Notes"
 
 if old_start in text:
     start_idx = text.index(old_start)
-    end_idx   = text.index("```", start_idx + len(old_start)) + 3
+    end_idx = text.index("```", start_idx + len(old_start)) + 3
     text = text[:start_idx] + new_tree + text[end_idx:]
     md_path.write_text(text)
-    print(f"PYTHON315_DATAENG_VALIDATION.md  {md_path.stat().st_size:,} bytes  (tree updated)")
+    print(
+        f"PYTHON315_DATAENG_VALIDATION.md  {md_path.stat().st_size:,} bytes  (tree updated)"
+    )
 else:
     print("WARNING: old tree block not found — check anchor string")
 
 # Verify tree lines
-tree_count = sum(1 for ln in md_path.read_text().splitlines()
-                 if any(c in ln for c in ["\u251c","\u2514","\u2502"]))
+tree_count = sum(
+    1
+    for ln in md_path.read_text().splitlines()
+    if any(c in ln for c in ["\u251c", "\u2514", "\u2502"])
+)
 print(f"  Tree lines: {tree_count}")

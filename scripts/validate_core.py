@@ -86,13 +86,14 @@ DEV_TOOLS: list[tuple[str, str]] = [
     ("requests", "requests"),
     ("packaging", "packaging"),
     ("wheel", "wheel"),
-    ("colorlog", "colorlog"),   # Required for this suite's logging
+    ("colorlog", "colorlog"),  # Required for this suite's logging
 ]
 
 
 # ---------------------------------------------------------------------------
 # Individual check functions — each returns True on pass, False on fail.
 # ---------------------------------------------------------------------------
+
 
 def check_python_version() -> bool:
     """Assert Python >= 3.15.
@@ -108,19 +109,25 @@ def check_python_version() -> bool:
     if major == REQUIRED_PYTHON_MAJOR and minor >= REQUIRED_PYTHON_MINOR:
         log.info(
             "[PASS] Python %d.%d.%d (%s) — meets >= 3.15 requirement",
-            major, minor, micro, release_level,
+            major,
+            minor,
+            micro,
+            release_level,
         )
         if release_level != "final":
             log.warning(
                 "[NOTE] This is a %s build — expect rough edges in "
-                "C-extension packages.", release_level
+                "C-extension packages.",
+                release_level,
             )
         return True
     else:
         log.error(
             "[FAIL] Python %d.%d.%d detected — require >= 3.15.  "
             "Activate the correct virtual environment.",
-            major, minor, micro,
+            major,
+            minor,
+            micro,
         )
         return False
 
@@ -132,8 +139,8 @@ def check_platform() -> bool:
     platforms some package builds (e.g. PyArrow source builds) may behave
     differently; this check logs a WARNING rather than failing outright.
     """
-    system = platform.system().lower()     # 'darwin', 'linux', 'windows'
-    machine = platform.machine().lower()   # 'arm64', 'x86_64', 'amd64'
+    system = platform.system().lower()  # 'darwin', 'linux', 'windows'
+    machine = platform.machine().lower()  # 'arm64', 'x86_64', 'amd64'
 
     log.debug("platform.system()=%s  platform.machine()=%s", system, machine)
 
@@ -144,7 +151,8 @@ def check_platform() -> bool:
         log.warning(
             "[WARN] Platform: %s / %s — not the primary validated target "
             "(macOS ARM64).  Results may differ.",
-            platform.system(), platform.machine(),
+            platform.system(),
+            platform.machine(),
         )
         # Return True — wrong platform is a warning, not a blocker
         return True
@@ -170,8 +178,7 @@ def check_virtual_environment() -> bool:
         return True
     else:
         log.error(
-            "[FAIL] No virtual environment detected.  "
-            "Run: source .venv/bin/activate"
+            "[FAIL] No virtual environment detected.  " "Run: source .venv/bin/activate"
         )
         return False
 
@@ -220,6 +227,7 @@ def check_dev_tools() -> bool:
 # Main runner
 # ---------------------------------------------------------------------------
 
+
 def main() -> int:
     """Run all Phase 1 checks.  Returns 0 on full pass, 1 on any failure."""
 
@@ -230,11 +238,11 @@ def main() -> int:
     log.info("=" * 70)
 
     results: dict[str, bool] = {
-        "Python version":        check_python_version(),
-        "Platform":              check_platform(),
-        "Virtual environment":   check_virtual_environment(),
-        "uv availability":       check_uv_available(),
-        "Development tools":     check_dev_tools(),
+        "Python version": check_python_version(),
+        "Platform": check_platform(),
+        "Virtual environment": check_virtual_environment(),
+        "uv availability": check_uv_available(),
+        "Development tools": check_dev_tools(),
     }
 
     # ------------------------------------------------------------------
@@ -260,9 +268,9 @@ def main() -> int:
         return 0
     else:
         log.error(
-            "%d of %d checks FAILED.  "
-            "Resolve issues above before proceeding.",
-            failed, len(results),
+            "%d of %d checks FAILED.  " "Resolve issues above before proceeding.",
+            failed,
+            len(results),
         )
         return 1
 
