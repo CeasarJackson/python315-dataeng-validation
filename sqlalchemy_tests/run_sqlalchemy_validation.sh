@@ -1,4 +1,29 @@
 #!/usr/bin/env bash
+# =============================================================================
+# SQLAlchemy Validation Suite Runner
+# Project : Python 3.15 Data Engineering Validation Suite
+# Author  : Dr. Ceasar Jackson Jr.
+# =============================================================================
+#
+# Purpose
+#   Run the full SQLAlchemy per-library validation suite against Python 3.15.
+#   Executes all test scripts and the benchmark in sequence, reporting
+#   pass/fail status for each step.
+#
+# Usage
+#   From the repository root:
+#     bash sqlalchemy_tests/run_sqlalchemy_validation.sh
+#
+#   With a custom Python interpreter:
+#     PYTHON=/path/to/python bash sqlalchemy_tests/run_sqlalchemy_validation.sh
+#
+# Validation
+#   Runs: test_sqlalchemy_version, test_sqlalchemy_core, test_sqlalchemy_orm, test_sqlalchemy_reflection, test_sqlalchemy_transactions, benchmark_sqlalchemy
+#
+# Exit Codes
+#   0 all tests pass | 1 one or more tests fail
+#
+# =============================================================================
 
 echo
 echo "============================================================"
