@@ -1,37 +1,43 @@
+"""test_sqlite_aggregate.py — SQLite aggregate queries under Python 3.15."""
 import sqlite3
 
-conn = sqlite3.connect(":memory:")
-cur = conn.cursor()
 
-cur.execute("""
-CREATE TABLE salaries(
-    department TEXT,
-    salary REAL
-)
-""")
+def _make_db():
+    conn = sqlite3.connect(":memory:")
+    conn.execute("CREATE TABLE nums (n REAL)")
+    conn.executemany("INSERT INTO nums VALUES (?)", [(float(i),) for i in range(1, 6)])
+    conn.commit()
+    return conn
 
-cur.executemany(
-    "INSERT INTO salaries VALUES (?,?)",
-    [
-        ("IT",100000),
-        ("IT",120000),
-        ("HR",75000),
-        ("HR",80000),
-        ("Finance",90000),
-    ]
-)
 
-rows = cur.execute("""
-SELECT
-    department,
-    ROUND(AVG(salary),2) AS avg_salary
-FROM salaries
-GROUP BY department
-ORDER BY avg_salary DESC
-""").fetchall()
+def test_sqlite_sum():
+    """SQLite SUM returns the correct total."""
+    conn = _make_db()
+    result = conn.execute("SELECT SUM(n) FROM nums").fetchone()[0]
+    assert result == 15.0
+    conn.close()
 
-print("AGGREGATION TEST")
-for row in rows:
-    print(row)
 
-conn.close()
+def test_sqlite_avg():
+    """SQLite AVG returns the correct average."""
+    conn = _make_db()
+    result = conn.execute("SELECT AVG(n) FROM nums").fetchone()[0]
+    assert result == 3.0
+    conn.close()
+
+
+def test_sqlite_count():
+    """SQLite COUNT returns the correct row count."""
+    conn = _make_db()
+    result = conn.execute("SELECT COUNT(n) FROM nums").fetchone()[0]
+    assert result == 5
+    conn.close()
+
+
+def test_sqlite_min_max():
+    """SQLite MIN and MAX return boundary values."""
+    conn = _make_db()
+    row = conn.execute("SELECT MIN(n), MAX(n) FROM nums").fetchone()
+    assert row[0] == 1.0
+    assert row[1] == 5.0
+    conn.close()

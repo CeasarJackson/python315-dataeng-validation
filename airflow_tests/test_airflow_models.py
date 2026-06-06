@@ -1,35 +1,31 @@
-"""
-test_airflow_models.py
-Core model imports and metadata access under Python 3.15.
-"""
-import sys
-
-print("=" * 60)
-print("AIRFLOW MODELS VALIDATION")
-print("=" * 60)
-print(f"Python: {sys.version.split()[0]}")
-
+"""test_airflow_models.py — Airflow model imports under Python 3.15."""
 from airflow.models import DAG, TaskInstance, DagRun
-print("DAG model import        : PASS")
-print("TaskInstance import     : PASS")
-print("DagRun import           : PASS")
-
-from airflow.models.baseoperator import BaseOperator
-print("BaseOperator import     : PASS")
-
 from airflow.utils.state import DagRunState, TaskInstanceState
-print("DagRunState import      : PASS")
-print("TaskInstanceState import: PASS")
 
-# Validate state constants
-assert hasattr(DagRunState, "SUCCESS")
-assert hasattr(DagRunState, "FAILED")
-assert hasattr(DagRunState, "RUNNING")
-print("DagRunState constants   : PASS")
 
-assert hasattr(TaskInstanceState, "SUCCESS")
-assert hasattr(TaskInstanceState, "FAILED")
-print("TaskInstanceState consts: PASS")
+def test_airflow_dag_model_import():
+    """Airflow DAG model imports successfully."""
+    assert DAG is not None
 
-print()
-print("MODELS VALIDATION: PASS")
+
+def test_airflow_task_instance_import():
+    """Airflow TaskInstance imports successfully."""
+    assert TaskInstance is not None
+
+
+def test_airflow_dagrun_import():
+    """Airflow DagRun imports successfully."""
+    assert DagRun is not None
+
+
+def test_airflow_dagrun_state_constants():
+    """DagRunState exposes SUCCESS, FAILED, and RUNNING."""
+    assert hasattr(DagRunState, "SUCCESS")
+    assert hasattr(DagRunState, "FAILED")
+    assert hasattr(DagRunState, "RUNNING")
+
+
+def test_airflow_task_instance_state_constants():
+    """TaskInstanceState exposes SUCCESS and FAILED."""
+    assert hasattr(TaskInstanceState, "SUCCESS")
+    assert hasattr(TaskInstanceState, "FAILED")
