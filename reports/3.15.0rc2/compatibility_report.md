@@ -12,9 +12,9 @@
 | Metric | Value |
 |--------|-------|
 | Packages Tested | 17 |
-| PASS | 12 |
+| PASS | 13 |
 | INCOMPAT | 2 |
-| SKIP | 1 |
+| SKIP | 0 |
 | FAIL | 0 |
 
 ---
@@ -38,7 +38,7 @@
 
 | Package | Version | Result | Notes |
 |---------|---------|--------|-------|
-| pyspark | unknown | ⏭️ SKIP | Docker image not available |
+| pyspark | 4.1.2 | ✅ PASS | via Docker py314 + OpenJDK 21 |
 | dask.dataframe | 2026.3.0 | ⚠️ INCOMPAT | runtime pyarrow dep |
 | pyarrow | unavailable | 🚫 BLOCKED | no cp315 wheels on PyPI; source build fails at CMake config |
 | mlflow | 2.16.2 | ✅ PASS |  |
