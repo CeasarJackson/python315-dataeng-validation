@@ -91,7 +91,7 @@ python315_test/
 ├── ROADMAP.md                                 # Planned releases and milestones
 ├── PROJECT_STRUCTURE.md                       # Full directory reference
 ├── PORTFOLIO_SUMMARY.md                       # Portfolio-facing project summary
-├── RELEASE_NOTES_v1.0.0.md                   # v1.0.0 release notes
+├── RELEASE_NOTES_v1.0.0.md                    # v1.0.0 release notes
 ├── PYTHON315_DATAENG_VALIDATION.md            # This document
 ├── PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf # Formal Phase 8 assessment report
 ├── requirements-py315-dataeng-lite.txt
@@ -101,11 +101,11 @@ python315_test/
 │   ├── benchmark_pandas_polars.csv
 │   └── benchmark_duckdb_pyarrow.csv
 ├── docker_pyarrow_lab/
-│   └── Dockerfile                           # Python 3.14 + OpenJDK 21 + PyArrow + PySpark
+│   └── Dockerfile                               # Python 3.14 + OpenJDK 21 + PyArrow + PySpark
 ├── notebooks/
-│   ├── 01_core_stack_validation.ipynb       # Phase 1 & 2 — runtime + stack smoke tests
-│   ├── 02_benchmark_results.ipynb           # Phase 7 — benchmark charts and analysis
-│   ├── 03_extended_stack_compatibility.ipynb # Phase 6 — compatibility matrix
+│   ├── 01_core_stack_validation.ipynb           # Phase 1 & 2 — runtime + stack smoke tests
+│   ├── 02_benchmark_results.ipynb               # Phase 7 — benchmark charts and analysis
+│   ├── 03_extended_stack_compatibility.ipynb    # Phase 6 — compatibility matrix
 │   └── 04_docker_pyarrow_py314_validation.ipynb # Phase 5 — Docker container validation
 ├── scripts/
 │   ├── logger.py
