@@ -1,39 +1,44 @@
 #!/usr/bin/env python3
 """
 ===============================================================================
-Python 3.15 sandbox validation script.
+Python 3.15 Data Engineering Validation Suite
 ===============================================================================
-Project : Python 3.15 Data Engineering Validation Suite
-Author  : Dr. Ceasar Jackson Jr.
-Path    : scripts/validate_py315.py
+Script:
+    validate_py315.py
 
-Purpose
--------
-Run Python 3.15 validation checks for the project runtime and data-engineering stack.
+Author:
+    Dr. Ceasar Jackson Jr.
 
-Usage
------
-python scripts/validate_py315.py
+Project:
+    Python 3.15 Data Engineering Validation Suite
 
-Validation
-----------
-python -m py_compile scripts/validate_py315.py
-python -m ruff check scripts/validate_py315.py
-python -m black --check scripts/validate_py315.py
-python scripts/validate_py315.py
+Purpose:
+    Validate the Python 3.15 sandbox, virtual environment, package manager,
+    and core development tooling used by the project.
 
-Exit Codes
-----------
-0   Success.
-1   Failure or validation error.
-130 User interrupted execution.
+Usage:
+    python scripts/validate_py315.py
 
-Operational Notes
------------------
-- Keep this script compatible with the active Python 3.15 validation environment.
-- Prefer deterministic inputs and explicit validation commands.
-- Preserve readable output suitable for terminal review and release notes.
-- Keep this header intact for portfolio, audit, and future-maintainer reference.
+Validation:
+    python -m py_compile scripts/validate_py315.py
+    python -m ruff check scripts/validate_py315.py
+    python -m black --check scripts/validate_py315.py
+    python scripts/validate_py315.py
+
+Exit Codes:
+    0 = Success
+    1 = Validation failure
+    130 = User interrupted
+
+Logging:
+    - Console-based validation output
+    - Environment verification details
+    - Tooling and package inventory reporting
+
+Operational Notes:
+    - Must be executed from the project virtual environment.
+    - Validates Python 3.15 runtime requirements.
+    - Uses uv-managed package workflows when available.
 
 ===============================================================================
 """
@@ -47,8 +52,8 @@ import shutil
 import subprocess
 import sys
 
-PROJECT_DIR = pathlib.Path(__file__).resolve().parent
-EXPECTED_VENV = PROJECT_DIR / ".venv"
+REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
+EXPECTED_VENV = REPO_ROOT / ".venv"
 
 
 def print_section(title: str) -> None:
@@ -102,6 +107,9 @@ def assert_project_venv() -> None:
     print("sys.prefix:", active_prefix)
     print("sys.base_prefix:", base_prefix)
 
+    print("Expected prefix:", expected_prefix)
+    print("Active prefix:", active_prefix)
+
     if active_prefix != expected_prefix:
         raise SystemExit(
             "❌ Active Python prefix is not this project's .venv\n"
@@ -132,11 +140,14 @@ def check_import(module_name: str) -> None:
 
 def main() -> None:
     print_section("Interpreter")
+    print("__file__:", pathlib.Path(__file__).resolve())
+    print("Computed REPO_ROOT:", REPO_ROOT)
+    print("Computed EXPECTED_VENV:", EXPECTED_VENV)
     print("Executable:", sys.executable)
     print("Version:", sys.version)
     print("Platform:", platform.platform())
     print("CWD:", pathlib.Path.cwd())
-    print("Project:", PROJECT_DIR)
+    print("Project:", REPO_ROOT)
 
     assert_python315()
     assert_project_venv()
