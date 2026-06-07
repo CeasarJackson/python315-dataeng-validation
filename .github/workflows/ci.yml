@@ -29,8 +29,8 @@ jobs:
         run: |
           uv venv --python 3.15.0b2 .venv
           . .venv/bin/activate
-          python -m pip install --upgrade pip setuptools wheel
-          python -m pip install pytest
+          uv pip install --python .venv/bin/python --upgrade pip setuptools wheel
+          uv pip install --python .venv/bin/python pytest
 
       - name: Show environment
         run: |
