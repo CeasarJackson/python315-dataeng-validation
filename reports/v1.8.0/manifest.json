@@ -1,10 +1,10 @@
 {
   "project": "Python 3.15 Data Engineering Validation Suite",
-  "release": "3.15.0rc1",
-  "release_type": "rc",
-  "test_date": "2026-06-05",
+  "release": "v1.8.0",
+  "release_type": "ga",
+  "test_date": "2026-06-07",
   "platform": "macOS 26.5.1 ARM64",
-  "python_build": "cpython-3.15.0rc1-macos-aarch64-none",
+  "python_build": "cpython-v1.8.0-macos-aarch64-none",
   "python_runtime": "3.15.0b2",
   "package_manager": "uv",
   "docker_image": "pyarrow-dataeng:py314",
@@ -80,14 +80,14 @@
       "reason": "no cp315 wheels on PyPI"
     },
     "pyspark": {
-      "status": "PASS",
-      "version": "4.1.2",
-      "note": "via Docker py314 + OpenJDK 21"
+      "status": "SKIP",
+      "version": "unknown",
+      "reason": "Docker image not available"
     },
     "apache-airflow": {
-      "status": "SKIP",
-      "version": "not installed",
-      "reason": "deferred"
+      "status": "PASS",
+      "version": "3.2.2",
+      "note": "DAG + PythonOperator; operators moved to providers.standard in 3.x"
     }
   },
   "production_readiness_pct": 89,

@@ -90,5 +90,6 @@
       "note": "DAG + PythonOperator; operators moved to providers.standard in 3.x"
     }
   },
-  "production_readiness_pct": 85
+  "production_readiness_pct": 90,
+  "packages_blocked": 2
 }

@@ -22,7 +22,7 @@ Overall Readiness Score: 87%
 | Distributed Processing | PARTIAL |
 | Arrow Ecosystem | BLOCKED |
 
-**Overall Readiness Score: 87%**
+**Overall Readiness Score: 84%**
 
 ---
 

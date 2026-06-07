@@ -26,7 +26,7 @@ This report summarizes the compatibility and operational readiness of a modern d
 | Distributed Processing | PARTIAL |
 | Arrow Ecosystem | BLOCKED |
 
-**Overall Readiness: 92%**
+**Overall Readiness: 84%**
 
 ---
 
