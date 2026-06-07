@@ -54,7 +54,7 @@ jobs:
       - name: Run test suite
         run: |
           . .venv/bin/activate
-          python -m pytest -q
+          python -m pytest tests -q
 
       - name: Verify release checksums
         run: |
