@@ -37,8 +37,8 @@ Operational Notes
 ===============================================================================
 """
 
-import sqlite3
 import pathlib
+import sqlite3
 
 
 def test_sqlite_file_create_and_read(tmp_path):

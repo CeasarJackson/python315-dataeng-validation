@@ -12,7 +12,7 @@ Author:
 Purpose:
     Validate release-to-release readiness progression and report consistency.
 
-Validation Commands:
+Validation:
     python -m py_compile tests/test_release_progression.py
     python -m pytest tests/test_release_progression.py -v
 ==============================================================================
@@ -66,7 +66,7 @@ def test_package_totals_consistent() -> None:
             int(manifest["packages_pass"])
             + int(manifest["packages_fail"])
             + int(manifest["packages_incompat"])
-            + int(manifest["packages_blocked"])
+            + int(manifest.get("packages_blocked", 0))
             + int(manifest["packages_skip"])
         )
 

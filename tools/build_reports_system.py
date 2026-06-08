@@ -1,4 +1,22 @@
 """
+==============================================================================
+Python 3.15 Data Engineering Validation Lab
+==============================================================================
+
+Author:
+    Dr. Ceasar Jackson Jr.
+
+Purpose:
+    TODO: Describe purpose of build_reports_system.py
+
+Validation:
+    python -m py_compile /Users/ceasarjackson/Projects/python315_test/tools/build_reports_system.py
+    python /Users/ceasarjackson/Projects/python315_test/tools/build_reports_system.py --help
+
+==============================================================================
+"""
+
+"""
 ===============================================================================
 build_reports_system.py — Python 3.15 Data Engineering Validation Suite
 ===============================================================================

@@ -3,17 +3,19 @@
 ==============================================================================
 Python 3.15 Data Engineering Validation Lab
 ==============================================================================
-Script Name:
-    test_sync_readiness.py
 
 Author:
     Dr. Ceasar Jackson Jr.
 
 Purpose:
-    Regression tests for tools/sync_readiness.py.
+    Synchronize readiness calculations, manifests, and report metadata
+    across generated Python 3.15 compatibility reports.
 
 Validation:
+    python -m py_compile tools/sync_readiness.py
     python -m pytest tests/test_sync_readiness.py -v
+    python -m pytest tests/test_script_headers.py -v
+
 ==============================================================================
 """
 

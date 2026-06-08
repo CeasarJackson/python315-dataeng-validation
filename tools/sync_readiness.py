@@ -21,7 +21,7 @@ Usage:
     python tools/sync_readiness.py --dry-run
     python tools/sync_readiness.py --verbose
 
-Validation Commands:
+Validation:
     python -m py_compile tools/sync_readiness.py
     python tools/sync_readiness.py --dry-run
     python tools/sync_readiness.py --release 3.15.0b2 --dry-run
@@ -275,15 +275,11 @@ def update_markdown(path: Path, readiness: int, dry_run: bool) -> bool:
         text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
 
     if not matched_pattern:
-        log_info(
-            f"No recognized readiness markers found in: {path}"
-        )
+        log_info(f"No recognized readiness markers found in: {path}")
         return True
 
     if text == original:
-        log_info(
-            f"Readiness already synchronized (no changes required): {path}"
-        )
+        log_info(f"Readiness already synchronized (no changes required): {path}")
         return True
 
     if dry_run:

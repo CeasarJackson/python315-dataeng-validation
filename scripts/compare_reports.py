@@ -1,3 +1,21 @@
+"""
+==============================================================================
+Python 3.15 Data Engineering Validation Lab
+==============================================================================
+
+Author:
+    Dr. Ceasar Jackson Jr.
+
+Purpose:
+    TODO: Describe purpose of compare_reports.py
+
+Validation:
+    python -m py_compile /Users/ceasarjackson/Projects/python315_test/scripts/compare_reports.py
+    python /Users/ceasarjackson/Projects/python315_test/scripts/compare_reports.py --help
+
+==============================================================================
+"""
+
 #!/usr/bin/env python3
 """
 ===============================================================================

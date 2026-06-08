@@ -12,7 +12,7 @@ Author:
 Purpose:
     Validate manifest schema consistency across all report directories.
 
-Validation Commands:
+Validation:
     python -m py_compile tests/test_manifest_schema.py
     python -m pytest tests/test_manifest_schema.py -v
 ==============================================================================

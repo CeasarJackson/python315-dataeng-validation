@@ -1,4 +1,22 @@
 """
+==============================================================================
+Python 3.15 Data Engineering Validation Lab
+==============================================================================
+
+Author:
+    Dr. Ceasar Jackson Jr.
+
+Purpose:
+    TODO: Describe purpose of update_docs.py
+
+Validation:
+    python -m py_compile /Users/ceasarjackson/Projects/python315_test/tools/update_docs.py
+    python /Users/ceasarjackson/Projects/python315_test/tools/update_docs.py --help
+
+==============================================================================
+"""
+
+"""
 ===============================================================================
 update_docs.py — Python 3.15 Data Engineering Validation Suite
 ===============================================================================
