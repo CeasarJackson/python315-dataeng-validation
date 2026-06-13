@@ -1,59 +1,14 @@
 """
-==============================================================================
-Python 3.15 Data Engineering Validation Lab
-==============================================================================
-
-Author:
-    Dr. Ceasar Jackson Jr.
+Author: Dr. Ceasar Jackson Jr.
 
 Purpose:
-    TODO: Describe purpose of validate_stack.py
+Validate core data engineering package stack.
 
 Validation:
-    python -m py_compile /Users/ceasarjackson/Projects/python315_test/scripts/validate_stack.py
-    python /Users/ceasarjackson/Projects/python315_test/scripts/validate_stack.py --help
-
-==============================================================================
+python -m py_compile validate_stack.py
 """
 
-"""
-===============================================================================
-================================================================================
-===============================================================================
-Project : Python 3.15 Data Engineering Validation Suite
-Author  : Dr. Ceasar Jackson Jr.
-Path    : scripts/validate_stack.py
 
-Purpose
--------
-Run Python 3.15 validation checks for the project runtime and data-engineering stack.
-
-Usage
------
-python scripts/validate_stack.py
-
-Validation
-----------
-python -m py_compile scripts/validate_stack.py
-python -m ruff check scripts/validate_stack.py
-python -m black --check scripts/validate_stack.py
-python scripts/validate_stack.py
-
-Exit Codes
-----------
-0   Success.
-1   Failure or validation error.
-130 User interrupted execution.
-
-Operational Notes
------------------
-- Keep this script compatible with the active Python 3.15 validation environment.
-- Prefer deterministic inputs and explicit validation commands.
-- Preserve readable output suitable for terminal review and release notes.
-- Keep this header intact for portfolio, audit, and future-maintainer reference.
-
-===============================================================================
-"""
 
 from __future__ import annotations
 
@@ -152,7 +107,7 @@ def test_pandas() -> bool:
         )
 
         # Groupby aggregation
-        summary = df.groupby("region")["sales"].sum()
+        summary = df.groupby("region", dropna=False)["sales"].sum()
         log.debug("pandas groupby result:\n%s", summary.to_string())
         log.info("[PASS] pandas — DataFrame + groupby OK")
 
