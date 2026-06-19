@@ -73,3 +73,7 @@ sqlite_tests/*.db
 # Release archives (stored outside repo)
 *.zip
 *.tar.gz
+# Generated inventory artifacts
+project_files.txt
+repo_inventory.txt
+repo_tree.txt

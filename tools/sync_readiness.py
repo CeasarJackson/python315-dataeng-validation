@@ -1,76 +1,15 @@
-#!/usr/bin/env python3
 """
-==============================================================================
-Python 3.15 Data Engineering Validation Lab
-==============================================================================
-Script Name:
-    sync_readiness.py
-
-Author:
-    Dr. Ceasar Jackson Jr.
+Author: Dr. Ceasar Jackson Jr.
 
 Purpose:
-    Synchronize production readiness metrics across Python 3.15 readiness
-    report artifacts. The manifest.json file is treated as the source of truth,
-    and Markdown report files are updated to match the calculated readiness
-    percentage.
-
-Usage:
-    python tools/sync_readiness.py
-    python tools/sync_readiness.py --release 3.15.0b2
-    python tools/sync_readiness.py --dry-run
-    python tools/sync_readiness.py --verbose
+Synchronize readiness reports and validation artifacts.
 
 Validation:
-    python -m py_compile tools/sync_readiness.py
-    python tools/sync_readiness.py --dry-run
-    python tools/sync_readiness.py --release 3.15.0b2 --dry-run
-    python tools/sync_readiness.py
-    jq '.production_readiness_pct' reports/3.15.0b2/manifest.json
-
-Updated Artifacts:
-    - manifest.json
-    - compatibility_report.md
-    - readiness_matrix.md
-    - executive_summary.md
-    - full_readiness_assessment.md
-
-Operational Notes:
-    - Manifest is the single source of truth.
-    - Supports current manifests with packages_* counters.
-    - Supports manifests with results or validation_results sections.
-    - Supports older legacy flat pass/fail/incompat/blocked/skip counters.
-    - Reconstructs packages_blocked from results when missing.
-    - Missing Markdown files are skipped safely with warnings.
-    - Invalid JSON manifests are reported and skipped.
-    - Logs are written to logs/sync_readiness.log.
-
-Readiness Formula:
-    SKIP entries are excluded from the denominator.
-    PASS contributes 1.00.
-    BLOCKED contributes 0.50.
-    INCOMPAT contributes 0.25.
-    FAIL contributes 0.00.
-
-Example:
-    PASS=12, BLOCKED=2, INCOMPAT=2, SKIP=1, FAIL=0
-    effective_total = 17 - 1 = 16
-    weighted_score = 12 + (2 * 0.50) + (2 * 0.25) = 13.5
-    readiness = round(13.5 / 16 * 100) = 84
-
-Exit Codes:
-    0 = Completed successfully, including warnings.
-    1 = Fatal runtime error.
-
-Change Log:
-    2026-06-07:
-        Restored full script structure after accidental partial patch.
-        Added current packages_* manifest support.
-        Added results and validation_results support.
-        Added colorized console logging and file logging.
-        Added dry-run, release filtering, and verbose mode.
-==============================================================================
+python -m py_compile sync_readiness.py
 """
+
+#!/usr/bin/env python3
+
 
 from __future__ import annotations
 

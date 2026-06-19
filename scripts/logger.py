@@ -1,20 +1,14 @@
 """
-==============================================================================
-Python 3.15 Data Engineering Validation Lab
-==============================================================================
-
-Author:
-    Dr. Ceasar Jackson Jr.
+Author: Dr. Ceasar Jackson Jr.
 
 Purpose:
-    TODO: Describe purpose of logger.py
+Provide shared logging utilities for repository scripts.
 
 Validation:
-    python -m py_compile /Users/ceasarjackson/Projects/python315_test/scripts/logger.py
-    python /Users/ceasarjackson/Projects/python315_test/scripts/logger.py --help
-
-==============================================================================
+python -m py_compile logger.py
 """
+
+
 
 """
 ===============================================================================

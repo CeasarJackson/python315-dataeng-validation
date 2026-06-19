@@ -1,47 +1,15 @@
-#!/usr/bin/env python3
 """
-===============================================================================
-Python 3.15 Data Engineering Validation Suite
-===============================================================================
-Script:
-    validate_py315.py
-
-Author:
-    Dr. Ceasar Jackson Jr.
-
-Project:
-    Python 3.15 Data Engineering Validation Suite
+Author: Dr. Ceasar Jackson Jr.
 
 Purpose:
-    Validate the Python 3.15 sandbox, virtual environment, package manager,
-    and core development tooling used by the project.
-
-Usage:
-    python scripts/validate_py315.py
+Run end-to-end Python 3.15 compatibility validation.
 
 Validation:
-    python -m py_compile scripts/validate_py315.py
-    python -m ruff check scripts/validate_py315.py
-    python -m black --check scripts/validate_py315.py
-    python scripts/validate_py315.py
-
-Exit Codes:
-    0 = Success
-    1 = Validation failure
-    130 = User interrupted
-
-Logging:
-    - Console-based validation output
-    - Environment verification details
-    - Tooling and package inventory reporting
-
-Operational Notes:
-    - Must be executed from the project virtual environment.
-    - Validates Python 3.15 runtime requirements.
-    - Uses uv-managed package workflows when available.
-
-===============================================================================
+python -m py_compile validate_py315.py
 """
+
+#!/usr/bin/env python3
+
 
 from __future__ import annotations
 

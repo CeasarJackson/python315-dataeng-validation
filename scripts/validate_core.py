@@ -1,20 +1,14 @@
 """
-==============================================================================
-Python 3.15 Data Engineering Validation Lab
-==============================================================================
-
-Author:
-    Dr. Ceasar Jackson Jr.
+Author: Dr. Ceasar Jackson Jr.
 
 Purpose:
-    TODO: Describe purpose of validate_core.py
+Validate Python runtime, tooling, and environment readiness.
 
 Validation:
-    python -m py_compile /Users/ceasarjackson/Projects/python315_test/scripts/validate_core.py
-    python /Users/ceasarjackson/Projects/python315_test/scripts/validate_core.py --help
-
-==============================================================================
+python -m py_compile validate_core.py
 """
+
+
 
 """
 ===============================================================================

@@ -56,9 +56,9 @@ Operational Notes
 """
 
 import argparse
-import os
 import importlib.metadata
 import json
+import os
 import platform
 import shutil
 import subprocess
@@ -376,6 +376,7 @@ def write_manifest(
         "packages_tested": sum(counts.values()),
         "packages_pass": counts["PASS"],
         "packages_incompat": counts["INCOMPAT"],
+        "packages_blocked": counts["BLOCKED"],
         "packages_skip": counts["SKIP"],
         "packages_fail": counts["FAIL"],
         "results": results,
@@ -386,7 +387,20 @@ def write_manifest(
     manifest["production_readiness_pct"] = (
         min(int((_wp / _eff) * 100), 95) if _eff else 0
     )
-    (release_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    # Defensive schema guarantee for downstream tests.
+    manifest.setdefault("packages_blocked", counts.get("BLOCKED", 0))
+
+    # print("\nDEBUG BEFORE WRITE")
+    # print("packages_blocked =", manifest.get("packages_blocked"))
+    # print(sorted(manifest.keys()))
+
+    manifest_path = release_dir / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    # written = json.loads(manifest_path.read_text(encoding="utf-8"))
+    # print("\nDEBUG AFTER WRITE")
+    # print("packages_blocked =", written.get("packages_blocked"))
+    # print(sorted(written.keys()))
 
 
 def write_compat_report(release_dir, release, results, counts):

@@ -1,71 +1,15 @@
-#!/usr/bin/env python3
 """
-===============================================================================
-Python 3.15 Data Engineering Validation Suite
-===============================================================================
-Script:
-    benchmark_duckdb_pyarrow.py
-
-Author:
-    Dr. Ceasar Jackson Jr.
-
-Project:
-    Python 3.15 Data Engineering Validation Suite
+Author: Dr. Ceasar Jackson Jr.
 
 Purpose:
-    Benchmark native DuckDB running under Python 3.15 against PyArrow running
-    inside a Docker-based Python 3.14 environment. Results are written to CSV
-    and displayed through the project logging framework.
-
-Usage:
-    python scripts/benchmark_duckdb_pyarrow.py
-    python scripts/benchmark_duckdb_pyarrow.py --help
-    python scripts/benchmark_duckdb_pyarrow.py > benchmark.log 2>&1
+Benchmark DuckDB and PyArrow performance under Python 3.15.
 
 Validation:
-    python scripts/benchmark_duckdb_pyarrow.py
-    python -m py_compile scripts/benchmark_duckdb_pyarrow.py
-    python -m ruff check scripts/benchmark_duckdb_pyarrow.py
-    python -m black --check scripts/benchmark_duckdb_pyarrow.py
-    python -m pytest -v
-
-Exit Codes:
-    0 = Success
-    1 = Required dependency missing
-    130 = User interrupted (Ctrl+C)
-
-Logging:
-    - Colorized console logging (when colorlog is installed)
-    - Persistent log file output through logger.py
-    - Defensive error handling and cleanup
-    - Console and log-file timestamps
-    - Structured benchmark status messages
-
-Operations Benchmarked:
-    1. Parquet write
-    2. Parquet read
-    3. Filter
-    4. Aggregation
-    5. Join
-
-Dataset Sizes:
-    - 500,000 rows
-    - 2,000,000 rows
-    - 5,000,000 rows
-
-Prerequisites:
-    - Docker Desktop running
-    - pyarrow-dataeng:py314 image available
-    - DuckDB installed in active environment
-
-Notes:
-    PyArrow currently lacks Python 3.15 wheels. Therefore PyArrow benchmarks
-    execute in a Docker container while DuckDB benchmarks execute natively.
-    This script follows the Dr. Ceasar Jackson Jr. project scripting
-    standard including detailed operational guidance, validation commands,
-    defensive programming practices, and centralized logging.
-===============================================================================
+python -m py_compile benchmark_duckdb_pyarrow.py
 """
+
+#!/usr/bin/env python3
+
 
 from __future__ import annotations
 
@@ -149,7 +93,8 @@ def bench_duckdb() -> list[tuple[str, float]]:
     import duckdb
 
     results = []
-    tmp = tempfile.mktemp(suffix=".parquet")
+    fd, tmp = tempfile.mkstemp(suffix=".parquet")
+    os.close(fd)
 
     def write():
         if os.path.exists(tmp):
@@ -250,7 +195,7 @@ def bench_pyarrow():
     def aggregate():
         table = pq.read_table("/data/tmp.parquet")
         df = table.to_pandas()
-        df.groupby("category")["value"].mean()
+        df.groupby("category", dropna=False)["value"].mean()
 
     def join():
         table = pq.read_table("/data/tmp.parquet")

@@ -1,41 +1,14 @@
 """
-===============================================================================
-Python 3.15 Data Engineering Validation Suite
-===============================================================================
-
-Script:
-    benchmark_pandas_polars.py
-
-Author:
-    Dr. Ceasar Jackson Jr.
-
-Project:
-    Python 3.15 Data Engineering Validation Suite
+Author: Dr. Ceasar Jackson Jr.
 
 Purpose:
-    Benchmark Pandas versus Polars performance under Python 3.15.
-
-Usage:
-    python scripts/benchmark_pandas_polars.py
+Benchmark Pandas and Polars performance under Python 3.15.
 
 Validation:
-    python -m py_compile scripts/benchmark_pandas_polars.py
-    python -m ruff check scripts/benchmark_pandas_polars.py
-    python -m black --check scripts/benchmark_pandas_polars.py
-    python scripts/benchmark_pandas_polars.py
-
-Exit Codes:
-    0 = Success
-    1 = Failure
-    130 = User interrupted
-
-Logging:
-    - Colorized console output
-    - File logging through logger.py
-    - Timestamped benchmark results
-
-===============================================================================
+python -m py_compile benchmark_pandas_polars.py
 """
+
+
 
 from __future__ import annotations
 
@@ -133,12 +106,14 @@ def bench_pandas(data: dict, lookup: dict) -> dict[str, float]:
 
     # 3. GroupBy
     results["groupby"] = timed(
-        lambda: df.groupby("category")
-        .agg(
-            sum_a=("value_a", "sum"),
-            mean_b=("value_b", "mean"),
+        lambda: (
+            df.groupby("category", dropna=False)
+            .agg(
+                sum_a=("value_a", "sum"),
+                mean_b=("value_b", "mean"),
+            )
+            .reset_index()
         )
-        .reset_index()
     )
 
     # 4. Sort

@@ -1,63 +1,17 @@
 """
-==============================================================================
-Python 3.15 Data Engineering Validation Lab
-==============================================================================
-
-Author:
-    Dr. Ceasar Jackson Jr.
+Author: Dr. Ceasar Jackson Jr.
 
 Purpose:
-    TODO: Describe purpose of validate_extended.py
+Validate extended data engineering ecosystem compatibility.
 
 Validation:
-    python -m py_compile /Users/ceasarjackson/Projects/python315_test/scripts/validate_extended.py
-    python /Users/ceasarjackson/Projects/python315_test/scripts/validate_extended.py --help
-
-==============================================================================
+python -m py_compile validate_extended.py
 """
 
-"""
-===============================================================================
-================================================================================
-===============================================================================
-Project : Python 3.15 Data Engineering Validation Suite
-Author  : Dr. Ceasar Jackson Jr.
-Path    : scripts/validate_extended.py
 
-Purpose
--------
-Run Python 3.15 validation checks for the project runtime and data-engineering stack.
-
-Usage
------
-python scripts/validate_extended.py
-
-Validation
-----------
-python -m py_compile scripts/validate_extended.py
-python -m ruff check scripts/validate_extended.py
-python -m black --check scripts/validate_extended.py
-python scripts/validate_extended.py
-
-Exit Codes
-----------
-0   Success.
-1   Failure or validation error.
-130 User interrupted execution.
-
-Operational Notes
------------------
-- Keep this script compatible with the active Python 3.15 validation environment.
-- Prefer deterministic inputs and explicit validation commands.
-- Preserve readable output suitable for terminal review and release notes.
-- Keep this header intact for portfolio, audit, and future-maintainer reference.
-
-===============================================================================
-"""
 
 from __future__ import annotations
 
-import importlib
 import importlib.util
 import os
 import shutil
@@ -250,7 +204,8 @@ def test_dask() -> str:
 
         pdf = pd.DataFrame({"x": range(10_000), "y": range(10_000, 20_000)})
         ddf = dd.from_pandas(pdf, npartitions=4)
-        result = ddf.groupby("x")["y"].sum().compute()
+        # Explicit dropna=False for pandas 3.x / Dask compatibility auditing.
+        result = ddf.groupby("x", dropna=False)["y"].sum().compute()
         assert len(result) == 10_000
         log.info(
             "[PASS] dask %s — from_pandas + groupby + compute OK (%d rows)",
