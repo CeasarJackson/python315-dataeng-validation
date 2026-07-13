@@ -1,10 +1,10 @@
 {
   "project": "Python 3.15 Data Engineering Validation Suite",
-  "release": "3.15.0b2",
-  "release_type": "beta",
+  "release": "3.15",
+  "release_type": "ga",
   "test_date": "2026-07-13",
   "platform": "macOS 26.5.2 ARM64",
-  "python_build": "cpython-3.15.0b2-macos-aarch64-none",
+  "python_build": "cpython-3.15-macos-aarch64-none",
   "python_runtime": "3.15.0b2",
   "package_manager": "uv",
   "docker_image": "pyarrow-dataeng:py314",
@@ -91,5 +91,5 @@
       "note": "DAG + PythonOperator; operators moved to providers.standard in 3.x"
     }
   },
-  "production_readiness_pct": 84
+  "production_readiness_pct": 85
 }

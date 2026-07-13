@@ -1,6 +1,6 @@
-# Compatibility Report — Python 3.15.0b2
+# Compatibility Report — Python v1.9.3
 
-**Date:** July 13, 2026
+**Date:** June 19, 2026
 **Platform:** macOS 26.5 ARM64
 **Tester:** Dr. Ceasar Jackson Jr.
 **Suite Version:** 1.2.0
@@ -12,10 +12,10 @@
 | Metric | Value |
 |--------|-------|
 | Packages Tested | 17 |
-| PASS | 14 |
+| PASS | 13 |
 | INCOMPAT | 1 |
 | BLOCKED | 2 |
-| SKIP | 0 |
+| SKIP | 1 |
 | FAIL | 0 |
 
 ---
@@ -39,7 +39,7 @@
 
 | Package | Version | Result | Notes |
 |---------|---------|--------|-------|
-| pyspark | 4.1.2 | ✅ PASS | via Docker py314 + OpenJDK 21 |
+| pyspark | unknown | ⏭️ SKIP | Docker image not available |
 | dask.dataframe | 2026.3.0 | ⚠️ INCOMPAT | runtime pyarrow dep |
 | pyarrow | unavailable | 🚫 BLOCKED | no cp315 wheels on PyPI; source build fails at CMake config |
 | mlflow | 2.16.2 | ✅ PASS |  |
@@ -53,9 +53,9 @@
 
 *Compare with previous report using:*
 ```bash
-python scripts/compare_reports.py <previous> 3.15.0b2
+python scripts/compare_reports.py <previous> v1.9.3
 ```
 
 ---
 
-*Generated 2026-07-13 by Python 3.15 Data Engineering Validation Suite v1.2.0*
+*Generated 2026-06-19 by Python 3.15 Data Engineering Validation Suite v1.2.0*

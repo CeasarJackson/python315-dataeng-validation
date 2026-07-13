@@ -1,4 +1,4 @@
-# Compatibility Report — Python 3.15.0b2
+# Compatibility Report — Python 3.15
 
 **Date:** July 13, 2026
 **Platform:** macOS 26.5 ARM64
@@ -53,7 +53,7 @@
 
 *Compare with previous report using:*
 ```bash
-python scripts/compare_reports.py <previous> 3.15.0b2
+python scripts/compare_reports.py <previous> 3.15
 ```
 
 ---
