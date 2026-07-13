@@ -1,21 +1,3 @@
-"""
-==============================================================================
-Python 3.15 Data Engineering Validation Lab
-==============================================================================
-
-Author:
-    Dr. Ceasar Jackson Jr.
-
-Purpose:
-    TODO: Describe purpose of generate_report.py
-
-Validation:
-    python -m py_compile /Users/ceasarjackson/Projects/python315_test/scripts/generate_report.py
-    python /Users/ceasarjackson/Projects/python315_test/scripts/generate_report.py --help
-
-==============================================================================
-"""
-
 #!/usr/bin/env python3
 """
 ===============================================================================
@@ -53,7 +35,15 @@ Operational Notes
 - Keep this header intact for portfolio, audit, and future-maintainer reference.
 
 ===============================================================================
+
+
+Compatibility Markers:
+    Author: Dr. Ceasar Jackson Jr.
+    Purpose: Generate Python 3.15 compatibility reports, manifests, summaries, and release artifacts.
+    Validation: python -m py_compile scripts/generate_report.py; python scripts/generate_report.py --help
 """
+
+from __future__ import annotations
 
 import argparse
 import importlib.metadata

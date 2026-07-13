@@ -8,8 +8,6 @@ Validation:
 python -m py_compile validate_stack.py
 """
 
-
-
 from __future__ import annotations
 
 import sys

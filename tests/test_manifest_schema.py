@@ -23,6 +23,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 REPORTS_DIR = PROJECT_ROOT / "reports"
 
@@ -50,9 +52,6 @@ MANIFESTS = manifest_paths()
 
 def test_manifests_exist() -> None:
     assert MANIFESTS, "No manifest.json files found under reports/"
-
-
-import pytest
 
 
 @pytest.mark.parametrize("manifest_path", MANIFESTS)

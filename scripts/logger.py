@@ -8,48 +8,44 @@ Validation:
 python -m py_compile logger.py
 """
 
-
-
-"""
-===============================================================================
-================================================================================
-===============================================================================
-Project : Python 3.15 Data Engineering Validation Suite
-Author  : Dr. Ceasar Jackson Jr.
-Path    : scripts/logger.py
-
-Purpose
--------
-Provide shared colorized console and file logging helpers for validation scripts.
-
-Usage
------
-Imported by validation and benchmark scripts.
-
-Validation
-----------
-python -m py_compile scripts/logger.py
-python -m ruff check scripts/logger.py
-python -m black --check scripts/logger.py
-
-Exit Codes
-----------
-0   Success.
-1   Failure or validation error.
-130 User interrupted execution.
-
-Operational Notes
------------------
-- Keep this script compatible with the active Python 3.15 validation environment.
-- Prefer deterministic inputs and explicit validation commands.
-- Preserve readable output suitable for terminal review and release notes.
-- Keep this header intact for portfolio, audit, and future-maintainer reference.
-
-===============================================================================
-"""
-
 from __future__ import annotations
 
+# ===============================================================================
+# ===============================================================================
+# ===============================================================================
+# Project : Python 3.15 Data Engineering Validation Suite
+# Author  : Dr. Ceasar Jackson Jr.
+# Path    : scripts/logger.py
+#
+# Purpose
+# -------
+# Provide shared colorized console and file logging helpers for validation scripts.
+#
+# Usage
+# -----
+# Imported by validation and benchmark scripts.
+#
+# Validation
+# ----------
+# python -m py_compile scripts/logger.py
+# python -m ruff check scripts/logger.py
+# python -m black --check scripts/logger.py
+#
+# Exit Codes
+# ----------
+# 0   Success.
+# 1   Failure or validation error.
+# 130 User interrupted execution.
+#
+# Operational Notes
+# -----------------
+# - Keep this script compatible with the active Python 3.15 validation environment.
+# - Prefer deterministic inputs and explicit validation commands.
+# - Preserve readable output suitable for terminal review and release notes.
+# - Keep this header intact for portfolio, audit, and future-maintainer reference.
+#
+# ===============================================================================
+#
 import logging
 import logging.handlers
 import sys

@@ -8,8 +8,6 @@ Validation:
 python -m py_compile benchmark_pandas_polars.py
 """
 
-
-
 from __future__ import annotations
 
 import csv

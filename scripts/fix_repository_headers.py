@@ -38,39 +38,23 @@ python -m py_compile {filename}
 
 '''
 
+
 def make_purpose(path: Path) -> str:
     stem = path.stem
 
     mapping = {
-        "benchmark_duckdb_pyarrow":
-            "Benchmark DuckDB and PyArrow performance under Python 3.15.",
-
-        "benchmark_pandas_polars":
-            "Benchmark Pandas and Polars performance under Python 3.15.",
-
-        "logger":
-            "Provide shared logging utilities for repository scripts.",
-
-        "validate_core":
-            "Validate Python runtime, tooling, and environment readiness.",
-
-        "validate_extended":
-            "Validate extended data engineering ecosystem compatibility.",
-
-        "validate_py315":
-            "Run end-to-end Python 3.15 compatibility validation.",
-
-        "validate_stack":
-            "Validate core data engineering package stack.",
-
-        "sync_readiness":
-            "Synchronize readiness reports and validation artifacts.",
+        "benchmark_duckdb_pyarrow": "Benchmark DuckDB and PyArrow performance under Python 3.15.",
+        "benchmark_pandas_polars": "Benchmark Pandas and Polars performance under Python 3.15.",
+        "logger": "Provide shared logging utilities for repository scripts.",
+        "validate_core": "Validate Python runtime, tooling, and environment readiness.",
+        "validate_extended": "Validate extended data engineering ecosystem compatibility.",
+        "validate_py315": "Run end-to-end Python 3.15 compatibility validation.",
+        "validate_stack": "Validate core data engineering package stack.",
+        "sync_readiness": "Synchronize readiness reports and validation artifacts.",
     }
 
-    return mapping.get(
-        stem,
-        "Repository-maintained Python utility."
-    )
+    return mapping.get(stem, "Repository-maintained Python utility.")
+
 
 def process(path: Path, check_only: bool) -> bool:
     text = path.read_text()
@@ -93,6 +77,7 @@ def process(path: Path, check_only: bool) -> bool:
     print(f"UPDATED: {path}")
     return True
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
@@ -108,6 +93,7 @@ def main():
 
     if args.check:
         raise SystemExit(1 if changed else 0)
+
 
 if __name__ == "__main__":
     main()

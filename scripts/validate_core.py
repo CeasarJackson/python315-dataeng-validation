@@ -1,18 +1,6 @@
 """
-Author: Dr. Ceasar Jackson Jr.
-
-Purpose:
-Validate Python runtime, tooling, and environment readiness.
-
-Validation:
-python -m py_compile validate_core.py
-"""
-
-
-
-"""
 ===============================================================================
-================================================================================
+===============================================================================
 ===============================================================================
 Project : Python 3.15 Data Engineering Validation Suite
 Author  : Dr. Ceasar Jackson Jr.
@@ -47,6 +35,12 @@ Operational Notes
 - Keep this header intact for portfolio, audit, and future-maintainer reference.
 
 ===============================================================================
+
+
+Compatibility Markers:
+    Author: Dr. Ceasar Jackson Jr.
+    Purpose: Run core Python 3.15 runtime and data-engineering validation checks.
+    Validation: python -m py_compile scripts/validate_core.py; python scripts/validate_core.py
 """
 
 from __future__ import annotations

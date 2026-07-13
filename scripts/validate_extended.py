@@ -8,8 +8,6 @@ Validation:
 python -m py_compile validate_extended.py
 """
 
-
-
 from __future__ import annotations
 
 import importlib.util
@@ -469,6 +467,9 @@ def main() -> int:
         ("MLflow", test_mlflow),
         ("Prefect", test_prefect),
         ("Apache Airflow", test_airflow),
+        # Future compatibility checks
+        # ("PyArrow", test_pyarrow),
+        # ("Great Expectations", test_great_expectations),
     ]
 
     results: dict[str, str] = {}
@@ -509,10 +510,23 @@ def main() -> int:
     # and should not fail the validation suite.
     hard_failures = counts[FAIL]
 
+    executed_checks = len(results)
+    pass_rate = (counts[PASS] / executed_checks) * 100 if executed_checks else 0.0
+
+    log.info(
+        "Pass Rate: %.1f%% (%d/%d)",
+        pass_rate,
+        counts[PASS],
+        executed_checks,
+    )
+
     if counts[INCOMPAT]:
         log.warning(
             "%d package(s) are currently incompatible with Python 3.15.",
             counts[INCOMPAT],
+        )
+        log.warning(
+            "INCOMPAT results are tracked ecosystem readiness issues and do not fail validation."
         )
 
     if hard_failures == 0:
