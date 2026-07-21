@@ -1,0 +1,52 @@
+# Extended data-engineering stack — Python 3.15 validation lab
+#
+# Purpose:
+#   Pin the extended (non-core) packages exercised by the compatibility
+#   report so that validation coverage survives a venv rebuild.
+#
+# Background (see docs/KNOWN_ISSUES.md, issues ENV-001 and ENV-002):
+#   The 3.15.0b2 cycle tested these packages, but they were installed ad hoc
+#   and never pinned. Rebuilding the venv for 3.15.0b4 dropped them, and they
+#   silently degraded to SKIP "not installed", inflating the readiness score.
+#
+#   The b2-recorded versions turned out to be MUTUALLY UNSATISFIABLE:
+#     apache-airflow==3.2.2 -> apache-airflow-task-sdk==1.2.2 -> packaging>=25.0
+#     mlflow==2.16.2        -> mlflow-skinny==2.16.2          -> packaging<25
+#   No resolver can satisfy both, which means the b2 environment was built by
+#   incremental installs that left at least one package's constraints violated.
+#   See ENV-002 — historical results from that environment are suspect.
+#
+#   Versions below are a mutually consistent set resolved against Python 3.15
+#   on 2026-07-21. They are deliberately NOT the b2 versions.
+#
+# Usage:
+#   uv pip install -r requirements-py315-build.txt
+#   uv pip install -r requirements-py315-dataeng-jupyter.txt
+#   uv pip install -r requirements-py315-dataeng-extended.txt
+#
+#   Use `uv pip install -r`, NOT `uv pip sync`. Sync enforces a single file
+#   exactly and will uninstall everything not listed in it.
+#
+#   After a successful install, verify no constraints were violated:
+#     uv pip check
+#
+# Known blocked (intentionally NOT pinned here):
+#   pyarrow  -> ARW-001, no cp315 wheels; source build fails at CMake config
+#   ray      -> RAY-001, no cp315 wheels
+#   mlflow   -> MLF-001, requires pandas<3; conflicts with the pinned core
+#               stack (pandas 3.0.3). Installing it downgrades pandas and
+#               invalidates core-stack results. Test in a separate venv.
+#
+# pyspark is validated via Docker (pyarrow-dataeng image), not installed
+# into this venv, so it is not pinned here.
+
+#   airflow  -> PYO3-001, depends on libcst -> pyo3 0.26.0, which hard-caps
+#               at Python 3.14 and refuses to build on 3.15. Genuine
+#               interpreter incompatibility, not a packaging gap.
+#
+# Install these one at a time. uv installs atomically, so a single build
+# failure rolls back the entire transaction — including packages that would
+# otherwise have succeeded.
+
+dask==2026.7.1
+prefect==3.7.7

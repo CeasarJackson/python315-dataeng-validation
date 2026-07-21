@@ -1,0 +1,5 @@
+cython==3.2.8
+meson==1.11.2
+meson-python==0.20.0
+ninja==1.13.0
+versioneer==0.29
