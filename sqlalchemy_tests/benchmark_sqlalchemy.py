@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 ===============================================================================
 benchmark_sqlalchemy.py — Python 3.15 Data Engineering Validation Suite

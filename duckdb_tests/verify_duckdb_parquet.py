@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 ===============================================================================
 verify_duckdb_parquet.py — Python 3.15 Data Engineering Validation Suite
