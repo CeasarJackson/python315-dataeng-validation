@@ -50,6 +50,7 @@ import importlib.metadata
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -98,6 +99,95 @@ def probe_package(pkg_name, test_fn=None):
 def check_docker_image(image="pyarrow-dataeng:py314"):
     _, rc = run(f"docker image inspect {image}")
     return rc == 0
+
+
+# Distribution names reported by `uv pip check` do not always match the keys
+# used in the results dict (e.g. dist "apache-airflow" -> key "airflow").
+_DIST_TO_RESULT_KEY = {
+    "apache-airflow": "airflow",
+    "dask": "dask.dataframe",
+}
+
+
+def _result_key_for_dist(dist_name, results):
+    """Map a distribution name onto its key in the results dict."""
+    if dist_name in results:
+        return dist_name
+    mapped = _DIST_TO_RESULT_KEY.get(dist_name)
+    if mapped in results:
+        return mapped
+    # Fall back to a dotted key sharing the same root, e.g. "dask.dataframe".
+    for key in results:
+        if key.split(".")[0] == dist_name:
+            return key
+    return None
+
+
+def check_declared_support(results):
+    """Downgrade packages that violate their own declared constraints.
+
+    An import probe cannot detect a package that installs and imports cleanly
+    while declaring the running interpreter unsupported (see PRE-001), nor an
+    environment whose pins are mutually inconsistent (see ENV-002). Both show
+    up in `uv pip check`, so its findings override probe results.
+
+    Mutates ``results`` in place and returns the list of violation strings.
+    """
+    print("  Verifying declared support constraints...")
+
+    # `uv pip check` reports findings on stderr, not stdout, so the shared
+    # run() helper (stdout only) cannot see them. Merge both streams here.
+    proc = subprocess.run(
+        "uv pip check",
+        shell=True,
+        capture_output=True,
+        text=True,
+        cwd=REPO,
+    )
+    output = f"{proc.stdout or ''}\n{proc.stderr or ''}".strip()
+    rc = proc.returncode
+
+    if rc == 0 and "Found" not in output:
+        print("    uv pip check: no constraint violations")
+        return []
+
+    violations = [
+        line.strip()
+        for line in output.splitlines()
+        if line.strip().startswith("The package ")
+    ]
+
+    if not violations:
+        # Non-zero exit with no parsable detail — surface it rather than
+        # silently treating the environment as clean.
+        if rc != 0:
+            print(f"    uv pip check: exited {rc}, output not parsable")
+        return []
+
+    for line in violations:
+        match = re.match(r"The package `([^`]+)` requires (.+)", line)
+        if not match:
+            continue
+        dist, detail = match.group(1), match.group(2).rstrip(".")
+        key = _result_key_for_dist(dist, results)
+
+        if key is None:
+            print(f"    {dist}: constraint violation (not tracked in report)")
+            continue
+
+        previous = results[key].get("status")
+        if previous in ("BLOCKED", "SKIP"):
+            # Not installed or already excluded; nothing to downgrade.
+            continue
+
+        results[key] = {
+            "status": "INCOMPAT",
+            "version": results[key].get("version", get_version(dist)),
+            "reason": f"declared unsupported: requires {detail}",
+        }
+        print(f"    {key}: {previous} -> INCOMPAT (declared unsupported)")
+
+    return violations
 
 
 def collect_results(docker_image="pyarrow-dataeng:py314"):
@@ -348,7 +438,12 @@ def tally(results):
 
 
 def write_manifest(
-    release_dir, release, results, counts, docker_image="pyarrow-dataeng:py314"
+    release_dir,
+    release,
+    results,
+    counts,
+    docker_image="pyarrow-dataeng:py314",
+    violations=None,
 ):
     py_ver = platform.python_version()
     manifest = {
@@ -369,6 +464,10 @@ def write_manifest(
         "packages_blocked": counts["BLOCKED"],
         "packages_skip": counts["SKIP"],
         "packages_fail": counts["FAIL"],
+        # Recorded so a report can be audited for environment integrity,
+        # not just import success. See ENV-002 and PRE-001.
+        "environment_consistent": not violations,
+        "constraint_violations": list(violations or []),
         "results": results,
     }
     # Compute readiness inline (BLOCKED = upstream gap, partial credit)
@@ -522,6 +621,7 @@ def main():
     print("=" * 60)
 
     results = collect_results(docker_image=args.docker_image)
+    violations = check_declared_support(results)
     counts = tally(results)
 
     print(
@@ -529,12 +629,14 @@ def main():
         f"INCOMPAT={counts['INCOMPAT']}  BLOCKED={counts.get('BLOCKED', 0)}  "
         f"SKIP={counts['SKIP']}"
     )
+    if violations:
+        print(f"Constraint violations: {len(violations)} (see manifest)")
 
     if args.dry_run:
         print("\nDry run — no files written.")
         return
 
-    write_manifest(release_dir, release, results, counts)
+    write_manifest(release_dir, release, results, counts, violations=violations)
     write_compat_report(release_dir, release, results, counts)
 
     # Copy PDF if present
