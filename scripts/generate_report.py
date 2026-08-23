@@ -429,6 +429,74 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
     return results
 
 
+def detect_python_build():
+    """Identify the interpreter that is actually running.
+
+    This must never be derived from the ``--release`` argument. A report whose
+    build string is synthesised from the requested release will happily claim
+    ``cpython-3.15.0rc1-...`` while running on b4 — which is exactly how the
+    2026-08-05 rc1 report came to contradict its own ``python_runtime`` field.
+    """
+    # uv-managed interpreters live in a directory whose name IS the build
+    # triple (e.g. cpython-3.15.0b4-macos-aarch64-none). That is ground truth,
+    # so prefer it. sys._base_executable points at the real interpreter rather
+    # than the venv shim.
+    base = Path(getattr(sys, "_base_executable", None) or sys.executable).resolve()
+    for part in base.parts:
+        if part.startswith("cpython-"):
+            return part
+
+    # Otherwise synthesise an equivalent triple from the live interpreter.
+    os_name = {"Darwin": "macos", "Linux": "linux", "Windows": "windows"}.get(
+        platform.system(), platform.system().lower()
+    )
+    return (
+        f"{sys.implementation.name}-{platform.python_version()}"
+        f"-{os_name}-{platform.machine()}-none"
+    )
+
+
+def verify_release_matches_runtime(release, allow_mismatch=False):
+    """Refuse to label a report with a release the interpreter is not running.
+
+    `uv python install 3.15` resolves to the newest build uv knows about, which
+    lags upstream by days around a release. Combined with `uv venv` declining to
+    replace an existing venv, a full validation cycle can re-measure the *old*
+    environment and file the result under the new release name. Catch that here
+    rather than discovering it later in the manifest.
+    """
+    runtime = platform.python_version()
+    if runtime == release:
+        return
+
+    banner = (
+        f"\n  Requested release : {release}"
+        f"\n  Running interpreter: {runtime}"
+        f"\n  Interpreter path   : {sys.executable}"
+    )
+    if allow_mismatch:
+        print(f"\nWARNING: interpreter does not match --release.{banner}")
+        print("  Continuing because --allow-version-mismatch was passed.")
+        print("  The resulting report is NOT a validation of " f"{release}.\n")
+        return
+
+    print(f"\nERROR: interpreter does not match --release.{banner}")
+    print(
+        "\n  Refusing to write a report labelled with a release that was not"
+        "\n  exercised. To fix:"
+        f"\n      uv python install {release}"
+        f"\n      uv venv --clear --python {release}"
+        "\n      uv pip install -r requirements-py315-build.txt"
+        "\n      uv pip install -r requirements-py315-dataeng-jupyter.txt"
+        "\n"
+        "\n  Note the --clear flag: without it uv leaves the existing venv in"
+        "\n  place and the whole cycle silently re-measures the old build."
+        "\n"
+        "\n  Pass --allow-version-mismatch to override deliberately.\n"
+    )
+    sys.exit(1)
+
+
 def tally(results):
     counts = {"PASS": 0, "FAIL": 0, "INCOMPAT": 0, "SKIP": 0, "BLOCKED": 0}
     for v in results.values():
@@ -452,7 +520,7 @@ def write_manifest(
         "release_type": "beta" if "b" in release else "rc" if "rc" in release else "ga",
         "test_date": date.today().isoformat(),
         "platform": f"macOS {platform.mac_ver()[0]} ARM64",
-        "python_build": f"cpython-{release}-macos-aarch64-none",
+        "python_build": detect_python_build(),
         "python_runtime": py_ver,
         "package_manager": "uv",
         "docker_image": docker_image,
@@ -603,6 +671,15 @@ def main():
         "--dry-run", action="store_true", help="Print results without writing"
     )
     parser.add_argument(
+        "--allow-version-mismatch",
+        action="store_true",
+        help=(
+            "Generate the report even when the running interpreter is not the "
+            "release named by --release. The result is not a validation of "
+            "that release; use only deliberately."
+        ),
+    )
+    parser.add_argument(
         "--docker-image",
         default=os.environ.get("DATAENG_DOCKER_IMAGE", "pyarrow-dataeng:py314"),
         help=(
@@ -613,6 +690,11 @@ def main():
     args = parser.parse_args()
 
     release = args.release
+
+    # Check the interpreter before creating the output directory or probing
+    # anything, so a mismatched run leaves no partial artifacts behind.
+    verify_release_matches_runtime(release, args.allow_version_mismatch)
+
     release_dir = REPORTS / release
     release_dir.mkdir(parents=True, exist_ok=True)
 

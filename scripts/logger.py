@@ -1,18 +1,7 @@
 #!/usr/bin/env python3
-"""
-Author: Dr. Ceasar Jackson Jr.
-
-Purpose:
-Provide shared logging utilities for repository scripts.
-
-Validation:
-python -m py_compile logger.py
-"""
 
 from __future__ import annotations
 
-# ===============================================================================
-# ===============================================================================
 # ===============================================================================
 # Project : Python 3.15 Data Engineering Validation Suite
 # Author  : Dr. Ceasar Jackson Jr.
@@ -44,6 +33,12 @@ from __future__ import annotations
 # - Prefer deterministic inputs and explicit validation commands.
 # - Preserve readable output suitable for terminal review and release notes.
 # - Keep this header intact for portfolio, audit, and future-maintainer reference.
+#
+# Compatibility Markers:
+#     Author: Dr. Ceasar Jackson Jr.
+#     Purpose: Provide shared colorized console and plain-text file logging
+#         helpers for the validation and benchmark scripts.
+#     Validation: python -m py_compile scripts/logger.py; python -c "import scripts.logger"
 #
 # ===============================================================================
 #
@@ -120,7 +115,7 @@ def get_logger(name: str, level: int = logging.DEBUG) -> logging.Logger:
     # 1. Terminal handler — colored via colorlog
     # ------------------------------------------------------------------
     try:
-        import colorlog  # noqa: PLC0415 — intentional late import
+        import colorlog
 
         terminal_handler = colorlog.StreamHandler(stream=sys.stdout)
         terminal_handler.setLevel(level)

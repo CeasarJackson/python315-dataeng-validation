@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 """
@@ -29,14 +30,31 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 REPORTS_DIR = PROJECT_ROOT / "reports"
 
 
-RELEASE_MANIFESTS = [
-    REPORTS_DIR / "3.15.0b1" / "manifest.json",
-    REPORTS_DIR / "3.15.0b2" / "manifest.json",
-    REPORTS_DIR / "3.15.0rc1" / "manifest.json",
-    REPORTS_DIR / "3.15.0rc2" / "manifest.json",
-    REPORTS_DIR / "v1.8.0" / "manifest.json",
-    REPORTS_DIR / "v1.8.1" / "manifest.json",
-]
+# Directories that hold scaffolding or withdrawn results rather than reports.
+NON_REPORT_DIRS = {"template", "test", "_quarantine"}
+
+
+def discover_release_manifests() -> list[Path]:
+    """Find every manifest actually present under reports/.
+
+    Deliberately NOT a hardcoded list. The previous version named
+    ``3.15.0rc2`` — a release scheduled for 2026-09-01 — as a required
+    manifest, which meant the suite could only pass if someone hand-wrote a
+    report for a release that had not happened. That is exactly how the
+    placeholder manifests (``release: 3.15.0rc1`` carrying
+    ``python_runtime: 3.15.0b2``) came to exist. Discovering from disk removes
+    the incentive to fabricate data to satisfy a test.
+    """
+    return sorted(
+        path / "manifest.json"
+        for path in REPORTS_DIR.iterdir()
+        if path.is_dir()
+        and path.name not in NON_REPORT_DIRS
+        and (path / "manifest.json").is_file()
+    )
+
+
+RELEASE_MANIFESTS = discover_release_manifests()
 
 # ----------------------------------------------------------------------------
 # Helper Functions
@@ -52,10 +70,9 @@ def load_manifest(path: Path) -> dict:
 # ----------------------------------------------------------------------------
 
 
-def test_release_manifests_exist() -> None:
-    """Verify all tracked release manifests exist."""
-    for manifest in RELEASE_MANIFESTS:
-        assert manifest.exists(), f"Missing manifest: {manifest}"
+def test_release_manifests_discovered() -> None:
+    """Verify reports/ actually contains manifests to validate."""
+    assert RELEASE_MANIFESTS, f"No release manifests found under {REPORTS_DIR}"
 
 
 def test_release_names_are_unique() -> None:
@@ -86,6 +103,41 @@ def test_readiness_values_valid() -> None:
     for manifest in RELEASE_MANIFESTS:
         readiness = load_manifest(manifest)["production_readiness_pct"]
         assert 0 <= int(readiness) <= 100
+
+
+# A full CPython version, e.g. 3.15.0b4 or 3.15.0rc1. Suite-version reports
+# (v1.8.0) and rolling labels (3.15) intentionally do not match.
+_CPYTHON_VERSION = re.compile(r"^\d+\.\d+\.\d+(?:a|b|rc)?\d*$")
+
+
+def test_manifest_release_matches_runtime() -> None:
+    """A report must be labelled with the interpreter that produced it.
+
+    Guards the defect found on 2026-08-05: a manifest labelled 3.15.0rc1 whose
+    probed `python_runtime` was 3.15.0b4, because `uv python install 3.15`
+    resolved to the older build and `uv venv` silently declined to replace the
+    existing environment. generate_report.py now refuses this at write time;
+    this test keeps already-committed reports honest.
+    """
+    mismatches = []
+
+    for manifest in RELEASE_MANIFESTS:
+        data = load_manifest(manifest)
+        release = str(data.get("release", ""))
+        runtime = data.get("python_runtime")
+
+        # Legacy manifests predate the runtime field; rolling and suite-version
+        # labels are not interpreter versions. Neither is a mislabelling.
+        if runtime is None or not _CPYTHON_VERSION.match(release):
+            continue
+
+        if str(runtime) != release:
+            mismatches.append(
+                f"{manifest.parent.name}: labelled {release} "
+                f"but ran on {runtime}"
+            )
+
+    assert not mismatches, "Mislabelled reports:\n" + "\n".join(mismatches)
 
 
 def test_package_totals_match_tested() -> None:

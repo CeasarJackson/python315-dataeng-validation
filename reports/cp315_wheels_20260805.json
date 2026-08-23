@@ -1,0 +1,104 @@
+[
+  {
+    "package": "numpy",
+    "kind": "none",
+    "wheel": null,
+    "platform": null
+  },
+  {
+    "package": "pandas",
+    "kind": "none",
+    "wheel": null,
+    "platform": null
+  },
+  {
+    "package": "polars",
+    "kind": "pure",
+    "wheel": "polars-1.43.2-py3-none-any.whl",
+    "platform": "macosx_11_0_arm64"
+  },
+  {
+    "package": "duckdb",
+    "kind": "none",
+    "wheel": null,
+    "platform": null
+  },
+  {
+    "package": "sqlalchemy",
+    "kind": "pure",
+    "wheel": "sqlalchemy-2.0.51-py3-none-any.whl",
+    "platform": "macosx_11_0_arm64"
+  },
+  {
+    "package": "pydantic",
+    "kind": "pure",
+    "wheel": "pydantic-2.13.4-py3-none-any.whl",
+    "platform": "macosx_11_0_arm64"
+  },
+  {
+    "package": "matplotlib",
+    "kind": "none",
+    "wheel": null,
+    "platform": null
+  },
+  {
+    "package": "plotly",
+    "kind": "pure",
+    "wheel": "plotly-6.9.0-py3-none-any.whl",
+    "platform": "macosx_11_0_arm64"
+  },
+  {
+    "package": "jupyterlab",
+    "kind": "pure",
+    "wheel": "jupyterlab-4.6.2-py3-none-any.whl",
+    "platform": "macosx_11_0_arm64"
+  },
+  {
+    "package": "pyarrow",
+    "kind": "none",
+    "wheel": null,
+    "platform": null
+  },
+  {
+    "package": "ray",
+    "kind": "none",
+    "wheel": null,
+    "platform": null
+  },
+  {
+    "package": "deltalake",
+    "kind": "abi3",
+    "wheel": "deltalake-1.6.2-cp310-abi3-macosx_11_0_arm64.whl",
+    "platform": "macosx_11_0_arm64"
+  },
+  {
+    "package": "dask",
+    "kind": "pure",
+    "wheel": "dask-2026.7.1-py3-none-any.whl",
+    "platform": "macosx_11_0_arm64"
+  },
+  {
+    "package": "mlflow",
+    "kind": "pure",
+    "wheel": "mlflow-3.15.1-py3-none-any.whl",
+    "platform": "macosx_11_0_arm64"
+  },
+  {
+    "package": "prefect",
+    "kind": "pure",
+    "wheel": "prefect-3.2.15-py3-none-any.whl",
+    "platform": "macosx_11_0_arm64"
+  },
+  {
+    "package": "apache-airflow",
+    "kind": "pure",
+    "wheel": "apache_airflow-3.0.6-py3-none-any.whl",
+    "platform": "macosx_11_0_arm64"
+  },
+  {
+    "package": "pyspark",
+    "kind": "none",
+    "wheel": null,
+    "platform": null
+  }
+]

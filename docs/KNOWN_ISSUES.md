@@ -1,7 +1,16 @@
 # Known Issues
 
 **Project:** Python 3.15 Compatibility Validation Lab
-**Last updated:** 2026-07-21 (Python 3.15.0b4 cycle)
+**Last updated:** 2026-08-05 (Python 3.15.0rc1 cycle)
+
+> **rc1 summary.** No `cp315` wheels have landed for any blocked package.
+> Verified against the PyPI JSON API and the Fedora wheel tracker on 2026-08-05:
+> pandas 3.0.5, numpy 2.5.1, pyarrow 25.0.0, ray 2.56.1, scipy 1.18.0 and
+> duckdb 1.5.5 all top out at `cp314`; polars 1.43.2 ships a pure-`py3` wheel.
+> The entire compiled scientific stack still builds from sdist on 3.15.
+> Readiness held at **77%**, unchanged from b4, with every package result
+> identical. See RPT-001 for two invalid rc1 reports produced before a valid
+> one was obtained.
 
 ---
 
@@ -54,6 +63,7 @@ MEDIUM
 ## Affected Versions
 
 - Python 3.15.0b4
+- Python 3.15.0rc1 (re-verified 2026-08-05 — still no `cp315` wheels)
 
 ## Summary
 
@@ -98,9 +108,16 @@ uninstall the build toolchain, breaking subsequent rebuilds.
 
 ## Resolution Criteria
 
-Close when pandas publishes `cp315` wheels to PyPI. Re-check at the 3.15.0rc1
-cycle (2026-08-04), which is the typical point at which maintainers add a new
-interpreter to their release matrix.
+Close when pandas publishes `cp315` wheels to PyPI.
+
+**rc1 re-check (2026-08-05):** not resolved. pandas 3.0.5 still publishes no
+`cp315` wheel. The workaround was exercised end-to-end on a genuine 3.15.0rc1
+interpreter and succeeded — pandas 3.0.3 built from sdist and probed PASS, as
+did duckdb and matplotlib. The RC phase did **not** bring a wheel, contrary to
+the expectation recorded above. Next re-check: 3.15.0rc2 (2026-09-01), then
+3.15.0 final (2026-10-01). The rc1 release notes explicitly ask maintainers to
+publish 3.15 wheels during this phase and confirm that wheels built against an
+RC remain valid for the final release, so the window is open.
 
 ---
 
@@ -121,6 +138,7 @@ HIGH
 ## Affected Versions
 
 - Python 3.15.0b4
+- Python 3.15.0rc1 (re-verified 2026-08-05 — pyarrow 25.0.0, still `cp314` max)
 
 ## Summary
 
@@ -155,6 +173,7 @@ LOW
 ## Affected Versions
 
 - Python 3.15.0b4
+- Python 3.15.0rc1 (re-verified 2026-08-05 — ray 2.56.1, still `cp314` max)
 
 ## Summary
 
@@ -504,6 +523,8 @@ MEDIUM
 ## Affected Versions
 
 - Python 3.15.0b4 (prefect 3.7.7)
+- Python 3.15.0rc1 (prefect 3.7.7 — `uv pip check` now reports the same
+  violation against `3.15.0rc1`)
 
 ## Summary
 
@@ -542,16 +563,116 @@ Close when prefect raises its `requires-python` upper bound to admit 3.15.
 
 ---
 
+# RPT-001
+
+## Title
+
+Reporting Pipeline Could Mislabel and Was Incentivised To — Two Invalid rc1 Reports
+
+## Status
+
+RESOLVED (2026-08-05)
+
+## Severity
+
+HIGH
+
+## Affected Versions
+
+- Python 3.15.0rc1 (reporting defect; not a 3.15 compatibility issue)
+
+## Summary
+
+The rc1 cycle produced **two invalid reports before a valid one**, by two
+different mechanisms. Neither was detected by the suite at the time.
+
+**Invalid report 1 — wrong interpreter (75%).** `uv python install 3.15`
+resolved to **3.15.0b4**, because uv embeds its own list of
+python-build-standalone downloads and no rc1 build was published there.
+Separately, `uv venv --python 3.15` prompted to replace the existing `.venv`,
+was declined, and errored — so every later step ran against the unchanged
+21 July b4 environment. `uv pip install -r` became a no-op; the only package
+that changed in the whole run was a setuptools downgrade. The report was filed
+as `3.15.0rc1` with `python_runtime: 3.15.0b4`, and the 77% → 75% decline was
+read as a regression when its sole cause was the `pyarrow-dataeng:py314`
+Docker image being absent.
+
+**Invalid report 2 — empty environment (27%).** After installing a genuine
+rc1 interpreter, `matplotlib==3.10.9` failed to build: its meson script
+downloads freetype-2.6.1 over TLS, and the freshly installed python.org
+framework build had no CA bundle until `Install Certificates.command` was run.
+uv installs atomically, so the failure rolled back all 136 core packages —
+the PYO3-001 pattern again. The resulting report showed seven `FAIL
+(not installed)` results and nine "regressions", none real.
+
+A third trap: with the core stack rolled back, `pytest` was not in the venv,
+so the bare command silently resolved to Homebrew's **Python 3.14** pytest.
+Always invoke as `python -m pytest`.
+
+## Root Cause — the Test Suite Rewarded Fabrication
+
+`tests/test_release_progression.py` hardcoded `3.15.0rc2` — scheduled for
+2026-09-01 — as a manifest that must exist, and asserted both that readiness
+never declines and that rc2 scores highest:
+
+```python
+RELEASES = ["3.15.0b1", "3.15.0b2", "3.15.0rc1", "3.15.0rc2"]
+assert readiness == sorted(readiness), "Readiness regression detected"
+assert highest_release == "3.15.0rc2"
+```
+
+`3.15.0b4` — the only real recent report — was not in the list.
+
+The suite could therefore only pass if reports existed for releases that had
+not happened, and only if the numbers rose. That is why hand-written
+placeholders existed (`release: 3.15.0rc1` carrying `python_runtime:
+3.15.0b2`, claiming 89%). For a compatibility lab this inverts the exercise:
+a truthful decline was a test failure. ENV-001, ENV-002 and PRE-001 are
+downstream symptoms of this incentive.
+
+## Resolution
+
+- `generate_report.py`: `python_build` now comes from `detect_python_build()`,
+  which reads the live interpreter, instead of being formatted from
+  `--release`. `verify_release_matches_runtime()` aborts before any artifact
+  is written when the probed runtime differs from `--release`; override
+  requires an explicit `--allow-version-mismatch`.
+- `tests/test_release_history_integrity.py` and
+  `tests/test_release_progression.py`: release lists are now discovered from
+  `reports/*/manifest.json`, excluding `_quarantine`. `3.15.0b4` is covered
+  for the first time.
+- Deleted `test_readiness_progression`, `test_rc2_readiness_greater_than_b2`
+  and `test_latest_release_has_highest_readiness`. Readiness movement is
+  reported by `compare_reports.py` and interpreted by a human — measured,
+  never enforced.
+- Added `test_manifest_release_matches_runtime`, which fails any committed
+  manifest whose `release` disagrees with its `python_runtime`.
+- Both invalid reports moved to `reports/_quarantine/` with a README.
+
+## Operational Notes
+
+- Always `uv venv --clear`; without it uv leaves the old venv in place and the
+  cycle silently re-measures the previous build.
+- Always `python -m pytest`, never bare `pytest`.
+- After installing a python.org framework build, run
+  `/Applications/Python\ 3.15/Install\ Certificates.command` before any
+  source build that fetches vendored dependencies.
+- Install extended packages individually when a batch fails, so one build
+  error does not roll back unrelated packages.
+
+---
+
 ## Issue Index
 
 | ID | Component | Status | Severity |
 |----|-----------|--------|----------|
 | SCI-001 | scipy | OPEN | HIGH |
-| PD-001 | pandas | WORKAROUND AVAILABLE | MEDIUM |
-| ARW-001 | pyarrow | BLOCKED | HIGH |
-| RAY-001 | ray | BLOCKED | LOW |
+| PD-001 | pandas | WORKAROUND AVAILABLE (re-verified rc1) | MEDIUM |
+| ARW-001 | pyarrow | BLOCKED (re-verified rc1) | HIGH |
+| RAY-001 | ray | BLOCKED (re-verified rc1) | LOW |
 | ENV-001 | validation env | RESOLVED (pinned) | HIGH |
 | ENV-002 | validation env (b2) | OPEN | HIGH |
 | MLF-001 | mlflow | OPEN | MEDIUM |
 | PYO3-001 | libcst / pyo3 / airflow | OPEN | CRITICAL |
 | PRE-001 | prefect | OPEN | MEDIUM |
+| RPT-001 | reporting pipeline / test suite | RESOLVED (2026-08-05) | HIGH |

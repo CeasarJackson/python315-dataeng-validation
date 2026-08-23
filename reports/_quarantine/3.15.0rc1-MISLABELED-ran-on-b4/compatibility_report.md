@@ -12,10 +12,10 @@
 | Metric | Value |
 |--------|-------|
 | Packages Tested | 17 |
-| PASS | 11 |
+| PASS | 10 |
 | INCOMPAT | 2 |
 | BLOCKED | 2 |
-| SKIP | 2 |
+| SKIP | 3 |
 | FAIL | 0 |
 
 ---
@@ -33,17 +33,17 @@
 | matplotlib | 3.10.9 | ✅ PASS |  |
 | plotly | 6.7.0 | ✅ PASS |  |
 | jupyterlab | 4.5.7 | ✅ PASS |  |
-| sqlite3 | 3.53.3 | ✅ PASS |  |
+| sqlite3 | 3.53.1 | ✅ PASS |  |
 
 ## Extended Stack
 
 | Package | Version | Result | Notes |
 |---------|---------|--------|-------|
-| pyspark | 4.1.2 | ✅ PASS | via Docker py314 + OpenJDK 21 |
+| pyspark | unknown | ⏭️ SKIP | Docker image not available |
 | dask.dataframe | 2026.7.1 | ⚠️ INCOMPAT | runtime pyarrow dep |
 | pyarrow | unavailable | 🚫 BLOCKED | no cp315 wheels on PyPI; source build fails at CMake config |
 | mlflow | not installed | ⏭️ SKIP |  |
-| prefect | 3.7.7 | ⚠️ INCOMPAT | declared unsupported: requires Python >=3.10, <3.15, but `3.15.0rc1` is installed |
+| prefect | 3.7.7 | ⚠️ INCOMPAT | declared unsupported: requires Python >=3.10, <3.15, but `3.15.0b4` is installed |
 | ray | unavailable | 🚫 BLOCKED | no cp315 wheels on PyPI |
 | apache-airflow | not installed | ⏭️ SKIP | not installed |
 
