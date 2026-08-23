@@ -34,6 +34,7 @@ VERSION=""
 ALLOW_DIRTY=0
 DRY_RUN=0
 SKIP_TESTS=0
+PYTHON_BIN="${PYTHON_BIN:-}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -152,6 +153,43 @@ require_command() {
   fi
 }
 
+resolve_python_bin() {
+  local candidate=""
+
+  if [[ -n "${PYTHON_BIN:-}" ]]; then
+    candidate="${PYTHON_BIN}"
+  elif [[ -n "${VIRTUAL_ENV:-}" ]] && [[ -x "${VIRTUAL_ENV}/bin/python" ]]; then
+    candidate="${VIRTUAL_ENV}/bin/python"
+  elif [[ -x "${PROJECT_ROOT}/.venv/bin/python" ]]; then
+    candidate="${PROJECT_ROOT}/.venv/bin/python"
+  elif command -v python >/dev/null 2>&1; then
+    candidate="$(command -v python)"
+  else
+    err "Unable to resolve a Python interpreter."
+    exit 1
+  fi
+
+  if [[ "${candidate}" != /* ]]; then
+    if command -v "${candidate}" >/dev/null 2>&1; then
+      candidate="$(command -v "${candidate}")"
+    elif [[ -x "${PROJECT_ROOT}/${candidate}" ]]; then
+      candidate="${PROJECT_ROOT}/${candidate}"
+    fi
+  fi
+
+  if [[ ! -x "${candidate}" ]]; then
+    err "Resolved PYTHON_BIN is not executable: ${candidate}"
+    exit 1
+  fi
+
+  PYTHON_BIN="${candidate}"
+  export PYTHON_BIN
+
+  info "Python interpreter: ${PYTHON_BIN}"
+  info "Python runtime: $("${PYTHON_BIN}" --version 2>&1)"
+}
+
+
 validate_git_state() {
   info "Checking git working tree state"
 
@@ -178,19 +216,23 @@ run_validation() {
   info "Running validation"
 
   if [[ -x "${PROJECT_ROOT}/scripts/validate_all.sh" ]]; then
-    run bash "${PROJECT_ROOT}/scripts/validate_all.sh"
+    if [[ "${DRY_RUN}" -eq 1 ]]; then
+      info "DRY_RUN: PYTHON_BIN=${PYTHON_BIN} bash ${PROJECT_ROOT}/scripts/validate_all.sh"
+    else
+      PYTHON_BIN="${PYTHON_BIN}" bash "${PROJECT_ROOT}/scripts/validate_all.sh"
+    fi
   else
     warn "scripts/validate_all.sh is missing or not executable; running pytest only."
   fi
 
-  run python -m pytest -q
+  run "${PYTHON_BIN}" -m pytest -q
   ok "Validation completed"
 }
 
 sync_readiness() {
   if [[ -f "${PROJECT_ROOT}/tools/sync_readiness.py" ]]; then
     info "Synchronizing readiness artifacts"
-    run python "${PROJECT_ROOT}/tools/sync_readiness.py"
+    run "${PYTHON_BIN}" "${PROJECT_ROOT}/tools/sync_readiness.py"
     ok "Readiness synchronization completed"
   else
     warn "tools/sync_readiness.py not found; skipping readiness synchronization."
@@ -246,7 +288,7 @@ print_next_steps() {
   log "Next validation commands:"
   log "  cd ${PROJECT_ROOT}"
   log "  (cd releases && shasum -a 256 -c ${archive_name}.sha256)"
-  log "  python -m pytest -q"
+  log "  ${PYTHON_BIN} -m pytest -q"
   log "  git status --short"
   log ""
   log "Suggested git commands:"
@@ -275,7 +317,7 @@ main() {
   log "Dry run: ${DRY_RUN}"
 
   require_command git
-  require_command python
+  resolve_python_bin
   require_command shasum
 
   validate_git_state
