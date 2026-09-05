@@ -51,7 +51,6 @@ import json
 import os
 import platform
 import re
-import shutil
 import subprocess
 import sys
 from datetime import date
@@ -138,8 +137,7 @@ def check_declared_support(results):
     # `uv pip check` reports findings on stderr, not stdout, so the shared
     # run() helper (stdout only) cannot see them. Merge both streams here.
     proc = subprocess.run(
-        "uv pip check",
-        shell=True,
+        ["uv", "pip", "check", "--python", sys.executable],
         capture_output=True,
         text=True,
         cwd=REPO,
@@ -538,11 +536,18 @@ def write_manifest(
         "constraint_violations": list(violations or []),
         "results": results,
     }
-    # Compute readiness inline (BLOCKED = upstream gap, partial credit)
+    # Keep report generation aligned with tools/sync_readiness.py.
+    # SKIP entries are excluded from the denominator; BLOCKED and INCOMPAT
+    # receive partial credit because they represent upstream/support gaps
+    # rather than direct runtime failures.
     _eff = sum(counts.values()) - counts.get("SKIP", 0)
-    _wp = counts["PASS"] + counts.get("BLOCKED", 0) * 0.3
+    _wp = (
+        counts["PASS"]
+        + counts.get("BLOCKED", 0) * 0.50
+        + counts.get("INCOMPAT", 0) * 0.25
+    )
     manifest["production_readiness_pct"] = (
-        min(int((_wp / _eff) * 100), 95) if _eff else 0
+        min(round((_wp / _eff) * 100), 100) if _eff else 0
     )
     # Defensive schema guarantee for downstream tests.
     manifest.setdefault("packages_blocked", counts.get("BLOCKED", 0))
@@ -596,7 +601,7 @@ def write_compat_report(release_dir, release, results, counts):
         f"# Compatibility Report \u2014 Python {release}",
         "",
         f"**Date:** {date.today().strftime('%B %d, %Y')}",
-        "**Platform:** macOS 26.5 ARM64",
+        f"**Platform:** macOS {platform.mac_ver()[0]} {platform.machine()}",
         "**Tester:** Dr. Ceasar Jackson Jr.",
         "**Suite Version:** 1.2.0",
         "",
@@ -720,12 +725,6 @@ def main():
 
     write_manifest(release_dir, release, results, counts, violations=violations)
     write_compat_report(release_dir, release, results, counts)
-
-    # Copy PDF if present
-    pdf_src = REPO / "PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf"
-    if pdf_src.exists():
-        shutil.copy2(pdf_src, release_dir / pdf_src.name)
-        print(f"PDF copied to {release_dir.name}/")
 
     print(f"\nReport written to reports/{release}/")
     for f in sorted(release_dir.iterdir()):

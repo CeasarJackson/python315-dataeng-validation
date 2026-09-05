@@ -25,7 +25,7 @@ from pathlib import Path
 REPO = Path(__file__).parent.parent
 REPORTS = REPO / "reports"
 
-STATUS_RANK = {"PASS": 0, "INCOMPAT": 1, "SKIP": 2, "FAIL": 3}
+STATUS_RANK = {"PASS": 0, "BLOCKED": 1, "INCOMPAT": 2, "FAIL": 3}
 STATUS_BADGE = {
     "PASS": "✅ PASS",
     "FAIL": "❌ FAIL",
@@ -58,6 +58,7 @@ def compare(old_release, new_release, fmt="terminal"):
     changes = []
     regressions = []
     improvements = []
+    coverage_changes = []
     unchanged = []
     new_entries = []
 
@@ -76,6 +77,17 @@ def compare(old_release, new_release, fmt="terminal"):
         os_, ns_ = o["status"], n["status"]
         if os_ == ns_:
             unchanged.append(pkg)
+        elif "SKIP" in {os_, ns_}:
+            coverage_changes.append(
+                (
+                    pkg,
+                    os_,
+                    ns_,
+                    n.get("version", ""),
+                    n.get("reason", n.get("note", "")),
+                )
+            )
+            changes.append((pkg, os_, ns_, n.get("reason", n.get("note", ""))))
         else:
             o_rank = STATUS_RANK.get(os_, 9)
             n_rank = STATUS_RANK.get(ns_, 9)
@@ -97,6 +109,7 @@ def compare(old_release, new_release, fmt="terminal"):
             new,
             improvements,
             regressions,
+            coverage_changes,
             unchanged,
             new_entries,
         )
@@ -108,13 +121,22 @@ def compare(old_release, new_release, fmt="terminal"):
             new,
             improvements,
             regressions,
+            coverage_changes,
             unchanged,
             new_entries,
         )
 
 
 def _print_terminal(
-    old_rel, new_rel, old, new, improvements, regressions, unchanged, new_entries
+    old_rel,
+    new_rel,
+    old,
+    new,
+    improvements,
+    regressions,
+    coverage_changes,
+    unchanged,
+    new_entries,
 ):
     print(f"\n{'='*60}")
     print(f"Compatibility Delta: {old_rel} → {new_rel}")
@@ -154,6 +176,12 @@ def _print_terminal(
             n = f"  [{note}]" if note else ""
             print(f"     {pkg:<22} {old_s} → {new_s}  {ver}{n}")
 
+    if coverage_changes:
+        print(f"\n  ℹ️  Coverage changes ({len(coverage_changes)})")
+        for pkg, old_s, new_s, ver, note in coverage_changes:
+            n = f"  [{note}]" if note else ""
+            print(f"     {pkg:<22} {old_s} → {new_s}  {ver}{n}")
+
     if new_entries:
         print(f"\n  🆕 New packages ({len(new_entries)})")
         for pkg, r in new_entries:
@@ -164,7 +192,15 @@ def _print_terminal(
 
 
 def _print_markdown(
-    old_rel, new_rel, old, new, improvements, regressions, unchanged, new_entries
+    old_rel,
+    new_rel,
+    old,
+    new,
+    improvements,
+    regressions,
+    coverage_changes,
+    unchanged,
+    new_entries,
 ):
     from datetime import date
 
@@ -204,6 +240,17 @@ def _print_markdown(
             "|---------|----------|---------|--------|",
         ]
         for pkg, os_, ns_, ver, note in regressions:
+            lines.append(f"| {pkg} | {os_} | {ns_} | {note} |")
+        lines.append("")
+
+    if coverage_changes:
+        lines += [
+            "## Coverage Changes",
+            "",
+            "| Package | Previous | Current | Reason |",
+            "|---------|----------|---------|--------|",
+        ]
+        for pkg, os_, ns_, ver, note in coverage_changes:
             lines.append(f"| {pkg} | {os_} | {ns_} | {note} |")
         lines.append("")
 
