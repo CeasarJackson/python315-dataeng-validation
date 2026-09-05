@@ -536,11 +536,18 @@ def write_manifest(
         "constraint_violations": list(violations or []),
         "results": results,
     }
-    # Compute readiness inline (BLOCKED = upstream gap, partial credit)
+    # Keep report generation aligned with tools/sync_readiness.py.
+    # SKIP entries are excluded from the denominator; BLOCKED and INCOMPAT
+    # receive partial credit because they represent upstream/support gaps
+    # rather than direct runtime failures.
     _eff = sum(counts.values()) - counts.get("SKIP", 0)
-    _wp = counts["PASS"] + counts.get("BLOCKED", 0) * 0.3
+    _wp = (
+        counts["PASS"]
+        + counts.get("BLOCKED", 0) * 0.50
+        + counts.get("INCOMPAT", 0) * 0.25
+    )
     manifest["production_readiness_pct"] = (
-        min(int((_wp / _eff) * 100), 95) if _eff else 0
+        min(round((_wp / _eff) * 100), 100) if _eff else 0
     )
     # Defensive schema guarantee for downstream tests.
     manifest.setdefault("packages_blocked", counts.get("BLOCKED", 0))

@@ -144,3 +144,12 @@ def test_generator_does_not_copy_legacy_root_pdf() -> None:
 
     assert 'REPO / "PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf"' not in source
     assert "shutil.copy2" not in source
+
+
+def test_generator_readiness_matches_canonical_weighting() -> None:
+    source = Path("scripts/generate_report.py").read_text(encoding="utf-8")
+
+    assert 'counts.get("BLOCKED", 0) * 0.50' in source
+    assert 'counts.get("INCOMPAT", 0) * 0.25' in source
+    assert "round((_wp / _eff) * 100)" in source
+    assert 'counts.get("BLOCKED", 0) * 0.3' not in source
