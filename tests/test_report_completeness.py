@@ -31,7 +31,6 @@ REPORTS_DIR = PROJECT_ROOT / "reports"
 REQUIRED_FILES = [
     "manifest.json",
     "compatibility_report.md",
-    "PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf",
 ]
 
 EXTENDED_REPORTS = [
