@@ -1,9 +1,16 @@
 # Known Issues
 
 **Project:** Python 3.15 Compatibility Validation Lab
-**Last updated:** 2026-08-05 (Python 3.15.0rc1 cycle)
+**Last updated:** 2026-10-02 (Python 3.15.0rc2 cycle)
 
-> **rc1 summary.** No `cp315` wheels have landed for any blocked package.
+> **rc2 summary.** Reconciliation on 2026-10-02 confirms the valid
+> Python 3.15.0rc2 manifest at **82% readiness**: PASS=10, INCOMPAT=2,
+> BLOCKED=2, SKIP=3, FAIL=0. Prefect remains INCOMPAT because 3.7.7
+> declares Python `<3.15`; functional flow execution additionally exposes
+> the Python 3.15 incompatibility documented in PRE-001. PyArrow remains
+> BLOCKED after a binary-only resolver probe found no usable `cp315` wheel.
+>
+> **Historical rc1 summary.** No `cp315` wheels had landed for any blocked package.
 > Verified against the PyPI JSON API and the Fedora wheel tracker on 2026-08-05:
 > pandas 3.0.5, numpy 2.5.1, pyarrow 25.0.0, ray 2.56.1, scipy 1.18.0 and
 > duckdb 1.5.5 all top out at `cp314`; polars 1.43.2 ships a pure-`py3` wheel.
@@ -139,12 +146,17 @@ HIGH
 
 - Python 3.15.0b4
 - Python 3.15.0rc1 (re-verified 2026-08-05 — pyarrow 25.0.0, still `cp314` max)
+- Python 3.15.0rc2 (re-verified 2026-10-02 — binary-only resolver probe
+  found no usable `cp315` wheel)
 
 ## Summary
 
-No `cp315` wheels published on PyPI. Unlike PD-001, the source-build path is
-not viable: the build fails during CMake configuration rather than at a
-missing Python-level build dependency, so no local toolchain fix applies.
+No usable `cp315` wheel is available in the validated environment. On
+2026-10-02, a binary-only `uv` resolver probe against CPython 3.15.0rc2
+failed because no compatible `cp315` wheel could be selected. Unlike PD-001,
+the previously tested source-build path is not viable: it fails during CMake
+configuration rather than at a missing Python-level build dependency, so no
+local toolchain fix has been validated.
 
 Validation for pyarrow currently runs through the Docker image
 `pyarrow-dataeng:py314` (see `docker/pyarrow_lab/Dockerfile`), which pins
@@ -523,8 +535,10 @@ MEDIUM
 ## Affected Versions
 
 - Python 3.15.0b4 (prefect 3.7.7)
-- Python 3.15.0rc1 (prefect 3.7.7 — `uv pip check` now reports the same
-  violation against `3.15.0rc1`)
+- Python 3.15.0rc1 (prefect 3.7.7 — `uv pip check` reports the same
+  declared-support violation)
+- Python 3.15.0rc2 (prefect 3.7.7 — `uv pip check` reports the `<3.15`
+  violation; flow execution also fails through beartype 0.22.9)
 
 ## Summary
 
@@ -542,10 +556,16 @@ It was caught only by `uv pip check`.
 
 ## Impact — Do Not Record as PASS
 
-prefect will import successfully and the compatibility probe will therefore
-report PASS. That result is **not trustworthy**: the maintainers have declared
-3.15 out of scope via an upper bound, so any success is incidental rather than
-supported.
+A top-level `import prefect` succeeds under the current 3.15.0rc2
+environment, but that is not sufficient evidence of compatibility. Executing
+a minimal `@flow` causes Prefect server code to load the transitive dependency
+chain `prefect.server -> docket -> py-key-value-aio -> beartype`; beartype
+0.22.9 then imports `typing.no_type_check_decorator`, which is absent in
+Python 3.15, producing `ImportError`.
+
+Independently of that runtime failure, Prefect 3.7.7 declares Python `<3.15`.
+The package must therefore remain **INCOMPAT (declared)** even if a narrower
+import probe succeeds.
 
 Record prefect as **INCOMPAT (declared)** rather than PASS. This is the same
 class of defect as ENV-002 — a package exercised outside its declared support
@@ -553,13 +573,17 @@ envelope and scored as a success.
 
 ## Detection
 
-`uv pip check` catches this; import-based probing does not. This is the
-concrete justification for the ENV-002 follow-up item recommending that
-`uv pip check` be added to the validation pipeline.
+`uv pip check --python .venv/bin/python` catches the declared
+`Requires-Python` violation. Runtime flow execution additionally exposes the
+beartype incompatibility described above. Together these demonstrate why both
+package metadata and functional probes are required; a top-level import alone
+is insufficient.
 
 ## Resolution Criteria
 
-Close when prefect raises its `requires-python` upper bound to admit 3.15.
+Close when Prefect's declared Python support admits 3.15 and the validated
+Prefect flow-execution path completes successfully without the observed
+Python 3.15 compatibility failure.
 
 ---
 
@@ -668,7 +692,7 @@ downstream symptoms of this incentive.
 |----|-----------|--------|----------|
 | SCI-001 | scipy | OPEN | HIGH |
 | PD-001 | pandas | WORKAROUND AVAILABLE (re-verified rc1) | MEDIUM |
-| ARW-001 | pyarrow | BLOCKED (re-verified rc1) | HIGH |
+| ARW-001 | pyarrow | BLOCKED (re-verified rc2) | HIGH |
 | RAY-001 | ray | BLOCKED (re-verified rc1) | LOW |
 | ENV-001 | validation env | RESOLVED (pinned) | HIGH |
 | ENV-002 | validation env (b2) | OPEN | HIGH |

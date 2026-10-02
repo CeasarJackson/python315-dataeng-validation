@@ -12,8 +12,8 @@ against the data engineering validation suite.
 |---------|------|-----------|------------|
 | [3.15.0b1](./3.15.0b1/compatibility_report.md) | 2026-06-04 | 75% | Baseline |
 | [3.15.0b2](./3.15.0b2/compatibility_report.md) | 2026-06-05 | 85% | Prefect + MLflow → PASS |
-| [3.15.0rc1](./3.15.0rc1/compatibility_report.md) | 2026-06-05 | 85% | No regressions |
-| [3.15.0rc2](./3.15.0rc2/compatibility_report.md) | 2026-06-05 | 85% | No regressions |
+| [3.15.0rc1](./3.15.0rc1/compatibility_report.md) | 2026-08-05 | 77% | Unchanged from b4; invalid rc1 reports quarantined (RPT-001) |
+| [3.15.0rc2](./3.15.0rc2/compatibility_report.md) | 2026-09-05 | 82% | Reconciled 2026-10-02; Prefect INCOMPAT (declared) |
 | [v1.8.0](./v1.8.0/compatibility_report.md) | 2026-06-06 | 87% | Unified validation + release automation |
 | [v1.8.1](./v1.8.1/compatibility_report.md) | 2026-06-06 | 87% | Readiness artifacts synchronized |
 | [v1.9.2](./v1.9.2/compatibility_report.md) | 2026-06-18 | 89% | Final reporting validation, manifest schema fix, PySpark Docker validation |
@@ -26,12 +26,14 @@ against the data engineering validation suite.
 ```
 3.15.0b1  75%  •  baseline — 4 INCOMPAT, 0 BLOCKED classified
 3.15.0b2  85%  •  prefect PASS, mlflow PASS, pyarrow/ray reclassified BLOCKED
-3.15.0rc1 85%  •  no changes from b2
-3.15.0rc2 85%  •  Prefect probe corrected; PASS=14 FAIL=0 INCOMPAT=1 BLOCKED=2
+3.15.0rc1 77%  •  unchanged from b4 (valid rerun; see RPT-001)
+3.15.0rc2 82%  •  Prefect classified INCOMPAT (declared); PASS=10 FAIL=0 INCOMPAT=2 BLOCKED=2 SKIP=3
 v1.8.0   87%  •  unified validation runner + automated release packaging
 v1.8.1   87%  •  readiness assessment synchronization and reporting fixes
 v1.9.2   89%  •  manifest schema corrected, packages_blocked tracked, PySpark Docker validation PASS, full test suite green (70/70)
 ```
+
+> **Comparing rc1 and rc2.** The rc1 manifest (77%) was scored with `generate_report.py` weights; the rc2 manifest (82%) was scored with `tools/sync_readiness.py` weights. Like-for-like, rc1 and rc2 score 83.3% and 82.1% (sync weights), or 77.3% and 75.7% (generate weights). The small decline is the pyspark result: PASS in rc1 (Docker image present), SKIP in rc2 (Docker image unavailable).
 
 The Python 3.15 validation framework reached a stable reporting milestone in v1.9.2. During final validation, a manifest schema inconsistency was identified where BLOCKED package counts were correctly calculated but not persisted to generated report manifests. The issue was traced, corrected, and validated through automated schema testing. All repository tests now pass (70/70), readiness synchronization is functioning correctly, and generated reports remain backward compatible with historical releases.
 
