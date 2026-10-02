@@ -215,8 +215,8 @@ def test_dask() -> str:
     except ImportError as exc:
         if "pyarrow" in str(exc):
             log.warning(
-                "[INCOMPAT] dask %s — dask.dataframe requires pyarrow at runtime. "
-                "No cp315 wheels for pyarrow under Python 3.15 beta. "
+                "[INCOMPAT] dask %s — dask.dataframe requires pyarrow at runtime, "
+                "but pyarrow is unavailable in the current validation environment. "
                 "dask.array/dask.bag remain functional. Blocker: %s",
                 dask.__version__,
                 exc,
@@ -288,7 +288,7 @@ def test_delta() -> str:
         # Most likely pyarrow is not installed (Python 3.15 blocker)
         log.warning(
             "[INCOMPAT] deltalake requires pyarrow, which is not available "
-            "under Python 3.15 beta: %s",
+            "under Python 3.15: %s",
             exc,
         )
         return INCOMPAT
@@ -330,7 +330,7 @@ def test_mlflow() -> str:
     except ImportError as exc:
         log.warning(
             "[INCOMPAT] mlflow — incomplete install due to pyarrow hard dependency "
-            "under Python 3.15 beta. Missing transitive dep: %s. "
+            "under Python 3.15. Missing transitive dep: %s. "
             "Install mlflow normally once pyarrow cp315 wheels are published.",
             exc,
         )
@@ -378,8 +378,12 @@ def test_prefect() -> str:
         if "no_type_check_decorator" in str(exc):
             log.warning(
                 "[INCOMPAT] prefect — typing.no_type_check_decorator was removed "
-                "in Python 3.15 (deprecated since 3.13). Prefect 3.7.x references "
-                "this symbol at import time. Track https://github.com/PrefectHQ/prefect "
+                "in Python 3.15 (deprecated since 3.13). It is imported by the "
+                "transitive dependency beartype (prefect.server -> docket -> "
+                "py-key-value-aio -> beartype) when the Prefect server code loads, "
+                "not at import prefect. Prefect 3.7.x also declares "
+                "Requires-Python <3.15. Track beartype and "
+                "https://github.com/PrefectHQ/prefect "
                 "for a Python 3.15 fix. Error: %s",
                 exc,
             )
