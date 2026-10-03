@@ -108,7 +108,7 @@ python315_test/
 │   ├── 3.15.0b2/readiness_matrix.json            # Readiness synchronization source
 │   ├── 3.15.0rc1/
 │   ├── 3.15.0rc2/
-│   ├── 3.15.0ga/
+│   ├── 3.15.0/                       # GA (pending; see docs/runbooks)
 │   ├── v1.8.0/
 │   └── v1.8.1/
 ├── tools/
