@@ -228,7 +228,7 @@ def _print_markdown(
             "| Package | Previous | Current | Notes |",
             "|---------|----------|---------|-------|",
         ]
-        for pkg, os_, ns_, ver, note in improvements:
+        for pkg, os_, ns_, _ver, note in improvements:
             lines.append(f"| {pkg} | {os_} | {ns_} | {note} |")
         lines.append("")
 
@@ -239,7 +239,7 @@ def _print_markdown(
             "| Package | Previous | Current | Reason |",
             "|---------|----------|---------|--------|",
         ]
-        for pkg, os_, ns_, ver, note in regressions:
+        for pkg, os_, ns_, _ver, note in regressions:
             lines.append(f"| {pkg} | {os_} | {ns_} | {note} |")
         lines.append("")
 
@@ -250,7 +250,7 @@ def _print_markdown(
             "| Package | Previous | Current | Reason |",
             "|---------|----------|---------|--------|",
         ]
-        for pkg, os_, ns_, ver, note in coverage_changes:
+        for pkg, os_, ns_, _ver, note in coverage_changes:
             lines.append(f"| {pkg} | {os_} | {ns_} | {note} |")
         lines.append("")
 
@@ -287,7 +287,7 @@ def main():
         compare(args.old, args.new, fmt=args.format)
     except FileNotFoundError as e:
         print(f"Error: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 if __name__ == "__main__":

@@ -37,8 +37,9 @@ Operational Notes
 ===============================================================================
 """
 
-import duckdb
 import pathlib
+
+import duckdb
 
 
 def test_duckdb_parquet_write_and_read(tmp_path):

@@ -38,9 +38,10 @@ Operational Notes
 """
 
 from datetime import datetime
+
 from airflow import DAG
-from airflow.providers.standard.operators.python import PythonOperator
 from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 
 def test_airflow_dag_instantiation():

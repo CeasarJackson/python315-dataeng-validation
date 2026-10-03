@@ -205,8 +205,6 @@ def checklist_text(release: str, previous: str | None) -> str:
       weighted 0.50, INCOMPAT weighted 0.25, and readiness capped at 100%
 
 ### Cleanup
-- [ ] Root-level `sync_readiness.py` is a stale pass/total copy; retire it in
-      favour of `tools/sync_readiness.py`
 - [ ] `reports/3.15.0ga/` holds only `.gitkeep`; use canonical
       `reports/{release}` and remove the empty directory
 - [ ] `bash scripts/release.sh <suite-version>` (the suite version, not the

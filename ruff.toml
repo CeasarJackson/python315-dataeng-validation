@@ -1,0 +1,24 @@
+# -----------------------------------------------------------------------------
+# ruff.toml — lint policy for the Python 3.15 validation lab
+#
+# Purpose:
+#   Make the lint rule set explicit. Without this file ruff falls back to its
+#   built-in defaults, which change between ruff releases and do not include the
+#   rules this repo's existing `# noqa` markers already refer to (BLE001,
+#   PLC0415, E402, F401).
+#
+# Intentionally NOT selected:
+#   DTZ  - reports are stamped with the local calendar date by design.
+#   S/TRY/ISC/EXE - style or security opinions outside this lab's scope; script
+#   execute bits are already enforced by tests/test_script_headers.py.
+# -----------------------------------------------------------------------------
+line-length = 100
+extend-exclude = ["notebooks", ".venv", "chat_exports", "outputs", "reports", "releases"]
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "BLE", "PLC", "PLW"]
+ignore = [
+    "E501",     # banner headers and long log strings are intentional
+    "B905",     # zip(strict=) would change runtime behaviour; not a lint-only fix
+    "PLC0415",  # compatibility probes import lazily on purpose, inside try/except
+]

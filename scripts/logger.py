@@ -165,7 +165,7 @@ def get_logger(name: str, level: int = logging.DEBUG) -> logging.Logger:
         main_path = getattr(_sys.modules.get("__main__"), "__file__", None)
         log_stem = _Path(main_path).stem if main_path else "__main__"
     else:
-        log_stem = name.split(".")[-1] if "." in name else name
+        log_stem = name.rsplit(".", maxsplit=1)[-1] if "." in name else name
     log_path = _LOGS_DIR / f"{log_stem}.log"
 
     file_handler = logging.handlers.RotatingFileHandler(

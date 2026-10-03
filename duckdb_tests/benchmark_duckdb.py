@@ -38,8 +38,9 @@ Operational Notes
 ===============================================================================
 """
 
-import duckdb
 import time
+
+import duckdb
 
 con = duckdb.connect(":memory:")
 

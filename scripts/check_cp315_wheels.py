@@ -212,7 +212,7 @@ def _probe_one(
         package,
     ]
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180, check=False)
     except subprocess.TimeoutExpired:
         log.warning("[WARN] %s — pip timed out on %s", package, platform)
         return None

@@ -38,9 +38,9 @@ Operational Notes
 ===============================================================================
 """
 
-from sqlalchemy import create_engine
-from sqlalchemy import text
 import time
+
+from sqlalchemy import create_engine, text
 
 engine = create_engine("sqlite:///:memory:")
 
