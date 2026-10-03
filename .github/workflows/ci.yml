@@ -26,11 +26,11 @@ jobs:
 
       - name: Install Python 3.15 preview
         run: |
-          uv python install 3.15.0b2
+          uv python install 3.15.0rc2
 
       - name: Create virtual environment
         run: |
-          uv venv --python 3.15.0b2 .venv
+          uv venv --python 3.15.0rc2 .venv
           . .venv/bin/activate
           uv pip install --python .venv/bin/python --upgrade pip setuptools wheel
           uv pip install --python .venv/bin/python pytest
@@ -42,11 +42,16 @@ jobs:
           python -c "import sys; print(sys.executable)"
           python -m pytest --version
 
+      - name: Lint with ruff
+        run: |
+          . .venv/bin/activate
+          uv pip install --python .venv/bin/python ruff
+          ruff check .
+
       - name: Compile project scripts and tests
         run: |
           . .venv/bin/activate
           python -m py_compile \
-            sync_readiness.py \
             tools/sync_readiness.py \
             tests/test_release_progression.py \
             tests/test_manifest_schema.py \
@@ -64,3 +69,5 @@ jobs:
           cd releases
           shasum -a 256 -c python315-dataeng-validation-v1.8.0.zip.sha256
           shasum -a 256 -c python315-dataeng-validation-v1.8.1.zip.sha256
+          shasum -a 256 -c python315-dataeng-validation-v1.8.2.zip.sha256
+          shasum -a 256 -c python315-dataeng-validation-v1.8.3.zip.sha256
