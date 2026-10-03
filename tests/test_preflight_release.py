@@ -30,8 +30,8 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = REPO_ROOT / "scripts" / "preflight_release.py"
@@ -44,6 +44,8 @@ assert spec is not None
 assert spec.loader is not None
 
 preflight = importlib.util.module_from_spec(spec)
+# Register before exec so @dataclass can resolve cls.__module__ (required on Python < 3.15).
+sys.modules[spec.name] = preflight
 spec.loader.exec_module(preflight)
 
 

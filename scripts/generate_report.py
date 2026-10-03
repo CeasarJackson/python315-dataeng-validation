@@ -63,7 +63,8 @@ TEMPLATE = REPORTS / "template"
 
 def run(cmd, cwd=None, capture=True):
     result = subprocess.run(
-        cmd, shell=True, capture_output=capture, text=True, cwd=cwd or REPO
+        cmd, shell=True, capture_output=capture, text=True, cwd=cwd or REPO,
+        check=False,
     )
     stdout = result.stdout.strip() if result.stdout is not None else ""
     return stdout, result.returncode
@@ -91,7 +92,7 @@ def probe_package(pkg_name, test_fn=None):
         return "PASS", ver
     except ImportError:
         return "FAIL", "not installed"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return "INCOMPAT", f"error: {e}"
 
 
@@ -141,6 +142,7 @@ def check_declared_support(results):
         capture_output=True,
         text=True,
         cwd=REPO,
+        check=False,
     )
     output = f"{proc.stdout or ''}\n{proc.stderr or ''}".strip()
     rc = proc.returncode
@@ -216,7 +218,7 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
 
         results["sqlite3"] = {"status": "PASS", "version": sqlite3.sqlite_version}
         print(f"    sqlite3: PASS ({sqlite3.sqlite_version})")
-    except Exception:
+    except Exception:  # noqa: BLE001
         results["sqlite3"] = {"status": "FAIL", "version": "stdlib"}
 
     # pyarrow — known blocker
@@ -275,7 +277,7 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
         else:
             results["prefect"] = {"status": "SKIP", "version": "not installed"}
             print("    prefect: SKIP (not installed)")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         results["prefect"] = {
             "status": "INCOMPAT",
             "version": get_version("prefect"),
@@ -288,7 +290,7 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
 
         results["mlflow"] = {"status": "PASS", "version": get_version("mlflow")}
         print("    mlflow: PASS")
-    except (ImportError, Exception) as e:
+    except (ImportError, Exception) as e:  # noqa: BLE001
         if "pyarrow" in str(e).lower() or "opentelemetry" in str(e).lower():
             results["mlflow"] = {
                 "status": "INCOMPAT",
@@ -354,6 +356,7 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
                 capture_output=True,
                 text=True,
                 timeout=120,
+                check=False,
             )
             out, rc = _r.stdout, _r.returncode
         except _sp.TimeoutExpired:
@@ -378,7 +381,7 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
                     "reason": "Docker test failed",
                 }
                 print("    pyspark: FAIL")
-        except Exception:
+        except Exception:  # noqa: BLE001
             results["pyspark"] = {
                 "status": "INCOMPAT",
                 "version": "unknown",
@@ -416,7 +419,7 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
             "reason": "not installed",
         }
         print("    airflow: SKIP (not installed)")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         results["apache-airflow"] = {
             "status": "INCOMPAT",
             "version": "unknown",

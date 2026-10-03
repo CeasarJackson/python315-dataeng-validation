@@ -51,5 +51,5 @@ for package in PACKAGES:
 
         print(f"{GREEN}✅ {package:<20} {pkg_version}{RESET}")
 
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         print(f"{RED}❌ {package:<20} {exc}{RESET}")

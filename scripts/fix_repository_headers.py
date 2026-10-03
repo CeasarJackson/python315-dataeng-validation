@@ -12,8 +12,8 @@ python scripts/fix_repository_headers.py
 python -m pytest -q
 """
 
-from pathlib import Path
 import argparse
+from pathlib import Path
 
 TARGETS = [
     "scripts/benchmark_duckdb_pyarrow.py",

@@ -37,7 +37,7 @@ Operational Notes
 ===============================================================================
 """
 
-from sqlalchemy import create_engine, text, inspect
+from sqlalchemy import create_engine, inspect, text
 
 
 def test_sqlalchemy_reflect_table_names():

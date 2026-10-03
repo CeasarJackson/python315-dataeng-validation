@@ -38,9 +38,9 @@ Operational Notes
 ===============================================================================
 """
 
-from datetime import datetime
 import sys
 import time
+from datetime import datetime
 
 import airflow
 from airflow import DAG

@@ -1,5 +1,7 @@
 # Portfolio Summary
 
+> **Historical note (2026-10-02):** the results in this document were produced under Python 3.15.0b2, in an environment later found to be internally inconsistent (see `docs/KNOWN_ISSUES.md`). The latest validated release is 3.15.0rc2; current numbers live in `STATUS.md` and `reports/3.15.0rc2/manifest.json`.
+
 ## Problem
 
 Determine whether Python 3.15.0b2 is suitable for modern Data Engineering workloads.

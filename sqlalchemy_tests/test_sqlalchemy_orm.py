@@ -37,8 +37,8 @@ Operational Notes
 ===============================================================================
 """
 
-from sqlalchemy import create_engine, String, Integer
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
+from sqlalchemy import Integer, String, create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 
 class Base(DeclarativeBase):

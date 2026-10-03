@@ -14,7 +14,7 @@
 **Environment Manager:** uv
 **Project Location:** `~/Projects/python315_test`
 **Python Version Tested:** 3.15.0b1
-**Current Upstream Release:** Python 3.15.0b2
+**Current Upstream Release:** Python 3.15.0rc2
 **Status:** Complete — All 8 Phases Finished
 
 ## Release Information

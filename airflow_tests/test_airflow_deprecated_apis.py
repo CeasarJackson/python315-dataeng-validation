@@ -38,6 +38,7 @@ Operational Notes
 """
 
 import warnings
+
 import pytest
 
 
@@ -53,8 +54,8 @@ def test_airflow_operators_deprecated_path_warns():
 
 def test_airflow_providers_standard_operators_available():
     """New providers.standard operator path is available in Airflow 3.x."""
-    from airflow.providers.standard.operators.python import PythonOperator
     from airflow.providers.standard.operators.bash import BashOperator
+    from airflow.providers.standard.operators.python import PythonOperator
 
     assert PythonOperator is not None
     assert BashOperator is not None

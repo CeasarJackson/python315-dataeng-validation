@@ -37,7 +37,7 @@ Operational Notes
 ===============================================================================
 """
 
-from airflow.models import DAG, TaskInstance, DagRun
+from airflow.models import DAG, DagRun, TaskInstance
 from airflow.utils.state import DagRunState, TaskInstanceState
 
 

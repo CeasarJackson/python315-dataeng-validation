@@ -16,8 +16,8 @@ import random
 import statistics
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 # ---------------------------------------------------------------------------
 # Bootstrap path

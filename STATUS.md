@@ -2,11 +2,11 @@
 
 **Version:** 1.9.1
 **Status:** ACTIVE — Enterprise Validation & Release Platform Operational
-**Production Readiness:** 84%
-**Last Updated:** June 2026
-**Current Python Version:** 3.15.0b2
-**Overall Validation Status:** 66/66 Automated Tests Passing
-**Current Compatibility Score:** 84%
+**Production Readiness:** 82% (3.15.0rc2 manifest)
+**Last Updated:** October 2026
+**Current Python Version:** 3.15.0rc2
+**Overall Validation Status:** 100/100 Automated Tests Passing
+**Current Compatibility Score:** 82%
 
 ---
 
@@ -60,10 +60,11 @@
 
 | Release | Date | Readiness | Key Change |
 |---------|------|-----------|------------|
-| 3.15.0b1 | 2026-06-04 | 75% | Baseline |
-| 3.15.0b2 | 2026-06-05 | 84% | Prefect + MLflow PASS |
-| 3.15.0rc1 | 2026-06-05 | 84% | No regressions |
-| 3.15.0rc2 | 2026-06-05 | 85% | Prefect probe corrected; final pre-GA baseline |
+| 3.15.0b1 | 2026-06-04 | 80% | Baseline |
+| 3.15.0b2 | 2026-07-13 | 90% | Prefect + MLflow PASS; baseline suspect (inconsistent env, see docs/KNOWN_ISSUES.md) |
+| 3.15.0b4 | 2026-07-21 | 83% | Lower than b2 (b2 baseline is suspect) |
+| 3.15.0rc1 | 2026-08-05 | 83% | No change vs b4 |
+| 3.15.0rc2 | 2026-09-05 | 82% | Prefect requires Python <3.15 (constraint violation); environment_consistent=false |
 | v1.8.0 | 2026-06-06 | 84% | Automated release builder introduced |
 | v1.8.1 | 2026-06-06 | 84% | Reporting and manifest synchronization |
 | v1.9.1 | 2026-06-08 | 84% | Readiness consistency validation restored |
@@ -108,7 +109,7 @@ Apache Airflow 3.2.2 validation completed successfully.
 
 Coverage includes DAG creation, operators, task dependencies, model imports, deprecation handling, and version compatibility testing.
 
-Status: Production-ready under Python 3.15.0b2.
+Status: Passed under Python 3.15.0b2; re-confirm under rc2/GA.
 
 ---
 
@@ -182,7 +183,7 @@ Validated technologies now include:
 - Reporting and visualization libraries
 - Release engineering automation
 
-Overall readiness currently stands at 84%, with all repository validation suites passing successfully (66/66 tests). Remaining blockers are isolated to external ecosystem dependencies, primarily PyArrow and downstream distributed-computing frameworks awaiting official Python 3.15 support.
+Overall readiness currently stands at 82%, with all repository validation suites passing successfully (100/100 tests). Remaining blockers are isolated to external ecosystem dependencies, primarily PyArrow and downstream distributed-computing frameworks awaiting official Python 3.15 support.
 
 The platform now includes:
 

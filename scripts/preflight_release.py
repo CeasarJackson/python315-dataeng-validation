@@ -52,10 +52,9 @@ import re
 import shutil
 import subprocess
 import sys
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Sequence
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = REPO_ROOT / "reports"

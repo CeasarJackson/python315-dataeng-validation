@@ -16,8 +16,8 @@ import os
 import shutil
 import sys
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 # ---------------------------------------------------------------------------
 # Bootstrap path
@@ -82,6 +82,7 @@ def test_pyspark() -> str:
             ["docker", "image", "inspect", DOCKER_IMAGE],
             capture_output=True,
             timeout=10,
+            check=False,
         )
         if check.returncode != 0:
             log.warning(
@@ -145,6 +146,7 @@ except Exception as exc:
             capture_output=True,
             text=True,
             timeout=120,
+            check=False,
         )
         if result.returncode != 0:
             log.error(

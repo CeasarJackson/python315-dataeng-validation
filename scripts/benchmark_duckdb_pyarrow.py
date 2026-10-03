@@ -232,6 +232,7 @@ def check_docker() -> bool:
         ["docker", "images", "-q", "pyarrow-dataeng:py314"],
         capture_output=True,
         text=True,
+        check=False,
     )
     if not images.stdout.strip():
         log.error(
@@ -262,7 +263,7 @@ def bench_pyarrow_docker() -> list[tuple[str, float]]:
     with open(script_path, "w", encoding="utf-8") as f:
         f.write(_ARROW_SCRIPT)
 
-    r = subprocess.run(docker_cmd, capture_output=True, text=True)
+    r = subprocess.run(docker_cmd, capture_output=True, text=True, check=False)
     if r.returncode != 0:
         log.error(f"Docker PyArrow benchmark failed:\n{r.stderr}")
         return []
@@ -273,7 +274,7 @@ def bench_pyarrow_docker() -> list[tuple[str, float]]:
         try:
             op, elapsed = line.split(",")
             results.append((op, float(elapsed)))
-        except Exception:
+        except Exception:  # noqa: BLE001
             continue
     return results
 
@@ -302,7 +303,7 @@ def main() -> int:
 
         # Aggregate DuckDB results by operation
         duckdb_agg = {}
-        for op in duckdb_results[0].keys():
+        for op in duckdb_results[0]:
             times = [run[op] for run in duckdb_results]
             median = statistics.median(times)
             duckdb_agg[op] = median
@@ -321,7 +322,7 @@ def main() -> int:
 
         # Aggregate PyArrow results by operation
         pyarrow_agg = {}
-        for op in pyarrow_results[0].keys():
+        for op in pyarrow_results[0]:
             times = [run[op] for run in pyarrow_results]
             median = statistics.median(times)
             pyarrow_agg[op] = median
