@@ -53,8 +53,8 @@
 
 ```zsh
 uv pip install pyarrow
-.venv/bin/python scripts/generate_report.py --release 3.15.0ga --auto-commit
-.venv/bin/python scripts/compare_reports.py 3.15.0rc2 3.15.0ga
+.venv/bin/python scripts/generate_report.py --release 3.15.0 --auto-commit
+.venv/bin/python scripts/compare_reports.py 3.15.0rc2 3.15.0
 git tag -a v2.0.0 -m "Python 3.15 GA certification release"
 ```
 
