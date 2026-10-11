@@ -98,7 +98,7 @@ Current Readiness Assessment:
 
 - Automated Tests: 105/105 PASS
 - Production Readiness: 92% (91% excluding the Docker-sourced PySpark result)
-- Current Release: v1.9.1
+- Current Release: v1.10.0
 - Validation Frameworks: 9
 - Repository Status: Fully Validated
 
@@ -145,7 +145,7 @@ Objectives include:
 
 | Metric | Value |
 |----------|----------|
-| Current Release | v1.9.1 |
+| Current Release | v1.10.0 |
 | Python Version | 3.15.0 (GA) |
 | Automated Tests | 105/105 PASS |
 | Compatibility Score | 92% |

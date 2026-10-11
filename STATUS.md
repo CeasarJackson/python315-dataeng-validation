@@ -1,6 +1,6 @@
 # Project Status
 
-**Version:** 1.9.1
+**Version:** 1.10.0
 **Status:** ACTIVE — Enterprise Validation & Release Platform Operational
 **Production Readiness:** 92% (3.15.0 manifest; 91% if the Docker-sourced PySpark result is not counted)
 **Last Updated:** October 2026
@@ -53,6 +53,7 @@
 | 1.8.3 | v1.8.3 | Release validation and artifact integrity improvements |
 | 1.9.0 | v1.9.0 | Readiness synchronization framework |
 | 1.9.1 | v1.9.1 | Readiness consistency fixes and repository standards enforcement |
+| 1.10.0 | v1.10.0 | Python 3.15.0 GA validation baseline (92% readiness); manifest-driven assessment PDF generator |
 
 ---
 
