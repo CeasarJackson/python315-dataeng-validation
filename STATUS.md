@@ -2,11 +2,11 @@
 
 **Version:** 1.9.1
 **Status:** ACTIVE — Enterprise Validation & Release Platform Operational
-**Production Readiness:** 82% (3.15.0rc2 manifest)
+**Production Readiness:** 92% (3.15.0 manifest; 91% if the Docker-sourced PySpark result is not counted)
 **Last Updated:** October 2026
-**Current Python Version:** 3.15.0rc2
-**Overall Validation Status:** 100/100 Automated Tests Passing
-**Current Compatibility Score:** 82%
+**Current Python Version:** 3.15.0 (GA)
+**Overall Validation Status:** 105/105 Automated Tests Passing
+**Current Compatibility Score:** 92%
 
 ---
 
@@ -28,8 +28,8 @@
 | 12 | Airflow Validation Suite | ✅ Complete |
 | 13 | Automated Release Builder | ✅ Complete |
 | 14 | Versioned Release Automation | ✅ Complete |
-| 15 | PyArrow cp315 Retesting | ⏳ Waiting — upstream |
-| 16 | Python 3.15 GA Assessment | ⏳ Waiting — Python 3.15 GA |
+| 15 | PyArrow cp315 Retesting | ✅ Complete — cp315 wheel available; pyarrow 26.0.0 PASS |
+| 16 | Python 3.15 GA Assessment | ✅ Complete — 3.15.0 baseline (2026-10-10) |
 
 ---
 
@@ -65,6 +65,7 @@
 | 3.15.0b4 | 2026-07-21 | 83% | Lower than b2 (b2 baseline is suspect) |
 | 3.15.0rc1 | 2026-08-05 | 83% | No change vs b4 |
 | 3.15.0rc2 | 2026-09-05 | 82% | Prefect requires Python <3.15 (constraint violation); environment_consistent=false |
+| 3.15.0 | 2026-10-10 | 92% | pyarrow BLOCKED→PASS and dask.dataframe INCOMPAT→PASS (cp315 pyarrow wheel); pyspark SKIP→PASS via py314 Docker (not 3.15 evidence; 91% without it); Prefect INCOMPAT and Ray BLOCKED unchanged; environment_consistent=false |
 | v1.8.0 | 2026-06-06 | 84% | Automated release builder introduced |
 | v1.8.1 | 2026-06-06 | 84% | Reporting and manifest synchronization |
 | v1.9.1 | 2026-06-08 | 84% | Readiness consistency validation restored |
@@ -73,43 +74,50 @@
 
 ## Known Blockers
 
-### PyArrow — BLOCKED
+### PyArrow — ✅ RESOLVED at GA
 
-No cp315 wheels on PyPI. Source build fails at CMake configuration
-(`ArrowConfig.cmake not found`). Cascades to dask.dataframe, Delta Lake,
-and fastparquet (PyO3 0.25 supports Python ≤ 3.14).
+cp315 wheels are now published (pyarrow 26.0.0, macOS ARM64). The 3.15.0 run
+installed it natively and it probes as PASS. At rc2 it was BLOCKED (source
+build failed at CMake configuration).
 
-**Workaround:** `pyarrow-dataeng:py314` Docker image fully mitigates.
-**Track:** https://github.com/apache/arrow
-**Expected:** cp315 wheels typically published within weeks of CPython GA.
+**Not re-tested at GA:** Delta Lake and fastparquet, which cascaded from this
+blocker at rc2, are not among the 17 manifest packages and were not installed.
+**Evidence note:** `pyarrow_tests/` is an empty placeholder with no tests. The
+PASS rests on the report probe plus a one-off functional smoke check run during
+the GA validation (parquet roundtrip, group_by, compute, pandas and DuckDB
+interop; terminal output only, not stored in the repo).
+
+---
 
 ### Ray — BLOCKED
 
-Native Python 3.15 wheel support remains unavailable.
+No cp315 wheel. At GA, `uv` found Ray 2.59.0 wheels only for cp310–cp314.
 
 **Impact:** Distributed compute validation deferred.
-
 **Expected:** Vendor support after Python 3.15 GA stabilization.
 
 ---
 
-### Dask DataFrame — INCOMPAT
+### Prefect — INCOMPAT (declared support)
 
-Dask currently depends on PyArrow functionality that is not yet available for Python 3.15.
-
-**Root Cause:** PyArrow ecosystem readiness.
-
-**Expected Resolution:** Following official PyArrow cp315 wheel release.
+Prefect 3.7.7 declares `Requires-Python >=3.10,<3.15`. It imports and ran a
+flow under 3.15.0, but the suite classifies on declared support. This is the
+only constraint violation (`environment_consistent: false`).
 
 ---
 
-### Apache Airflow — PASS
+### Dask DataFrame — ✅ RESOLVED at GA
 
-Apache Airflow 3.2.2 validation completed successfully.
+PASS (dask 2026.7.1). It was INCOMPAT at rc2 only because of the pyarrow
+dependency.
 
-Coverage includes DAG creation, operators, task dependencies, model imports, deprecation handling, and version compatibility testing.
+---
 
-Status: Passed under Python 3.15.0b2; re-confirm under rc2/GA.
+### Apache Airflow — SKIP
+
+Not installed in the 3.15.0 environment (also SKIP at rc2; see PYO3-001 in
+`requirements-py315-dataeng-extended.txt`). Last PASS was under 3.15.0b2 and
+has not been re-confirmed under rc2 or GA.
 
 ---
 
@@ -121,8 +129,8 @@ Status: Passed under Python 3.15.0b2; re-confirm under rc2/GA.
 | Polars | `polars_tests/` | ✅ PASS |
 | SQLAlchemy | `sqlalchemy_tests/` | ✅ PASS |
 | SQLite | `sqlite_tests/` | ✅ PASS |
-| PyArrow | `pyarrow_tests/` | 🚫 BLOCKED |
-| Airflow | `airflow_tests/` | ✅ PASS |
+| PyArrow | `pyarrow_tests/` | ➖ no tests (empty placeholder) |
+| Airflow | `airflow_tests/` | ⏭ SKIP (not installed) |
 
 ---
 
@@ -183,7 +191,7 @@ Validated technologies now include:
 - Reporting and visualization libraries
 - Release engineering automation
 
-Overall readiness currently stands at 82%, with all repository validation suites passing successfully (100/100 tests). Remaining blockers are isolated to external ecosystem dependencies, primarily PyArrow and downstream distributed-computing frameworks awaiting official Python 3.15 support.
+Overall readiness stands at 92% on Python 3.15.0 GA (91% if the Docker-sourced PySpark result is not counted), with all repository tests passing (105/105). Remaining gaps are external: Ray has no cp315 wheel, Prefect declares support only through Python 3.14, and MLflow and Airflow are not installed in the GA environment.
 
 The platform now includes:
 
