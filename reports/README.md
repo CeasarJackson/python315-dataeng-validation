@@ -17,7 +17,7 @@ against the data engineering validation suite.
 | [v1.8.0](./v1.8.0/compatibility_report.md) | 2026-06-06 | 87% | Unified validation + release automation |
 | [v1.8.1](./v1.8.1/compatibility_report.md) | 2026-06-06 | 87% | Readiness artifacts synchronized |
 | [v1.9.2](./v1.9.2/compatibility_report.md) | 2026-06-18 | 89% | Final reporting validation, manifest schema fix, PySpark Docker validation |
-| 3.15.0ga | Pending | — | Awaiting PyArrow cp315 wheels + GA release |
+| 3.15.0 | Pending | — | GA released 2026-10-09; validation run pending (see docs/runbooks) |
 
 ---
 
@@ -76,7 +76,7 @@ reports/
 ├── v1.8.0/                            # Automated release package
 ├── v1.8.1/                            # Reporting synchronization release
 ├── v1.9.2/                            # Final reporting validation release
-├── 3.15.0ga/                          # GA (pending)
+├── 3.15.0/                            # GA (pending)
 └── template/                          # Templates for new cycles
     ├── manifest.json
     └── compatibility_report.md
@@ -88,13 +88,13 @@ reports/
 
 ```bash
 # Generate report and auto-commit
-python scripts/generate_report.py --release 3.15.0ga --auto-commit
+python scripts/generate_report.py --release 3.15.0 --auto-commit
 
 # Compare with previous cycle
-python scripts/compare_reports.py 3.15.0rc2 3.15.0ga
+python scripts/compare_reports.py 3.15.0rc2 3.15.0
 
 # Dry run (no files written)
-python scripts/generate_report.py --release 3.15.0ga --dry-run
+python scripts/generate_report.py --release 3.15.0 --dry-run
 ```
 
 ---

@@ -1,8 +1,14 @@
 # Known Issues
 
 **Project:** Python 3.15 Compatibility Validation Lab
-**Last updated:** 2026-10-02 (Python 3.15.0rc2 cycle)
+**Last updated:** 2026-10-11 (Python 3.15.0 GA cycle)
 
+> **3.15.0 GA summary.** The 3.15.0 baseline (2026-10-10, manifest in
+> `reports/3.15.0/`) scores **92% readiness**: PASS=13, INCOMPAT=1, BLOCKED=1,
+> SKIP=2. ARW-001 (pyarrow) is resolved and dask.dataframe cleared with it.
+> RAY-001 and PRE-001 are unchanged. The PySpark PASS ran in the `py314`
+> Docker image and is not 3.15 evidence; without it readiness is 91%.
+>
 > **rc2 summary.** Reconciliation on 2026-10-02 confirms the valid
 > Python 3.15.0rc2 manifest at **82% readiness**: PASS=10, INCOMPAT=2,
 > BLOCKED=2, SKIP=3, FAIL=0. Prefect remains INCOMPAT because 3.7.7
@@ -136,7 +142,7 @@ pyarrow Unavailable on Python 3.15
 
 ## Status
 
-BLOCKED
+RESOLVED (Python 3.15.0 GA, 2026-10-10)
 
 ## Severity
 
@@ -148,6 +154,7 @@ HIGH
 - Python 3.15.0rc1 (re-verified 2026-08-05 — pyarrow 25.0.0, still `cp314` max)
 - Python 3.15.0rc2 (re-verified 2026-10-02 — binary-only resolver probe
   found no usable `cp315` wheel)
+- Python 3.15.0 GA (resolved 2026-10-10 — pyarrow 26.0.0 `cp315` wheel installs)
 
 ## Summary
 
@@ -165,6 +172,15 @@ Python 3.14 and does not exercise 3.15.
 ## Resolution Criteria
 
 Close when Arrow publishes `cp315` wheels. No local workaround available.
+
+**Resolved 2026-10-10.** pyarrow 26.0.0 publishes `cp315` wheels, including
+macOS ARM64. It installed natively into the 3.15.0 environment and probes as
+PASS, and a one-off functional smoke check (parquet roundtrip, group_by,
+compute, pandas and DuckDB interop) also passed. dask.dataframe moved
+INCOMPAT to PASS as a result. Delta Lake and fastparquet, which cascaded from
+this blocker at rc2, were not re-tested. `pyarrow_tests/` remains an empty
+placeholder. The Docker image is no longer needed to obtain a working
+pyarrow, but the PySpark probe still uses it.
 
 ---
 
@@ -186,6 +202,7 @@ LOW
 
 - Python 3.15.0b4
 - Python 3.15.0rc1 (re-verified 2026-08-05 — ray 2.56.1, still `cp314` max)
+- Python 3.15.0 GA (re-verified 2026-10-10 — `uv` found ray 2.59.0 wheels only for `cp310`–`cp314`)
 
 ## Summary
 
@@ -539,6 +556,10 @@ MEDIUM
   declared-support violation)
 - Python 3.15.0rc2 (prefect 3.7.7 — `uv pip check` reports the `<3.15`
   violation; flow execution also fails through beartype 0.22.9)
+- Python 3.15.0 GA (re-verified 2026-10-10 — prefect 3.7.7 still declares
+  `<3.15` per `uv pip check`, so it stays INCOMPAT on declared support. Unlike
+  rc2, a `@flow`/`@task` smoke run completed successfully; the environment
+  had beartype 0.23.0 where rc2's failing run had 0.22.9)
 
 ## Summary
 
@@ -692,8 +713,8 @@ downstream symptoms of this incentive.
 |----|-----------|--------|----------|
 | SCI-001 | scipy | OPEN | HIGH |
 | PD-001 | pandas | WORKAROUND AVAILABLE (re-verified rc1) | MEDIUM |
-| ARW-001 | pyarrow | BLOCKED (re-verified rc2) | HIGH |
-| RAY-001 | ray | BLOCKED (re-verified rc1) | LOW |
+| ARW-001 | pyarrow | RESOLVED (3.15.0 GA) | HIGH |
+| RAY-001 | ray | BLOCKED (re-verified GA) | LOW |
 | ENV-001 | validation env | RESOLVED (pinned) | HIGH |
 | ENV-002 | validation env (b2) | OPEN | HIGH |
 | MLF-001 | mlflow | OPEN | MEDIUM |

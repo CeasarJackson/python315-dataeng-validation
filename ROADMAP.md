@@ -13,7 +13,7 @@
 - All INCOMPAT/SKIP reclassified correctly
 - Final pre-GA baseline established
 - PASS=10  FAIL=0  INCOMPAT=2  BLOCKED=2  SKIP=3 (17 packages; manifest 2026-09-05)
-- Readiness Progression: 80% (b1) → 90% (b2, suspect baseline) → 83% (b4) → 83% (rc1) → 82% (rc2)
+- Readiness Progression: 80% (b1) → 90% (b2, suspect baseline) → 83% (b4) → 83% (rc1) → 82% (rc2) → 92% (3.15.0 GA)
 
 ## v1.9.1 ✔ Complete
 
@@ -27,7 +27,12 @@
 - 66/66 automated tests passing
 - Production readiness synchronized to 84%
 
-## v1.10.0 — Next Planned Milestone
+## v1.10.0 ✔ Released — Python 3.15.0 GA validation baseline
+
+Shipped: the 3.15.0 GA baseline (92% readiness), a manifest-driven assessment
+PDF generator (`scripts/build_assessment_pdf.py`), and reconciliation of
+stale historical readiness values. The items below were the planned scope for
+this milestone; those not named above carry forward.
 
 - Python 3.15 RC validation refresh
 - Automated report regeneration pipeline
@@ -53,17 +58,17 @@
 
 ```zsh
 uv pip install pyarrow
-.venv/bin/python scripts/generate_report.py --release 3.15.0ga --auto-commit
-.venv/bin/python scripts/compare_reports.py 3.15.0rc2 3.15.0ga
+.venv/bin/python scripts/generate_report.py --release 3.15.0 --auto-commit
+.venv/bin/python scripts/compare_reports.py 3.15.0rc2 3.15.0
 git tag -a v2.0.0 -m "Python 3.15 GA certification release"
 ```
 
 ## Current Repository Status
 
-- Current Release: v1.9.1
-- Python Version: 3.15.0rc2
-- Automated Tests: 100/100 PASS
-- Production Readiness: 82%
+- Current Release: v1.10.0
+- Python Version: 3.15.0 (GA)
+- Automated Tests: 105/105 PASS
+- Production Readiness: 92% (3.15.0 manifest)
 - Validation Frameworks: 9
 - Release Archive: Verified
 - SHA256 Validation: Verified

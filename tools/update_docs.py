@@ -153,7 +153,7 @@ against the data engineering validation suite.
 | [3.15.0b2](./3.15.0b2/compatibility_report.md) | 2026-06-05 | 85% | Prefect + MLflow \u2192 PASS |
 | [3.15.0rc1](./3.15.0rc1/compatibility_report.md) | 2026-06-05 | 85% | No regressions |
 | [3.15.0rc2](./3.15.0rc2/compatibility_report.md) | 2026-06-05 | 85% | No regressions |
-| 3.15.0ga | Pending | \u2014 | Awaiting PyArrow cp315 wheels + GA release |
+| 3.15.0 | Pending | \u2014 | GA released 2026-10-09; validation run pending (see docs/runbooks) |
 
 ---
 
@@ -200,7 +200,7 @@ reports/
 \u2502   \u2514\u2500\u2500 PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf
 \u251c\u2500\u2500 3.15.0rc1/                         # RC 1 (complete)
 \u251c\u2500\u2500 3.15.0rc2/                         # RC 2 (complete)
-\u251c\u2500\u2500 3.15.0ga/                          # GA (pending)
+\u251c\u2500\u2500 3.15.0/                            # GA (pending)
 \u2514\u2500\u2500 template/                          # Templates for new cycles
     \u251c\u2500\u2500 manifest.json
     \u2514\u2500\u2500 compatibility_report.md
@@ -212,13 +212,13 @@ reports/
 
 ```bash
 # Generate report and auto-commit
-python scripts/generate_report.py --release 3.15.0ga --auto-commit
+python scripts/generate_report.py --release 3.15.0 --auto-commit
 
 # Compare with previous cycle
-python scripts/compare_reports.py 3.15.0rc2 3.15.0ga
+python scripts/compare_reports.py 3.15.0rc2 3.15.0
 
 # Dry run (no files written)
-python scripts/generate_report.py --release 3.15.0ga --dry-run
+python scripts/generate_report.py --release 3.15.0 --dry-run
 ```
 
 ---
@@ -244,8 +244,4 @@ python scripts/compare_reports.py 3.15.0b1 3.15.0rc2 --format markdown
 (REPO / "reports/README.md").write_text(reports_readme)
 print(f"reports/README.md  {(REPO / 'reports/README.md').stat().st_size:,} bytes")
 
-# Also create the GA placeholder
-ga_dir = REPO / "reports/3.15.0ga"
-ga_dir.mkdir(exist_ok=True)
-(ga_dir / ".gitkeep").write_text("")
-print("reports/3.15.0ga/  placeholder created")
+# NOTE: no GA placeholder dir is created; reports/3.15.0 is made by scaffold_release.py

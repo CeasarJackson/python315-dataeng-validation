@@ -24,13 +24,13 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Install Python 3.15 preview
+      - name: Install Python 3.15
         run: |
-          uv python install 3.15.0rc2
+          uv python install 3.15.0
 
       - name: Create virtual environment
         run: |
-          uv venv --python 3.15.0rc2 .venv
+          uv venv --python 3.15.0 .venv
           . .venv/bin/activate
           uv pip install --python .venv/bin/python --upgrade pip setuptools wheel
           uv pip install --python .venv/bin/python pytest
@@ -39,6 +39,9 @@ jobs:
         run: |
           . .venv/bin/activate
           python --version
+          # Fail fast if CI is not on the final 3.15.0 build: a green run on
+          # a release candidate would be mistaken for GA evidence.
+          python -c "import sys; assert sys.version_info[:3] == (3, 15, 0) and sys.version_info.releaselevel == 'final', sys.version"
           python -c "import sys; print(sys.executable)"
           python -m pytest --version
 

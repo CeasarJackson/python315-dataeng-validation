@@ -1,0 +1,88 @@
+{
+  "project": "Python 3.15 Data Engineering Validation Suite",
+  "python_version": "3.15.0",
+  "assessment_date": "2026-10-10",
+  "production_readiness_pct": 92,
+  "summary": {
+    "pass": 13,
+    "fail": 0,
+    "incompat": 1,
+    "blocked": 1,
+    "skip": 2
+  },
+  "environment_consistent": false,
+  "packages": {
+    "numpy": {
+      "status": "PASS",
+      "version": "2.4.6"
+    },
+    "pandas": {
+      "status": "PASS",
+      "version": "3.0.3"
+    },
+    "polars": {
+      "status": "PASS",
+      "version": "1.41.2"
+    },
+    "duckdb": {
+      "status": "PASS",
+      "version": "1.5.3"
+    },
+    "sqlalchemy": {
+      "status": "PASS",
+      "version": "2.0.50"
+    },
+    "pydantic": {
+      "status": "PASS",
+      "version": "2.13.4"
+    },
+    "matplotlib": {
+      "status": "PASS",
+      "version": "3.10.9"
+    },
+    "plotly": {
+      "status": "PASS",
+      "version": "6.7.0"
+    },
+    "jupyterlab": {
+      "status": "PASS",
+      "version": "4.5.7"
+    },
+    "sqlite3": {
+      "status": "PASS",
+      "version": "3.53.4"
+    },
+    "pyarrow": {
+      "status": "PASS",
+      "version": "26.0.0"
+    },
+    "dask.dataframe": {
+      "status": "PASS",
+      "version": "2026.7.1"
+    },
+    "prefect": {
+      "status": "INCOMPAT",
+      "version": "3.7.7",
+      "reason": "declared unsupported: requires Python >=3.10, <3.15, but `3.15.0` is installed"
+    },
+    "mlflow": {
+      "status": "SKIP",
+      "version": "not installed"
+    },
+    "ray": {
+      "status": "BLOCKED",
+      "version": "unavailable",
+      "reason": "no cp315 wheels on PyPI"
+    },
+    "pyspark": {
+      "status": "PASS",
+      "version": "4.1.2"
+    },
+    "apache-airflow": {
+      "status": "SKIP",
+      "version": "not installed",
+      "reason": "not installed"
+    }
+  },
+  "source": "derived mechanically from manifest.json; no hand-assigned category judgments"
+}
