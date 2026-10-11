@@ -19,7 +19,7 @@
 | Distributed Processing | BLOCKED |
 | Arrow Ecosystem | BLOCKED |
 
-**Overall Readiness Score: 84%**
+**Overall Readiness Score: 90%**
 
 ---
 
