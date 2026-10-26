@@ -83,9 +83,10 @@
       directories from disk. No edit needed; just confirm `3.15.1` is picked up
 - [ ] `tests/test_report_completeness.py`: add this directory to
       `EXTENDED_REPORTS` (still hardcoded)
-- [ ] `tests/test_readiness_consistency.py`: `REPORT_DIR` is still hardcoded
-      to `3.15.0` (not `3.15.0b2`). Repointing at `3.15.1` is BLOCKED until
-      `readiness_matrix.json` and the assessment PDF exist in `reports/3.15.1/`
+- [x] `tests/test_readiness_consistency.py`: `REPORT_DIR` now points at
+      `3.15.1` (done 2026-10-26, commit 0059a64). `readiness_matrix.json` was
+      derived from `manifest.json` and the PDF built with
+      `build_assessment_pdf.py --release 3.15.1 --previous 3.15.0`
 - [ ] `python -m pytest -q`
 
 ### Generation order and guards
