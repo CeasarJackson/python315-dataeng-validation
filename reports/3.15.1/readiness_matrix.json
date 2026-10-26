@@ -1,0 +1,87 @@
+{
+  "project": "Python 3.15 Data Engineering Validation Suite",
+  "python_version": "3.15.1",
+  "assessment_date": "2026-10-26",
+  "production_readiness_pct": 94,
+  "summary": {
+    "pass": 15,
+    "fail": 0,
+    "incompat": 0,
+    "blocked": 2,
+    "skip": 0
+  },
+  "environment_consistent": true,
+  "packages": {
+    "numpy": {
+      "status": "PASS",
+      "version": "2.5.4"
+    },
+    "pandas": {
+      "status": "PASS",
+      "version": "3.1.0"
+    },
+    "polars": {
+      "status": "PASS",
+      "version": "1.41.2"
+    },
+    "duckdb": {
+      "status": "PASS",
+      "version": "2.0.0"
+    },
+    "sqlalchemy": {
+      "status": "PASS",
+      "version": "2.0.50"
+    },
+    "pydantic": {
+      "status": "PASS",
+      "version": "2.14.1"
+    },
+    "matplotlib": {
+      "status": "PASS",
+      "version": "3.11.2"
+    },
+    "plotly": {
+      "status": "PASS",
+      "version": "6.7.0"
+    },
+    "jupyterlab": {
+      "status": "PASS",
+      "version": "4.5.7"
+    },
+    "sqlite3": {
+      "status": "PASS",
+      "version": "3.54.1"
+    },
+    "pyarrow": {
+      "status": "PASS",
+      "version": "26.0.0"
+    },
+    "dask.dataframe": {
+      "status": "PASS",
+      "version": "2026.7.1"
+    },
+    "prefect": {
+      "status": "PASS",
+      "version": "3.9.0"
+    },
+    "mlflow": {
+      "status": "BLOCKED",
+      "version": "3.17.2",
+      "reason": "Upstream pin pyarrow<26 plus no cp315 wheel for pyarrow 25.x. Workarounds: mlflow-skinny passes core tracking; full mlflow with a pyarrow>=26 override passes core, sklearn, dataset and table probes but fails uv pip check"
+    },
+    "ray": {
+      "status": "BLOCKED",
+      "version": "unavailable",
+      "reason": "no cp315 wheels on the configured index"
+    },
+    "pyspark": {
+      "status": "PASS",
+      "version": "4.2.0"
+    },
+    "apache-airflow": {
+      "status": "PASS",
+      "version": "3.3.2"
+    }
+  },
+  "source": "derived mechanically from manifest.json; no hand-assigned category judgments"
+}

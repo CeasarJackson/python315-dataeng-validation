@@ -26,7 +26,7 @@ import json
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-REPORT_DIR = PROJECT_ROOT / "reports" / "3.15.0"
+REPORT_DIR = PROJECT_ROOT / "reports" / "3.15.1"
 
 MANIFEST = REPORT_DIR / "manifest.json"
 READINESS_JSON = REPORT_DIR / "readiness_matrix.json"
