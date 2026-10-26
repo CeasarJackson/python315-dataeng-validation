@@ -26,7 +26,10 @@
       generate_report_provenance, preflight_release); all now pass it, and a
       re-scan finds 0. Behavior is unchanged on 3.15 (UTF-8 is the default); it
       matters for older interpreters and Windows
-- [ ] Run once with `-X warn_default_encoding` to list any remaining calls
+- [x] Run once with `-X warn_default_encoding` to list any remaining calls.
+      Done 2026-10-26 on 3.15.1: `-X warn_default_encoding -m pytest -q -W error`
+      passed (215 passed, 1 skipped), so no EncodingWarning is raised by any
+      code the suite exercises. Re-run with colorlog 6.12.0 installed: 216 passed
 
 ### Lazy imports (PEP 810)
 - [ ] Confirm probes still fail eagerly. A `lazy import` defers `ImportError`
@@ -50,8 +53,11 @@
 ### Other verified items
 - [x] `argparse` `suggest_on_error` now defaults to True; confirmed 2026-10-26
       that no test compares `--help` output
-- [ ] Color is now on by default in more stdlib CLIs; set `NO_COLOR=1` in CI
-      log capture to keep logs free of escape codes
+- [x] Color is now on by default in more stdlib CLIs; set `NO_COLOR=1` in CI
+      log capture to keep logs free of escape codes. Done 2026-10-26:
+      `scripts/logger.py` honors `NO_COLOR` and emits no escapes when stdout is
+      not a terminal; the file log is always plain text
+      (`tests/test_logger_sinks.py`, verified on 3.15.1 with colorlog 6.12.0)
 - [ ] GC: 3.15 uses the generational GC (the incremental GC was reverted);
       re-baseline any memory numbers taken on 3.14.0-3.14.4
 - [x] `importlib.metadata.metadata()` now raises `MetadataNotFound` for a
