@@ -1,5 +1,5 @@
 # Readiness Matrix: Python 3.15.1
 
-> DRAFT: scaffolded 2026-10-26. Numbers below are placeholders until generate_report.py and sync_readiness.py have run.
+> Synchronized 2026-10-26 from the reconciled manifest (evidence v2, PROVISIONAL). See READINESS_RECONCILIATION_2026-10-26_v2.md.
 
-Production Readiness: 0%
+Production Readiness: 94%

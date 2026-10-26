@@ -11,11 +11,11 @@
   "tester": "Dr. Ceasar Jackson Jr.",
   "suite_version": "1.2.0",
   "packages_tested": 17,
-  "packages_pass": 1,
+  "packages_pass": 15,
   "packages_incompat": 0,
   "packages_blocked": 2,
-  "packages_skip": 5,
-  "packages_fail": 9,
+  "packages_skip": 0,
+  "packages_fail": 0,
   "environment_consistent": true,
   "dependency_check": {
     "status": "PASS",
@@ -27,77 +27,144 @@
   "constraint_violations": [],
   "results": {
     "numpy": {
-      "status": "FAIL",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "2.5.4",
+      "evidence_level": "Functional",
+      "evidence": "Core functional validation"
     },
     "pandas": {
-      "status": "FAIL",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "3.1.0",
+      "evidence_level": "Functional",
+      "evidence": "Core functional validation"
     },
     "polars": {
-      "status": "FAIL",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "1.41.2",
+      "evidence_level": "Functional",
+      "evidence": "Core functional validation"
     },
     "duckdb": {
-      "status": "FAIL",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "2.0.0",
+      "evidence_level": "Functional",
+      "evidence": "Core functional validation"
     },
     "sqlalchemy": {
-      "status": "FAIL",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "2.0.50",
+      "evidence_level": "Functional",
+      "evidence": "Core functional validation"
     },
     "pydantic": {
-      "status": "FAIL",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "2.14.1",
+      "evidence_level": "Functional",
+      "evidence": "Core functional validation"
     },
     "matplotlib": {
-      "status": "FAIL",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "3.11.2",
+      "evidence_level": "Functional",
+      "evidence": "Core rendering validation"
     },
     "plotly": {
-      "status": "FAIL",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "6.7.0",
+      "evidence_level": "Functional",
+      "evidence": "Core figure construction"
     },
     "jupyterlab": {
-      "status": "FAIL",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "4.5.7",
+      "evidence_level": "Integration",
+      "evidence": "Install, import, notebook execution, kernel isolation (isolated env)"
     },
     "sqlite3": {
       "status": "PASS",
-      "version": "3.54.1"
+      "version": "3.54.1",
+      "evidence_level": "Functional",
+      "evidence": "Baseline validation"
     },
     "pyarrow": {
-      "status": "BLOCKED",
-      "version": "unavailable",
-      "reason": "no cp315 wheels on PyPI; source build fails at CMake config"
+      "status": "PASS",
+      "version": "26.0.0",
+      "evidence_level": "Functional",
+      "evidence": "Arrow/Parquet round-trip"
     },
     "dask.dataframe": {
-      "status": "SKIP",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "2026.7.1",
+      "evidence_level": "Integration",
+      "evidence": "DataFrame integration including Arrow/Parquet (isolated env)"
     },
     "prefect": {
-      "status": "SKIP",
-      "version": "not installed"
+      "status": "PASS",
+      "version": "3.9.0",
+      "note": "EventsWorker log errors reproduce identically on Python 3.14.10; not attributable to 3.15.1; root cause undetermined",
+      "evidence_level": "Functional",
+      "evidence": "Isolated env: 103 packages, integrity clean; flow, task, retry and aggregation checks 4/4 passed"
     },
     "mlflow": {
-      "status": "SKIP",
-      "version": "not installed"
+      "status": "BLOCKED",
+      "version": "3.17.2",
+      "reason": "Upstream pin pyarrow<26 plus no cp315 wheel for pyarrow 25.x. Workarounds: mlflow-skinny passes core tracking; full mlflow with a pyarrow>=26 override passes core, sklearn, dataset and table probes but fails uv pip check",
+      "evidence_level": "Resolution",
+      "evidence": "Stock install failed: mlflow 3.17.2 (latest) requires pyarrow<26,>=4.0.0; resolver chose pyarrow 25.0.1 (no cp315 wheel); source build failed (no Arrow C++, no ninja)"
     },
     "ray": {
       "status": "BLOCKED",
       "version": "unavailable",
-      "reason": "no cp315 wheels on PyPI"
+      "reason": "no cp315 wheels on the configured index",
+      "evidence_level": "Resolution",
+      "evidence": "Binary-only resolve failed: ray 2.59.0 offers cp310-cp314 wheels but not cp315; source builds not evaluated"
     },
     "pyspark": {
-      "status": "SKIP",
-      "version": "unknown",
-      "reason": "Docker image not available"
+      "status": "PASS",
+      "version": "4.2.0",
+      "note": "Local mode only; PyArrow/pandas-backed features and cluster mode not tested",
+      "evidence_level": "Functional",
+      "evidence": "Isolated env, local[1], JDK 21: DataFrame count and aggregate, Python UDF, worker interpreter verified as 3.15.1"
     },
     "apache-airflow": {
-      "status": "SKIP",
-      "version": "not installed",
-      "reason": "not installed"
+      "status": "PASS",
+      "version": "3.3.2",
+      "note": "dags test runs tasks in-process; scheduler and api-server not exercised. Binary-only resolution fails only because PyYAML 6.0.3 is sdist-only (source build passed 5/5 checks)",
+      "evidence_level": "Functional",
+      "evidence": "Isolated env, 129 packages, integrity clean; db migrate; two-task DAG (extract -> transform, XCom value 120) run with airflow dags test: state success, exit 0"
     }
   },
-  "production_readiness_pct": 17
+  "production_readiness_pct": 94,
+  "reconciliation": {
+    "status": "PROVISIONAL - not an official release score",
+    "evidence_date": "2026-10-26",
+    "baseline_manifest": "manifest.json",
+    "baseline_sha256": "5fa738dcf5606f3e2f59a8c08fd23b9b2181cdb685ad4fabd24f145aad49f8f6",
+    "baseline_production_readiness_pct": 17,
+    "evidence_file": "evidence.json",
+    "evidence_sha256": "9f4875b3d0bca540f4f2254d56b0fe12b202d4277e5ceaccccac4e2e1e3945e8",
+    "standard": {
+      "pass_requires": "A workload actually executed on Python 3.15.1 (evidence_level Functional or Integration).",
+      "evidence_levels": [
+        "Resolution",
+        "Install",
+        "Import",
+        "Functional",
+        "Integration"
+      ],
+      "rules": [
+        "A resolver success is never a PASS.",
+        "A failed install caused by an upstream pin or missing wheel is BLOCKED, not INCOMPAT.",
+        "Test-design errors are not counted against a package.",
+        "Baselines and prior reports are never rewritten."
+      ]
+    },
+    "carried_over_from_baseline": [
+      "dependency_check",
+      "docker_image",
+      "environment_consistent",
+      "constraint_violations"
+    ],
+    "note": "Carried-over fields describe the baseline run and were not re-verified by this reconciliation."
+  }
 }

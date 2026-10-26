@@ -64,10 +64,11 @@
 
 ## 3. VERIFY before publishing
 
-- [ ] Prefect INCOMPAT reason (`typing.no_type_check_decorator` removed):
-      the changelog's **Removed > typing** section was not reachable when
-      this checklist was written. Confirm against
-      docs.python.org/3.15/whatsnew/3.15.html#removed and the changelog
+- [x] Prefect INCOMPAT reason (`typing.no_type_check_decorator` removed):
+      SUPERSEDED 2026-10-26. Prefect imports and runs flows on 3.15.1; the
+      removed-decorator claim does not hold. Remaining EventsWorker log errors
+      reproduce on 3.14.10, so they are not 3.15-specific. See
+      READINESS_RECONCILIATION_2026-10-26_v2.md
 - [ ] Any other Removed entries (ast, collections.abc, ctypes, datetime, glob,
       importlib, importlib.resources, pathlib, platform, sysconfig, threading,
       types, wave, zipimport) against packages in the tested stack
@@ -83,7 +84,8 @@
 - [ ] `tests/test_report_completeness.py`: add this directory to
       `EXTENDED_REPORTS` (still hardcoded)
 - [ ] `tests/test_readiness_consistency.py`: `REPORT_DIR` is still hardcoded
-      to `3.15.0b2`; point it at `3.15.1`
+      to `3.15.0` (not `3.15.0b2`). Repointing at `3.15.1` is BLOCKED until
+      `readiness_matrix.json` and the assessment PDF exist in `reports/3.15.1/`
 - [ ] `python -m pytest -q`
 
 ### Generation order and guards
