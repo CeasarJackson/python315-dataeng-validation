@@ -132,7 +132,7 @@ logs/*
 See `ROADMAP.md` for the full release plan.
 """
 
-(REPO / "RELEASE_NOTES_v1.0.0.md").write_text(release_notes)
+(REPO / "RELEASE_NOTES_v1.0.0.md").write_text(release_notes, encoding="utf-8")
 print(
     f"RELEASE_NOTES_v1.0.0.md  {(REPO / 'RELEASE_NOTES_v1.0.0.md').stat().st_size:,} bytes"
 )
@@ -265,7 +265,7 @@ Each per-library test suite (`*_tests/`) follows the same pattern:
 *Dr. Ceasar Jackson Jr. {D} Python 3.15 Data Engineering Validation Suite {D} June 2026*
 """
 
-(REPO / "PROJECT_STRUCTURE.md").write_text(project_structure)
+(REPO / "PROJECT_STRUCTURE.md").write_text(project_structure, encoding="utf-8")
 print(
     f"PROJECT_STRUCTURE.md     {(REPO / 'PROJECT_STRUCTURE.md').stat().st_size:,} bytes"
 )
@@ -273,7 +273,7 @@ print(
 
 # ── 3. Inject updated tree into PYTHON315_DATAENG_VALIDATION.md ──────────────
 md_path = REPO / "PYTHON315_DATAENG_VALIDATION.md"
-text = md_path.read_text()
+text = md_path.read_text(encoding="utf-8")
 
 new_tree = f"""\
 ```
@@ -353,7 +353,7 @@ if old_start in text:
     start_idx = text.index(old_start)
     end_idx = text.index("```", start_idx + len(old_start)) + 3
     text = text[:start_idx] + new_tree + text[end_idx:]
-    md_path.write_text(text)
+    md_path.write_text(text, encoding="utf-8")
     print(
         f"PYTHON315_DATAENG_VALIDATION.md  {md_path.stat().st_size:,} bytes  (tree updated)"
     )
@@ -363,7 +363,7 @@ else:
 # Verify tree lines
 tree_count = sum(
     1
-    for ln in md_path.read_text().splitlines()
+    for ln in md_path.read_text(encoding="utf-8").splitlines()
     if any(c in ln for c in ["\u251c", "\u2514", "\u2502"])
 )
 print(f"  Tree lines: {tree_count}")

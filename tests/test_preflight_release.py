@@ -133,7 +133,7 @@ def test_existing_report_is_protected(tmp_path):
     """Verify populated release-report directories cannot be overwritten."""
     release_dir = tmp_path / "3.15.0rc2"
     release_dir.mkdir()
-    (release_dir / "manifest.json").write_text("{}")
+    (release_dir / "manifest.json").write_text("{}", encoding="utf-8")
 
     result = preflight.check_report_directory(
         release_dir,
@@ -147,7 +147,7 @@ def test_existing_report_can_be_explicitly_allowed(tmp_path):
     """Verify historical report inspection can be explicitly authorized."""
     release_dir = tmp_path / "3.15.0rc1"
     release_dir.mkdir()
-    (release_dir / "manifest.json").write_text("{}")
+    (release_dir / "manifest.json").write_text("{}", encoding="utf-8")
 
     result = preflight.check_report_directory(
         release_dir,

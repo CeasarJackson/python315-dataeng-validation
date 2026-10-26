@@ -57,7 +57,7 @@ def make_purpose(path: Path) -> str:
 
 
 def process(path: Path, check_only: bool) -> bool:
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
 
     required = ("Author:", "Purpose:", "Validation:")
 
@@ -73,7 +73,7 @@ def process(path: Path, check_only: bool) -> bool:
         print(f"MISSING HEADER: {path}")
         return True
 
-    path.write_text(header + text)
+    path.write_text(header + text, encoding="utf-8")
     print(f"UPDATED: {path}")
     return True
 

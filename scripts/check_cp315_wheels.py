@@ -341,7 +341,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)
-        args.json.write_text(json.dumps([asdict(r) for r in results], indent=2))
+        args.json.write_text(
+            json.dumps([asdict(r) for r in results], indent=2), encoding="utf-8"
+        )
         log.info("Structured results written to %s", args.json)
 
     return 1 if blocked else 0

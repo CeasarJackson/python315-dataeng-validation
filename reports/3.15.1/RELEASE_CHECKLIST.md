@@ -18,14 +18,14 @@
 ## 2. Interpreter changes that touch this suite
 
 ### UTF-8 is now the default encoding (PEP 686)
-- [ ] Add `encoding="utf-8"` to every `read_text()` / `write_text()` / `open()`
-      call. AST audit 2026-10-26: `generate_report.py` is now clean and
-      `ingest_evidence.py` / `test_ingest_evidence.py` were fixed; 39 sites
-      remain in `scripts/` (benchmark_pandas_polars, check_cp315_wheels,
-      fix_repository_headers, compare_reports), `tools/` (build_reports_system,
-      fix_repo_docs, update_docs) and `tests/` (generate_report_provenance,
-      preflight_release). Harmless on 3.15 (UTF-8 default); matters for older
-      interpreters and Windows
+- [x] Add `encoding="utf-8"` to every `read_text()` / `write_text()` / `open()`
+      call. Done 2026-10-26: an AST scan of `scripts/`, `tools/` and `tests/`
+      found 39 text-mode sites without it in 9 files (scripts: benchmark_pandas_polars,
+      check_cp315_wheels, fix_repository_headers, compare_reports; tools:
+      build_reports_system, fix_repo_docs, update_docs; tests:
+      generate_report_provenance, preflight_release); all now pass it, and a
+      re-scan finds 0. Behavior is unchanged on 3.15 (UTF-8 is the default); it
+      matters for older interpreters and Windows
 - [ ] Run once with `-X warn_default_encoding` to list any remaining calls
 
 ### Lazy imports (PEP 810)

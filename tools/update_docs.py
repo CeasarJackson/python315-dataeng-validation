@@ -131,7 +131,7 @@ Packaging exclusions:
 *Dr. Ceasar Jackson Jr. \u2014 Python 3.15 Data Engineering Validation Suite*
 """
 
-(REPO / "STATUS.md").write_text(status)
+(REPO / "STATUS.md").write_text(status, encoding="utf-8")
 print(f"STATUS.md  {(REPO / 'STATUS.md').stat().st_size:,} bytes")
 
 
@@ -241,7 +241,7 @@ python scripts/compare_reports.py 3.15.0b1 3.15.0rc2 --format markdown
 *Dr. Ceasar Jackson Jr. \u2014 Python 3.15 Data Engineering Validation Suite*
 """
 
-(REPO / "reports/README.md").write_text(reports_readme)
+(REPO / "reports/README.md").write_text(reports_readme, encoding="utf-8")
 print(f"reports/README.md  {(REPO / 'reports/README.md').stat().st_size:,} bytes")
 
 # NOTE: no GA placeholder dir is created; reports/3.15.0 is made by scaffold_release.py

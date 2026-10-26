@@ -255,7 +255,7 @@ def main() -> int:
     # Write CSV
     # ------------------------------------------------------------------
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
-    with OUTPUT_CSV.open("w", newline="") as f:
+    with OUTPUT_CSV.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f, fieldnames=["size", "operation", "pandas_s", "polars_s", "speedup_x"]
         )

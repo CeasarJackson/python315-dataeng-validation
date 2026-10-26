@@ -43,7 +43,7 @@ def load_manifest(release):
             f"Expected: {path}\n"
             f"Run: python scripts/generate_report.py --release {release}"
         )
-    return json.loads(path.read_text())
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def compare(old_release, new_release, fmt="terminal"):
