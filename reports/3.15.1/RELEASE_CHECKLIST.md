@@ -32,11 +32,16 @@
       code the suite exercises. Re-run with colorlog 6.12.0 installed: 216 passed
 
 ### Lazy imports (PEP 810)
-- [ ] Confirm probes still fail eagerly. A `lazy import` defers `ImportError`
+- [x] Confirm probes still fail eagerly. A `lazy import` defers `ImportError`
       to first use, so `probe_package()` and the `find_spec` guards must not
       be run under `PYTHON_LAZY_IMPORTS=all`
-- [ ] Add one test that runs the probes with `-X lazy_imports=all` and asserts
+      Done 2026-10-26 on 3.15.1: probes run under `-X lazy_imports=all` give
+      the same results as `normal`; a missing package still reports FAIL
+- [x] Add one test that runs the probes with `-X lazy_imports=all` and asserts
       the result matches normal mode (or documents the difference)
+      Done 2026-10-26: `tests/test_lazy_imports_probes.py` (2 passed on 3.15.1;
+      229 passed in the full suite with `-X warn_default_encoding -W error`).
+      Note: valid values are `all` or `normal` (there is no `none`)
 
 ### frozendict is not a dict subclass (PEP 814)
 - [x] Grep for `isinstance(x, dict)` (audited 2026-10-26: 5 sites, all on
