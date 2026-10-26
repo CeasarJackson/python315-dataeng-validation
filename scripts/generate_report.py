@@ -256,6 +256,55 @@ def check_declared_support(results):
     return check
 
 
+def _probe_prefect():
+    """Classify Prefect at import level and return (result, console detail).
+
+    This only imports ``flow`` and decorates a function; it never runs a flow, so a
+    PASS here is import-level evidence, not Functional. Prefect's server code (where
+    the 3.7.x beartype failure surfaced) loads later than ``import prefect``, so
+    Functional evidence comes from the isolated-environment run
+    (``validate_extended.py``) and ``reports/<release>/evidence.json``.
+
+    Only a missing ``prefect`` module counts as "not installed". Any other import
+    failure means Prefect is present but broken, which is an incompatibility and
+    must not be hidden as a skip.
+    """
+    try:
+        from prefect import flow
+
+        @flow
+        def _probe_flow():
+            return "ok"
+
+        version = get_version("prefect")
+        return {"status": "PASS", "version": version}, version
+    except ImportError as e:
+        if "no_type_check_decorator" in str(e):
+            return (
+                {
+                    "status": "INCOMPAT",
+                    "version": get_version("prefect"),
+                    "reason": "typing.no_type_check_decorator removed in Python 3.15",
+                },
+                "stdlib change",
+            )
+        if isinstance(e, ModuleNotFoundError) and e.name == "prefect":
+            return {"status": "SKIP", "version": "not installed"}, "not installed"
+        return (
+            {
+                "status": "INCOMPAT",
+                "version": get_version("prefect"),
+                "reason": f"prefect import failed: {e}",
+            },
+            f"import failed: {e}",
+        )
+    except Exception as e:  # noqa: BLE001
+        return (
+            {"status": "INCOMPAT", "version": get_version("prefect"), "reason": str(e)},
+            str(e),
+        )
+
+
 def collect_results(docker_image="pyarrow-dataeng:py314"):
     """Run quick import probes for all tracked packages."""
     print("  Probing core stack...")
@@ -320,36 +369,9 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
             results["dask.dataframe"] = {"status": "SKIP", "version": "not installed"}
             print("    dask.dataframe: SKIP")
 
-    # prefect — real import test (version heuristic was unreliable)
-    try:
-        from prefect import flow
-
-        prefect_ver = get_version("prefect")
-
-        @flow
-        def _probe_flow():
-            return "ok"
-
-        results["prefect"] = {"status": "PASS", "version": prefect_ver}
-        print(f"    prefect: PASS ({prefect_ver})")
-    except ImportError as e:
-        if "no_type_check_decorator" in str(e):
-            results["prefect"] = {
-                "status": "INCOMPAT",
-                "version": get_version("prefect"),
-                "reason": "typing.no_type_check_decorator removed in Python 3.15",
-            }
-            print("    prefect: INCOMPAT (stdlib change)")
-        else:
-            results["prefect"] = {"status": "SKIP", "version": "not installed"}
-            print("    prefect: SKIP (not installed)")
-    except Exception as e:  # noqa: BLE001
-        results["prefect"] = {
-            "status": "INCOMPAT",
-            "version": get_version("prefect"),
-            "reason": str(e),
-        }
-        print(f"    prefect: INCOMPAT ({e})")
+    # prefect: import-level probe (see _probe_prefect for what it does not prove)
+    results["prefect"], prefect_detail = _probe_prefect()
+    print(f"    prefect: {results['prefect']['status']} ({prefect_detail})")
     # mlflow
     try:
         import mlflow  # noqa: F401
