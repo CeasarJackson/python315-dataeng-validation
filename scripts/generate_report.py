@@ -81,6 +81,11 @@ def get_version(package):
         return importlib.metadata.version(package)
     except importlib.metadata.PackageNotFoundError:
         return "not installed"
+    except FileNotFoundError:
+        # Python 3.15 raises importlib.metadata.MetadataNotFound, which is a
+        # FileNotFoundError and not a PackageNotFoundError, when a distribution
+        # directory exists but has no metadata file (a broken install).
+        return "metadata missing"
 
 
 def run_validation_script(script):

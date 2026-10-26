@@ -46,7 +46,8 @@ for package in PACKAGES:
         __import__(package)
         try:
             pkg_version = version(package.replace("_", "-"))
-        except PackageNotFoundError:
+        except (PackageNotFoundError, FileNotFoundError):
+            # FileNotFoundError covers Python 3.15's MetadataNotFound.
             pkg_version = "installed"
 
         print(f"{GREEN}✅ {package:<20} {pkg_version}{RESET}")

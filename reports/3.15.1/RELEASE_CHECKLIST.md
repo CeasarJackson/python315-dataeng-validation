@@ -54,10 +54,12 @@
       log capture to keep logs free of escape codes
 - [ ] GC: 3.15 uses the generational GC (the incremental GC was reverted);
       re-baseline any memory numbers taken on 3.14.0-3.14.4
-- [ ] `importlib.metadata.metadata()` now raises `MetadataNotFound` for a
-      metadata directory with no metadata file; `get_version()` in
-      `generate_report.py` only catches `PackageNotFoundError`. OPEN: confirm on
-      3.15.1 whether `MetadataNotFound` is a subclass of it (if not, catch both)
+- [x] `importlib.metadata.metadata()` now raises `MetadataNotFound` for a
+      metadata directory with no metadata file. Confirmed on 3.15.1 (2026-10-26):
+      `MetadataNotFound` subclasses `FileNotFoundError`, NOT `PackageNotFoundError`,
+      so `get_version()` would have crashed on a broken install. Fixed in
+      `generate_report.py` (reports "metadata missing") and
+      `validate_dataeng_stack.py`; tests in `tests/test_get_version_metadata.py`
 - [x] `.pth` `import` lines are silently deprecated in favour of `.start`
       files (PEP 829); checked 2026-10-26: `.venv3151` contains no `.pth` files
 - [ ] Frame pointers are on by default (PEP 831); expect small build/perf
