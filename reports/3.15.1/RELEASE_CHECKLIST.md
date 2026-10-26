@@ -78,11 +78,11 @@
 ## 4. Repository housekeeping
 
 ### Tests
-- [ ] `tests/test_release_progression.py` and
+- [x] `tests/test_release_progression.py` and
       `tests/test_release_history_integrity.py` auto-discover release
-      directories from disk. No edit needed; just confirm `3.15.1` is picked up
-- [ ] `tests/test_report_completeness.py`: add this directory to
-      `EXTENDED_REPORTS` (still hardcoded)
+      directories from disk. Confirmed 2026-10-26: `3.15.1` is picked up
+- [x] `tests/test_report_completeness.py`: `3.15.1` added to
+      `EXTENDED_REPORTS` (still a hardcoded list; add future releases by hand)
 - [x] `tests/test_readiness_consistency.py`: `REPORT_DIR` now points at
       `3.15.1` (done 2026-10-26, commit 0059a64). `readiness_matrix.json` was
       derived from `manifest.json` and the PDF built with
