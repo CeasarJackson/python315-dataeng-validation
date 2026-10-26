@@ -156,9 +156,11 @@ def checklist_text(release: str, previous: str | None) -> str:
       log capture to keep logs free of escape codes
 - [ ] GC: 3.15 uses the generational GC (the incremental GC was reverted);
       re-baseline any memory numbers taken on 3.14.0-3.14.4
-- [ ] `importlib.metadata.metadata()` now raises `MetadataNotFound` for a
-      metadata directory with no metadata file; `get_version()` in
-      `generate_report.py` only catches `PackageNotFoundError`
+- [ ] `importlib.metadata.metadata()` now raises `MetadataNotFound` (a
+      `FileNotFoundError`, not a `PackageNotFoundError`) for a metadata
+      directory with no metadata file; confirm `get_version()` in
+      `generate_report.py` and `validate_dataeng_stack.py` still catch it
+      (covered by `tests/test_get_version_metadata.py`)
 - [ ] `.pth` `import` lines are silently deprecated in favour of `.start`
       files (PEP 829); note any package in the venv relying on them
 - [ ] Frame pointers are on by default (PEP 831); expect small build/perf
