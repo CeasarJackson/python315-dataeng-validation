@@ -72,8 +72,9 @@
 - [ ] Any other Removed entries (ast, collections.abc, ctypes, datetime, glob,
       importlib, importlib.resources, pathlib, platform, sysconfig, threading,
       types, wave, zipimport) against packages in the tested stack
-- [ ] JIT speedup claims: measure with `benchmark_pandas_polars.py`; do not
-      quote a figure from a course or blog
+- [x] JIT speedup claims: none made. Checked 2026-10-26: no JIT or speedup
+      figure appears in the 3.15.1 reports or the README. Measure with
+      `benchmark_pandas_polars.py` before adding one
 
 ## 4. Repository housekeeping
 
@@ -87,7 +88,7 @@
       `3.15.1` (done 2026-10-26, commit 0059a64). `readiness_matrix.json` was
       derived from `manifest.json` and the PDF built with
       `build_assessment_pdf.py --release 3.15.1 --previous 3.15.0`
-- [ ] `python -m pytest -q`
+- [x] `python -m pytest -q` (177 passed on Python 3.15.1, commit a1a2fea, 2026-10-26)
 
 ### Generation order and guards
 - [ ] `generate_report.py` refuses to label a report with a release the
@@ -95,12 +96,13 @@
       dependencies (`colorlog` included) before generating
 - [ ] Run `tools/sync_readiness.py` after report generation so the manifest
       and Markdown readiness markers are synchronized
-- [ ] Confirm `generate_report.py` and `tools/sync_readiness.py` still use the
-      same readiness formula: SKIP excluded from the denominator, BLOCKED
-      weighted 0.50, INCOMPAT weighted 0.25, and readiness capped at 100%
+- [x] `generate_report.py` and `tools/sync_readiness.py` use the same readiness
+      formula (SKIP excluded from the denominator, BLOCKED 0.50, INCOMPAT 0.25,
+      capped at 100%). Verified 2026-10-26 by running both real implementations
+      over 1,023 status combinations: 0 mismatches
 
 ### Cleanup
-- [ ] `reports/3.15.0ga/` holds only `.gitkeep`; use canonical
-      `reports/3.15.1` and remove the empty directory
+- [x] `reports/3.15.0ga/`: directory no longer exists (checked 2026-10-26);
+      canonical directory is `reports/3.15.1`
 - [ ] `bash scripts/release.sh <suite-version>` (the suite version, not the
       Python version)
