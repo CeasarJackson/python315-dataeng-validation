@@ -167,8 +167,10 @@ compared without hand editing:
   `tests/test_ingest_evidence.py`, which pins the readiness formula to
   `tools/sync_readiness.py` and the adopted 94%.
 
-The baseline `manifest.json` is never modified, and the official manifest
-still reports 17%.
+The original 17% manifest is preserved byte-for-byte as `manifest.baseline.json`
+(SHA-256 below; originally committed as `manifest.json` in 2c8d603). The ingest
+script reads it by default and never writes it. After review, `manifest.json`
+was promoted to the reconciled data and now reports 94% (PROVISIONAL).
 
 ## Revision Note
 
@@ -178,12 +180,15 @@ standard. Score 94% is unchanged (it was 94% under both treatments).
 A later revision corrected the Prefect/MLflow report hash below (that report
 gained a reading guide), added the repository-tests and generator findings, and
 fixed the generation timestamp label. A further revision added the
-Machine-Readable Form section.
+Machine-Readable Form section. A final revision, made when the official
+manifest was promoted to 94%, moved the ingest baseline to the frozen
+`manifest.baseline.json` (promotion had silently changed the old baseline
+input and broke a test) and added a hash-pin test for it.
 
 ## Evidence Integrity (SHA-256 at generation time)
 
-- manifest.json: 5fa738dcf5606f3e2f59a8c08fd23b9b2181cdb685ad4fabd24f145aad49f8f6
-- compatibility_report.md: 472ff72be51a6e12dfa5a259788b17650661c8e4521ebee90af39578de682f2f
+- manifest.baseline.json (original manifest.json, commit 2c8d603): 5fa738dcf5606f3e2f59a8c08fd23b9b2181cdb685ad4fabd24f145aad49f8f6
+- compatibility_report.md (as of 2c8d603; a superseded notice was added later): 472ff72be51a6e12dfa5a259788b17650661c8e4521ebee90af39578de682f2f
 - CORE_STACK_VALIDATION_2026-10-26.md: b807bad41ebb96c0736147c4d98b6a68e37bd52ddcf64c4ec8ef1d58a3d8bffe
 - EXTENDED_STACK_VALIDATION_2026-10-26.md: 279099badaa2ad10d7186affe1b28a6750dd9b49fcf56f1e7e74afd82d559a03
 - READINESS_RECONCILIATION_2026-10-26.md: 48aa4e576d3027834257b5402277ffebf68880901ad13bc0dd27f067cc041963

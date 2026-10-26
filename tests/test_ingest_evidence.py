@@ -36,6 +36,7 @@ from scripts import ingest_evidence as ie
 from tools.sync_readiness import calculate_readiness as sync_calculate_readiness
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+BASELINE_NAME = ie.DEFAULT_BASELINE_NAME
 RELEASE = "3.15.1"
 REAL_RELEASE_DIR = PROJECT_ROOT / "reports" / RELEASE
 
@@ -88,7 +89,9 @@ def workdir(tmp_path: Path) -> Path:
     """A reports/<release> tree holding copies of the real baseline and evidence."""
     release_dir = tmp_path / "reports" / RELEASE
     release_dir.mkdir(parents=True)
-    shutil.copy(REAL_RELEASE_DIR / "manifest.json", release_dir / "manifest.json")
+    shutil.copy(REAL_RELEASE_DIR / BASELINE_NAME, release_dir / BASELINE_NAME)
+    # Stand-in for the official manifest.json: it must never be modified.
+    shutil.copy(REAL_RELEASE_DIR / BASELINE_NAME, release_dir / "manifest.json")
     shutil.copy(REAL_RELEASE_DIR / "evidence.json", release_dir / "evidence.json")
     return tmp_path / "reports"
 
@@ -199,7 +202,7 @@ def test_readiness_parity_with_sync_readiness(counts: dict[str, int]) -> None:
 
 
 def test_real_evidence_is_valid_and_scores_94() -> None:
-    baseline = ie.load_json(REAL_RELEASE_DIR / "manifest.json", "baseline")
+    baseline = ie.load_json(REAL_RELEASE_DIR / BASELINE_NAME, "baseline")
     evidence = ie.load_json(REAL_RELEASE_DIR / "evidence.json", "evidence")
     assert ie.validate_evidence(evidence, baseline) == []
 
@@ -221,7 +224,7 @@ def test_real_evidence_is_valid_and_scores_94() -> None:
 
 
 def test_build_manifest_does_not_mutate_baseline() -> None:
-    baseline = ie.load_json(REAL_RELEASE_DIR / "manifest.json", "baseline")
+    baseline = ie.load_json(REAL_RELEASE_DIR / BASELINE_NAME, "baseline")
     before = copy.deepcopy(baseline)
     evidence = ie.load_json(REAL_RELEASE_DIR / "evidence.json", "evidence")
     ie.build_manifest(
@@ -336,7 +339,7 @@ def test_invalid_evidence_exits_nonzero_and_writes_nothing(workdir: Path) -> Non
 
 def test_evidence_covers_every_baseline_package() -> None:
     """Drift guard: a package added to the baseline must be added to evidence."""
-    baseline = ie.load_json(REAL_RELEASE_DIR / "manifest.json", "baseline")
+    baseline = ie.load_json(REAL_RELEASE_DIR / BASELINE_NAME, "baseline")
     evidence = ie.load_json(REAL_RELEASE_DIR / "evidence.json", "evidence")
     assert set(baseline["results"]) <= set(evidence["packages"])
 
@@ -348,3 +351,16 @@ def test_classify_change() -> None:
     assert ie.classify_change("SKIP", "PASS") == "coverage"
     assert ie.classify_change("SKIP", "BLOCKED") == "coverage"
     assert ie.classify_change("PASS", "PASS") == "unchanged"
+
+
+def test_frozen_baseline_is_the_original_17_percent_manifest() -> None:
+    """The baseline must stay byte-identical to the original run's manifest.
+
+    manifest.json may be promoted to the reconciled data; this file may not
+    change. Original: commit 2c8d603, readiness 17%.
+    """
+    path = REAL_RELEASE_DIR / BASELINE_NAME
+    assert sha(path) == (
+        "5fa738dcf5606f3e2f59a8c08fd23b9b2181cdb685ad4fabd24f145aad49f8f6"
+    )
+    assert ie.load_json(path, "baseline")["production_readiness_pct"] == 17

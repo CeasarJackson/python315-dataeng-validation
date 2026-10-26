@@ -97,6 +97,10 @@ CARRIED_OVER_FIELDS = (
 
 DEFAULT_MANIFEST_NAME = "manifest.reconciled.json"
 DEFAULT_COMPARISON_NAME = "COMPARISON_baseline_vs_reconciled.md"
+# Frozen, byte-identical copy of the original run's manifest. The official
+# manifest.json may later be promoted to the reconciled data, so the baseline
+# must live under a name that is never overwritten.
+DEFAULT_BASELINE_NAME = "manifest.baseline.json"
 
 
 class EvidenceError(ValueError):
@@ -517,7 +521,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--baseline",
         type=Path,
-        help="Baseline manifest (default: <release>/manifest.json)",
+        help=f"Baseline manifest (default: <release>/{DEFAULT_BASELINE_NAME})",
     )
     parser.add_argument(
         "--out-manifest", type=Path, help=f"Default: <release>/{DEFAULT_MANIFEST_NAME}"
@@ -546,7 +550,7 @@ def _configure_logging() -> None:
 
 def run(args: argparse.Namespace) -> int:
     release_dir = args.reports_dir / args.release
-    baseline_path = args.baseline or release_dir / "manifest.json"
+    baseline_path = args.baseline or release_dir / DEFAULT_BASELINE_NAME
     evidence_path = args.evidence or release_dir / "evidence.json"
     manifest_out = args.out_manifest or release_dir / DEFAULT_MANIFEST_NAME
     comparison_out = args.out_comparison or release_dir / DEFAULT_COMPARISON_NAME

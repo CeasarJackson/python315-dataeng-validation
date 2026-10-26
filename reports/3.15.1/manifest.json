@@ -138,7 +138,7 @@
   "reconciliation": {
     "status": "PROVISIONAL - not an official release score",
     "evidence_date": "2026-10-26",
-    "baseline_manifest": "manifest.json",
+    "baseline_manifest": "manifest.baseline.json",
     "baseline_sha256": "5fa738dcf5606f3e2f59a8c08fd23b9b2181cdb685ad4fabd24f145aad49f8f6",
     "baseline_production_readiness_pct": 17,
     "evidence_file": "evidence.json",

@@ -2,7 +2,7 @@
 
 **Status:** PROVISIONAL - reference comparison, not an official release score
 **Evidence date:** 2026-10-26
-**Baseline:** `manifest.json` (unchanged)
+**Baseline:** `manifest.baseline.json` (unchanged)
 **Reconciled:** `manifest.reconciled.json`
 
 ## Readiness
@@ -58,5 +58,5 @@ A workload actually executed on Python 3.15.1 (evidence_level Functional or Inte
 
 ## Integrity
 
-- Baseline `manifest.json` SHA-256: `5fa738dcf5606f3e2f59a8c08fd23b9b2181cdb685ad4fabd24f145aad49f8f6`
+- Baseline `manifest.baseline.json` SHA-256: `5fa738dcf5606f3e2f59a8c08fd23b9b2181cdb685ad4fabd24f145aad49f8f6`
 - Evidence `evidence.json` SHA-256: `9f4875b3d0bca540f4f2254d56b0fe12b202d4277e5ceaccccac4e2e1e3945e8`
