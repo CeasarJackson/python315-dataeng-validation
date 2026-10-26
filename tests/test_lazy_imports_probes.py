@@ -69,6 +69,7 @@ def run_probes(mode: str) -> dict:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
         timeout=60,
     )
@@ -78,7 +79,7 @@ def run_probes(mode: str) -> dict:
 
 @pytest.mark.skipif(sys.version_info < (3, 15), reason="lazy imports are new in 3.15")
 def test_probes_are_identical_with_lazy_imports_forced_on() -> None:
-    normal = run_probes("none")
+    normal = run_probes("normal")
     forced = run_probes("all")
     assert forced == normal
 
