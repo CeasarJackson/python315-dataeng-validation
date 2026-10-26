@@ -98,6 +98,7 @@ Current Readiness Assessment:
 
 - Automated Tests: 105/105 PASS
 - Production Readiness: 92% (91% excluding the Docker-sourced PySpark result)
+- Latest: Python 3.15.1 validation (unreleased, PROVISIONAL): 94% readiness, 15 PASS and 2 BLOCKED (MLflow, Ray; both upstream), 0 FAIL; evidence and reproducible ingestion in `reports/3.15.1/`.
 - Current Release: v1.10.0
 - Validation Frameworks: 9
 - Repository Status: Fully Validated
@@ -331,6 +332,8 @@ logs/              Validation and benchmark logs
 ## Executive Assessment
 
 Current readiness stands at 92% on Python 3.15.0 GA with 105/105 automated tests passing.
+
+Latest: Python 3.15.1 validation (unreleased, PROVISIONAL): 94% readiness, 15 PASS and 2 BLOCKED (MLflow, Ray; both upstream), 0 FAIL; evidence and reproducible ingestion in `reports/3.15.1/`. The 92% figure above describes the shipped v1.10.0 baseline.
 
 All validation suites, report integrity checks, manifest validation checks, release history verification, repository standards validation, and readiness synchronization tests are passing successfully (105/105 on Python 3.15.0).
 

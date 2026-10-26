@@ -19,8 +19,13 @@
 
 ### UTF-8 is now the default encoding (PEP 686)
 - [ ] Add `encoding="utf-8"` to every `read_text()` / `write_text()` / `open()`
-      call. Known gaps: `scripts/generate_report.py` (`write_text`),
-      `scripts/compare_reports.py` (`read_text`), `scripts/fix_repository_headers.py`
+      call. AST audit 2026-10-26: `generate_report.py` is now clean and
+      `ingest_evidence.py` / `test_ingest_evidence.py` were fixed; 39 sites
+      remain in `scripts/` (benchmark_pandas_polars, check_cp315_wheels,
+      fix_repository_headers, compare_reports), `tools/` (build_reports_system,
+      fix_repo_docs, update_docs) and `tests/` (generate_report_provenance,
+      preflight_release). Harmless on 3.15 (UTF-8 default); matters for older
+      interpreters and Windows
 - [ ] Run once with `-X warn_default_encoding` to list any remaining calls
 
 ### Lazy imports (PEP 810)
@@ -31,28 +36,30 @@
       the result matches normal mode (or documents the difference)
 
 ### frozendict is not a dict subclass (PEP 814)
-- [ ] Grep for `isinstance(x, dict)`; use `collections.abc.Mapping` where a
+- [x] Grep for `isinstance(x, dict)` (audited 2026-10-26: 5 sites, all on
+      `json.loads` output, always a plain dict; no change needed); use `collections.abc.Mapping` where a
       frozen mapping could legitimately arrive
 - [ ] Decide whether manifest `results` should load with
       `object_pairs_hook=frozendict` (json now accepts it)
 
 ### Profiling package (PEP 799)
 - [ ] Add a Tachyon (`profiling.sampling`) run to the benchmark scripts
-- [ ] `profile` module is deprecated, removal in 3.17; confirm the suite does
-      not import it
+- [x] `profile` module is deprecated, removal in 3.17; confirmed 2026-10-26
+      that no script, tool or test imports it
 
 ### Other verified items
-- [ ] `argparse` `suggest_on_error` now defaults to True; re-check `--help`
-      snapshots if any test compares CLI output
+- [x] `argparse` `suggest_on_error` now defaults to True; confirmed 2026-10-26
+      that no test compares `--help` output
 - [ ] Color is now on by default in more stdlib CLIs; set `NO_COLOR=1` in CI
       log capture to keep logs free of escape codes
 - [ ] GC: 3.15 uses the generational GC (the incremental GC was reverted);
       re-baseline any memory numbers taken on 3.14.0-3.14.4
 - [ ] `importlib.metadata.metadata()` now raises `MetadataNotFound` for a
       metadata directory with no metadata file; `get_version()` in
-      `generate_report.py` only catches `PackageNotFoundError`
-- [ ] `.pth` `import` lines are silently deprecated in favour of `.start`
-      files (PEP 829); note any package in the venv relying on them
+      `generate_report.py` only catches `PackageNotFoundError`. OPEN: confirm on
+      3.15.1 whether `MetadataNotFound` is a subclass of it (if not, catch both)
+- [x] `.pth` `import` lines are silently deprecated in favour of `.start`
+      files (PEP 829); checked 2026-10-26: `.venv3151` contains no `.pth` files
 - [ ] Frame pointers are on by default (PEP 831); expect small build/perf
       differences versus rc builds if they were compiled differently
 

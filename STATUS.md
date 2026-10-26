@@ -3,6 +3,7 @@
 **Version:** 1.10.0
 **Status:** ACTIVE — Enterprise Validation & Release Platform Operational
 **Production Readiness:** 92% (3.15.0 manifest; 91% if the Docker-sourced PySpark result is not counted)
+**Latest Validation (unreleased):** Python 3.15.1, PROVISIONAL: 94% readiness, 15 PASS and 2 BLOCKED (MLflow, Ray; both upstream), 0 FAIL; evidence and reproducible ingestion in `reports/3.15.1/`.
 **Last Updated:** October 2026
 **Current Python Version:** 3.15.0 (GA)
 **Overall Validation Status:** 105/105 Automated Tests Passing

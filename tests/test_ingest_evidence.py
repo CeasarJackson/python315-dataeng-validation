@@ -244,15 +244,21 @@ def test_run_writes_outputs_and_leaves_baseline_untouched(workdir: Path) -> None
 
     assert run_cli(workdir) == 0
 
-    manifest = json.loads((release_dir / ie.DEFAULT_MANIFEST_NAME).read_text())
+    manifest = json.loads(
+        (release_dir / ie.DEFAULT_MANIFEST_NAME).read_text(encoding="utf-8")
+    )
     assert manifest["production_readiness_pct"] == 94
-    assert (release_dir / ie.DEFAULT_COMPARISON_NAME).read_text().strip()
+    assert (
+        (release_dir / ie.DEFAULT_COMPARISON_NAME).read_text(encoding="utf-8").strip()
+    )
     assert sha(release_dir / "manifest.json") == baseline_hash
 
 
 def test_reconciled_manifest_satisfies_schema_and_totals(workdir: Path) -> None:
     assert run_cli(workdir) == 0
-    manifest = json.loads((workdir / RELEASE / ie.DEFAULT_MANIFEST_NAME).read_text())
+    manifest = json.loads(
+        (workdir / RELEASE / ie.DEFAULT_MANIFEST_NAME).read_text(encoding="utf-8")
+    )
 
     required = {
         "packages_tested",
@@ -329,9 +335,9 @@ def test_refuses_to_overwrite_baseline_or_any_manifest_json(workdir: Path) -> No
 
 def test_invalid_evidence_exits_nonzero_and_writes_nothing(workdir: Path) -> None:
     release_dir = workdir / RELEASE
-    evidence = json.loads((release_dir / "evidence.json").read_text())
+    evidence = json.loads((release_dir / "evidence.json").read_text(encoding="utf-8"))
     evidence["packages"]["numpy"]["evidence_level"] = "Import"
-    (release_dir / "evidence.json").write_text(json.dumps(evidence))
+    (release_dir / "evidence.json").write_text(json.dumps(evidence), encoding="utf-8")
 
     assert run_cli(workdir) == 1
     assert not (release_dir / ie.DEFAULT_MANIFEST_NAME).exists()

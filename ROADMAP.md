@@ -13,7 +13,7 @@
 - All INCOMPAT/SKIP reclassified correctly
 - Final pre-GA baseline established
 - PASS=10  FAIL=0  INCOMPAT=2  BLOCKED=2  SKIP=3 (17 packages; manifest 2026-09-05)
-- Readiness Progression: 80% (b1) → 90% (b2, suspect baseline) → 83% (b4) → 83% (rc1) → 82% (rc2) → 92% (3.15.0 GA)
+- Readiness Progression: 80% (b1) → 90% (b2, suspect baseline) → 83% (b4) → 83% (rc1) → 82% (rc2) → 92% (3.15.0 GA) → 94% (3.15.1, provisional, unreleased)
 
 ## v1.9.1 ✔ Complete
 
