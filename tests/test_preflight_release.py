@@ -67,6 +67,27 @@ def test_release_format_rejects_wrong_minor():
     assert result.status == "FAIL"
 
 
+
+def test_release_format_accepts_patch_release():
+    """Verify Python 3.15 patch releases are accepted."""
+    for release in ("3.15.1", "3.15.2", "3.15.10"):
+        assert preflight.check_release_format(release).status == "PASS"
+
+
+def test_release_format_rejects_malformed_versions():
+    """Reject malformed or unsupported Python release identifiers."""
+    for release in (
+        "3.14.7",
+        "3.16.0",
+        "3.15",
+        "3.15.1.1",
+        "v3.15.1",
+        "3.15.1foo",
+        "",
+    ):
+        assert preflight.check_release_format(release).status == "FAIL"
+
+
 def test_runtime_match_requires_exact_version():
     """Verify an RC2 request fails when the runtime is only RC1."""
     result = preflight.check_runtime_match(
@@ -89,10 +110,7 @@ def test_provider_detects_python_org():
     """Verify python.org framework installations are identified correctly."""
     provider = preflight.detect_provider(
         "/tmp/project/.venv/bin/python",
-        (
-            "/Library/Frameworks/Python.framework/"
-            "Versions/3.15/bin/python3.15"
-        ),
+        ("/Library/Frameworks/Python.framework/" "Versions/3.15/bin/python3.15"),
     )
     assert provider == "python.org"
 

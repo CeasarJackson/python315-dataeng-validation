@@ -53,6 +53,8 @@ import platform
 import re
 import subprocess
 import sys
+import tempfile
+from contextlib import suppress
 from datetime import date
 from pathlib import Path
 
@@ -63,7 +65,11 @@ TEMPLATE = REPORTS / "template"
 
 def run(cmd, cwd=None, capture=True):
     result = subprocess.run(
-        cmd, shell=True, capture_output=capture, text=True, cwd=cwd or REPO,
+        cmd,
+        shell=True,
+        capture_output=capture,
+        text=True,
+        cwd=cwd or REPO,
         check=False,
     )
     stdout = result.stdout.strip() if result.stdout is not None else ""
@@ -123,6 +129,42 @@ def _result_key_for_dist(dist_name, results):
     return None
 
 
+class DependencyCheck(list):
+    """List-compatible violations with an explicit execution outcome."""
+
+    def __init__(
+        self,
+        violations=(),
+        *,
+        status="UNKNOWN",
+        returncode=None,
+        stdout="",
+        stderr="",
+        error=None,
+    ):
+        super().__init__(violations)
+        self.status = status
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+        self.error = error
+
+    def as_dict(self):
+        return {
+            "status": self.status,
+            "returncode": self.returncode,
+            "stdout": self.stdout,
+            "stderr": self.stderr,
+            "error": self.error,
+        }
+
+
+def _diagnostic_text(value):
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value or ""
+
+
 def check_declared_support(results):
     """Downgrade packages that violate their own declared constraints.
 
@@ -131,38 +173,57 @@ def check_declared_support(results):
     environment whose pins are mutually inconsistent (see ENV-002). Both show
     up in `uv pip check`, so its findings override probe results.
 
-    Mutates ``results`` in place and returns the list of violation strings.
+    Mutates ``results`` in place and returns list-compatible violations with diagnostics.
     """
     print("  Verifying declared support constraints...")
 
     # `uv pip check` reports findings on stderr, not stdout, so the shared
     # run() helper (stdout only) cannot see them. Merge both streams here.
-    proc = subprocess.run(
-        ["uv", "pip", "check", "--python", sys.executable],
-        capture_output=True,
-        text=True,
-        cwd=REPO,
-        check=False,
-    )
+    try:
+        proc = subprocess.run(
+            ["uv", "pip", "check", "--python", sys.executable],
+            capture_output=True,
+            text=True,
+            cwd=REPO,
+            check=False,
+            timeout=60,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        check = DependencyCheck(
+            stdout=_diagnostic_text(getattr(exc, "stdout", "")),
+            stderr=_diagnostic_text(getattr(exc, "stderr", "")),
+            error=f"{type(exc).__name__}: {exc}",
+        )
+        print(f"    uv pip check: UNKNOWN ({check.error})")
+        return check
+
     output = f"{proc.stdout or ''}\n{proc.stderr or ''}".strip()
-    rc = proc.returncode
-
-    if rc == 0 and "Found" not in output:
-        print("    uv pip check: no constraint violations")
-        return []
-
     violations = [
         line.strip()
         for line in output.splitlines()
-        if line.strip().startswith("The package ")
+        if re.match(r"The package `[^`]+` requires .+", line.strip())
     ]
-
-    if not violations:
-        # Non-zero exit with no parsable detail — surface it rather than
-        # silently treating the environment as clean.
-        if rc != 0:
-            print(f"    uv pip check: exited {rc}, output not parsable")
-        return []
+    # uv uses exit 1 for detected incompatibilities. Other execution failures
+    # are inconclusive unless a violation was actually reported.
+    if violations or re.search(
+        r"(?im)^Found [1-9]\d* incompatibilit(?:y|ies)\b", output
+    ):
+        status = "FAIL"
+    elif proc.returncode == 0 and (
+        not output
+        or re.search(r"(?im)^All installed packages are compatible\.?$", output)
+    ):
+        status = "PASS"
+    else:
+        status = "UNKNOWN"
+    check = DependencyCheck(
+        violations,
+        status=status,
+        returncode=proc.returncode,
+        stdout=proc.stdout or "",
+        stderr=proc.stderr or "",
+    )
+    print(f"    uv pip check: {status} (exit {proc.returncode})")
 
     for line in violations:
         match = re.match(r"The package `([^`]+)` requires (.+)", line)
@@ -187,7 +248,7 @@ def check_declared_support(results):
         }
         print(f"    {key}: {previous} -> INCOMPAT (declared unsupported)")
 
-    return violations
+    return check
 
 
 def collect_results(docker_image="pyarrow-dataeng:py314"):
@@ -514,6 +575,23 @@ def write_manifest(
     docker_image="pyarrow-dataeng:py314",
     violations=None,
 ):
+    # An old-style empty list does not prove that a check ran successfully.
+    dependency_check = (
+        violations
+        if isinstance(violations, DependencyCheck)
+        else DependencyCheck(
+            violations or (), status="FAIL" if violations else "UNKNOWN"
+        )
+    )
+    status = dependency_check.status
+    if dependency_check:
+        status = "FAIL"
+    elif status != "FAIL" and (
+        status != "PASS" or dependency_check.returncode != 0 or dependency_check.error
+    ):
+        status = "UNKNOWN"
+    diagnostics = dependency_check.as_dict()
+    diagnostics["status"] = status
     py_ver = platform.python_version()
     manifest = {
         "project": "Python 3.15 Data Engineering Validation Suite",
@@ -535,7 +613,10 @@ def write_manifest(
         "packages_fail": counts["FAIL"],
         # Recorded so a report can be audited for environment integrity,
         # not just import success. See ENV-002 and PRE-001.
-        "environment_consistent": not violations,
+        "environment_consistent": (
+            True if status == "PASS" else False if status == "FAIL" else None
+        ),
+        "dependency_check": diagnostics,
         "constraint_violations": list(violations or []),
         "results": results,
     }
@@ -560,7 +641,8 @@ def write_manifest(
     # print(sorted(manifest.keys()))
 
     manifest_path = release_dir / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    with manifest_path.open("x", encoding="utf-8") as handle:
+        handle.write(json.dumps(manifest, indent=2))
 
     # written = json.loads(manifest_path.read_text(encoding="utf-8"))
     # print("\nDEBUG AFTER WRITE")
@@ -662,7 +744,60 @@ def write_compat_report(release_dir, release, results, counts):
         f"Python 3.15 Data Engineering Validation Suite v1.2.0*",
     ]
 
-    (release_dir / "compatibility_report.md").write_text("\n".join(lines))
+    with (release_dir / "compatibility_report.md").open(
+        "x", encoding="utf-8"
+    ) as handle:
+        handle.write("\n".join(lines))
+
+
+SCAFFOLD_FILES = frozenset({
+    "RELEASE_CHECKLIST.md",
+    "readiness_matrix.md",
+    "executive_summary.md",
+    "full_readiness_assessment.md",
+})
+
+
+def is_scaffold_only_directory(release_dir):
+    """Recognize exactly four regular scaffold files, without symlinks."""
+    if release_dir.is_symlink() or not release_dir.is_dir():
+        return False
+    entries = list(release_dir.iterdir())
+    return {entry.name for entry in entries} == SCAFFOLD_FILES and all(
+        entry.is_file() and not entry.is_symlink() for entry in entries
+    )
+
+
+def publish_artifacts(staging_dir, release_dir):
+    """Publish exclusively into a new or verified scaffold-only directory.
+
+    Hard links expose complete files; the manifest is published last.
+    On failure, remove only links created by this attempt.
+    """
+    created_directory = False
+    try:
+        release_dir.mkdir(exist_ok=False)
+        created_directory = True
+    except FileExistsError:
+        if not is_scaffold_only_directory(release_dir):
+            raise
+
+    published = []
+    try:
+        for name in ("compatibility_report.md", "manifest.json"):
+            source = staging_dir / name
+            target = release_dir / name
+            os.link(source, target)
+            published.append((source, target))
+    except BaseException:
+        for source, target in reversed(published):
+            if target.exists() and target.samefile(source):
+                target.unlink()
+        if created_directory:
+            # Remove only a newly created, empty directory.
+            with suppress(OSError):
+                release_dir.rmdir()
+        raise
 
 
 def main():
@@ -698,13 +833,25 @@ def main():
     args = parser.parse_args()
 
     release = args.release
-
-    # Check the interpreter before creating the output directory or probing
-    # anything, so a mismatched run leaves no partial artifacts behind.
-    verify_release_matches_runtime(release, args.allow_version_mismatch)
-
+    if not re.fullmatch(r"3\.15\.\d+(?:(?:a|b|rc)\d+)?", release):
+        parser.error("--release must be a Python 3.15 release identifier")
     release_dir = REPORTS / release
-    release_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.dry_run:
+        print(
+            f"Dry run: would verify runtime {release}, probe packages and dependencies,"
+        )
+        print(
+            f"stage manifest.json and compatibility_report.md, then publish to {release_dir}."
+        )
+        print("Existing destinations would be refused. No probes run or files written.")
+        if args.auto_commit:
+            print("Would stage and commit the generated report (--auto-commit).")
+        return
+
+    if os.path.lexists(release_dir) and not is_scaffold_only_directory(release_dir):
+        parser.error(f"Refusing to overwrite existing report: {release_dir}")
+    verify_release_matches_runtime(release, args.allow_version_mismatch)
 
     print(f"\nGenerating compatibility report for Python {release}")
     print(f"Output: {release_dir}")
@@ -713,21 +860,26 @@ def main():
     results = collect_results(docker_image=args.docker_image)
     violations = check_declared_support(results)
     counts = tally(results)
-
     print(
         f"\nResults: PASS={counts['PASS']}  FAIL={counts['FAIL']}  "
         f"INCOMPAT={counts['INCOMPAT']}  BLOCKED={counts.get('BLOCKED', 0)}  "
         f"SKIP={counts['SKIP']}"
     )
-    if violations:
-        print(f"Constraint violations: {len(violations)} (see manifest)")
+    print(f"Dependency check: {violations.status}")
 
-    if args.dry_run:
-        print("\nDry run — no files written.")
-        return
-
-    write_manifest(release_dir, release, results, counts, violations=violations)
-    write_compat_report(release_dir, release, results, counts)
+    REPORTS.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".report-stage-", dir=REPORTS) as staging:
+        staging_dir = Path(staging)
+        write_manifest(
+            staging_dir,
+            release,
+            results,
+            counts,
+            docker_image=args.docker_image,
+            violations=violations,
+        )
+        write_compat_report(staging_dir, release, results, counts)
+        publish_artifacts(staging_dir, release_dir)
 
     print(f"\nReport written to reports/{release}/")
     for f in sorted(release_dir.iterdir()):

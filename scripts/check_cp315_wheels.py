@@ -212,7 +212,9 @@ def _probe_one(
         package,
     ]
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180, check=False)
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=180, check=False
+        )
     except subprocess.TimeoutExpired:
         log.warning("[WARN] %s — pip timed out on %s", package, platform)
         return None
@@ -249,7 +251,9 @@ def probe(
 def _report(result: ProbeResult) -> None:
     """Emit one classified result at the severity its meaning deserves."""
     if result.kind == NATIVE:
-        log.info("[PASS] %-16s native %s wheel — %s", result.package, "cp315", result.wheel)
+        log.info(
+            "[PASS] %-16s native %s wheel — %s", result.package, "cp315", result.wheel
+        )
     elif result.kind == ABI3:
         log.info(
             "[PASS] %-16s stable-ABI wheel, installable on target — %s",

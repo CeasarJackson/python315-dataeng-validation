@@ -60,9 +60,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = REPO_ROOT / "reports"
 QUARANTINE_DIR = REPORTS_DIR / "_quarantine"
 
-RELEASE_PATTERN = re.compile(
-    r"^3\.15\.0(?:a\d+|b\d+|rc\d+)?$"
-)
+RELEASE_PATTERN = re.compile(r"^3\.15\.\d+(?:a\d+|b\d+|rc\d+)?$")
 
 VALID_ARM_ARCHITECTURES = {"arm64", "aarch64"}
 
@@ -228,7 +226,7 @@ def check_release_format(release: str) -> CheckResult:
         (
             f"Invalid release identifier: {release!r}. "
             "Expected a Python 3.15 release such as 3.15.0b4, "
-            "3.15.0rc1, 3.15.0rc2, or 3.15.0."
+            "3.15.0rc1, 3.15.0, or 3.15.1."
         ),
     )
 
@@ -282,10 +280,7 @@ def check_architecture(
     return CheckResult(
         "architecture",
         "FAIL",
-        (
-            f"Unexpected architecture: {architecture}. "
-            "Expected arm64/aarch64."
-        ),
+        (f"Unexpected architecture: {architecture}. " "Expected arm64/aarch64."),
     )
 
 
@@ -337,9 +332,7 @@ def check_report_directory(
             f"Active report directory does not exist: {release_dir}",
         )
 
-    existing_files = sorted(
-        path.name for path in release_dir.iterdir()
-    )
+    existing_files = sorted(path.name for path in release_dir.iterdir())
 
     if not existing_files:
         return CheckResult(

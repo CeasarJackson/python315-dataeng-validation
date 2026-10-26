@@ -123,7 +123,11 @@ WEIGHTS = {"PASS": 1.0, "BLOCKED": 0.50, "INCOMPAT": 0.25, "FAIL": 0.0}
 # runbook requires the two to be reported separately.
 HEALTH_RANK = {"PASS": 0, "INCOMPAT": 1, "BLOCKED": 2, "FAIL": 3}
 
-RELEASE_LABELS = {"ga": "General Availability", "rc": "Release Candidate", "beta": "Beta"}
+RELEASE_LABELS = {
+    "ga": "General Availability",
+    "rc": "Release Candidate",
+    "beta": "Beta",
+}
 
 
 class ManifestError(Exception):
@@ -143,7 +147,9 @@ def load_manifest(release: str) -> tuple[dict[str, Any], str]:
     try:
         data = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise ManifestError(f"Manifest is not valid UTF-8 JSON: {path} ({exc})") from exc
+        raise ManifestError(
+            f"Manifest is not valid UTF-8 JSON: {path} ({exc})"
+        ) from exc
 
     missing = [key for key in REQUIRED_KEYS if key not in data]
     if missing:
@@ -198,8 +204,12 @@ def check_consistency(manifest: dict[str, Any]) -> None:
             f"production_readiness_pct={stated} but the formula gives "
             f"{recomputed:.1f} from the results"
         )
-    log.info("[PASS] manifest consistent: %s results, readiness %s%% (formula %.1f%%)",
-             len(results), stated, recomputed)
+    log.info(
+        "[PASS] manifest consistent: %s results, readiness %s%% (formula %.1f%%)",
+        len(results),
+        stated,
+        recomputed,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -275,7 +285,9 @@ def build_pdf(
     results: dict[str, dict[str, Any]] = manifest["results"]
     counts: Counter[str] = Counter(e["status"] for e in results.values())
     release = manifest["release"]
-    label = RELEASE_LABELS.get(manifest["release_type"], str(manifest["release_type"]).upper())
+    label = RELEASE_LABELS.get(
+        manifest["release_type"], str(manifest["release_type"]).upper()
+    )
     pct = manifest["production_readiness_pct"]
 
     base = getSampleStyleSheet()
@@ -284,19 +296,53 @@ def build_pdf(
     accent = colors.HexColor("#1f4e79")
     rule = colors.HexColor("#c9d1da")
 
-    title = ParagraphStyle("T", parent=base["Title"], fontName="Helvetica-Bold",
-                           fontSize=22, leading=26, textColor=ink, alignment=TA_LEFT, spaceAfter=4)
-    subtitle = ParagraphStyle("S", parent=base["Normal"], fontSize=11, leading=14,
-                              textColor=muted, spaceAfter=14)
-    h2 = ParagraphStyle("H2", parent=base["Heading2"], fontName="Helvetica-Bold",
-                        fontSize=13, leading=16, textColor=accent, spaceBefore=14, spaceAfter=6)
-    body = ParagraphStyle("B", parent=base["BodyText"], fontSize=10, leading=14, textColor=ink)
-    bullet = ParagraphStyle("BL", parent=body, leftIndent=14, bulletIndent=2, spaceAfter=3)
+    title = ParagraphStyle(
+        "T",
+        parent=base["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=22,
+        leading=26,
+        textColor=ink,
+        alignment=TA_LEFT,
+        spaceAfter=4,
+    )
+    subtitle = ParagraphStyle(
+        "S",
+        parent=base["Normal"],
+        fontSize=11,
+        leading=14,
+        textColor=muted,
+        spaceAfter=14,
+    )
+    h2 = ParagraphStyle(
+        "H2",
+        parent=base["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=13,
+        leading=16,
+        textColor=accent,
+        spaceBefore=14,
+        spaceAfter=6,
+    )
+    body = ParagraphStyle(
+        "B", parent=base["BodyText"], fontSize=10, leading=14, textColor=ink
+    )
+    bullet = ParagraphStyle(
+        "BL", parent=body, leftIndent=14, bulletIndent=2, spaceAfter=3
+    )
     cell = ParagraphStyle("C", parent=body, fontSize=8.8, leading=11.5)
     cell_b = ParagraphStyle("CB", parent=cell, fontName="Helvetica-Bold")
-    head = ParagraphStyle("CH", parent=cell, fontName="Helvetica-Bold", textColor=colors.white)
-    big = ParagraphStyle("BIG", parent=body, fontName="Helvetica-Bold", fontSize=30, leading=34,
-                         textColor=accent)
+    head = ParagraphStyle(
+        "CH", parent=cell, fontName="Helvetica-Bold", textColor=colors.white
+    )
+    big = ParagraphStyle(
+        "BIG",
+        parent=body,
+        fontName="Helvetica-Bold",
+        fontSize=30,
+        leading=34,
+        textColor=accent,
+    )
 
     tint = {
         "PASS": colors.HexColor("#d9f2e3"),
@@ -330,40 +376,59 @@ def build_pdf(
     story: list[Any] = []
 
     # ---- Title block ------------------------------------------------------
-    story.append(Paragraph("Python 3.15 Data Engineering<br/>Readiness Assessment", title))
-    story.append(Paragraph(
-        escape(f"{label} - Python {manifest['python_runtime']} - tested {manifest['test_date']}"),
-        subtitle))
+    story.append(
+        Paragraph("Python 3.15 Data Engineering<br/>Readiness Assessment", title)
+    )
+    story.append(
+        Paragraph(
+            escape(
+                f"{label} - Python {manifest['python_runtime']} - tested {manifest['test_date']}"
+            ),
+            subtitle,
+        )
+    )
 
     story.append(Paragraph(f"{pct}%", big))
-    story.append(Paragraph(
-        escape(
-            f"overall readiness  |  {counts.get('PASS', 0)} PASS  -  "
-            f"{counts.get('INCOMPAT', 0)} INCOMPAT  -  {counts.get('BLOCKED', 0)} BLOCKED  -  "
-            f"{counts.get('SKIP', 0)} SKIP  -  {counts.get('FAIL', 0)} FAIL  "
-            f"(of {len(results)} packages)"),
-        ParagraphStyle("K", parent=body, textColor=muted, spaceAfter=10)))
+    story.append(
+        Paragraph(
+            escape(
+                f"overall readiness  |  {counts.get('PASS', 0)} PASS  -  "
+                f"{counts.get('INCOMPAT', 0)} INCOMPAT  -  {counts.get('BLOCKED', 0)} BLOCKED  -  "
+                f"{counts.get('SKIP', 0)} SKIP  -  {counts.get('FAIL', 0)} FAIL  "
+                f"(of {len(results)} packages)"
+            ),
+            ParagraphStyle("K", parent=body, textColor=muted, spaceAfter=10),
+        )
+    )
 
     # ---- Executive summary ------------------------------------------------
     story.append(Paragraph("Executive summary", h2))
     non_pass = [(n, e) for n, e in results.items() if e["status"] != "PASS"]
     summary = (
-        f"Python {manifest['python_runtime']} was validated on {manifest['platform']} using "
-        f"{manifest['package_manager']}. Of {len(results)} packages probed, "
-        f"{counts.get('PASS', 0)} passed and none failed outright. "
-        f"{len(non_pass)} did not pass: " +
-        "; ".join(f"{n} ({e['status']})" for n, e in non_pass) + "."
-    ) if non_pass else (
-        f"Python {manifest['python_runtime']} was validated on {manifest['platform']}. "
-        f"All {len(results)} packages passed."
+        (
+            f"Python {manifest['python_runtime']} was validated on {manifest['platform']} using "
+            f"{manifest['package_manager']}. Of {len(results)} packages probed, "
+            f"{counts.get('PASS', 0)} passed and none failed outright. "
+            f"{len(non_pass)} did not pass: "
+            + "; ".join(f"{n} ({e['status']})" for n, e in non_pass)
+            + "."
+        )
+        if non_pass
+        else (
+            f"Python {manifest['python_runtime']} was validated on {manifest['platform']}. "
+            f"All {len(results)} packages passed."
+        )
     )
     story.append(para(summary))
 
     if previous is not None:
         story.append(Spacer(1, 5))
-        story.append(para(
-            f"Compared with {previous['release']} ({previous['test_date']}), overall readiness "
-            f"moved from {previous['production_readiness_pct']}% to {pct}%."))
+        story.append(
+            para(
+                f"Compared with {previous['release']} ({previous['test_date']}), overall readiness "
+                f"moved from {previous['production_readiness_pct']}% to {pct}%."
+            )
+        )
 
     # ---- At a glance ------------------------------------------------------
     story.append(Paragraph("Test environment", h2))
@@ -376,24 +441,50 @@ def build_pdf(
         ("Tester", manifest["tester"]),
         ("Suite version", manifest["suite_version"]),
         ("Docker image", manifest["docker_image"]),
-        ("Environment consistent", "yes" if manifest["environment_consistent"] else "NO - see limitations"),
+        (
+            "Environment consistent",
+            "yes" if manifest["environment_consistent"] else "NO - see limitations",
+        ),
     ]
-    story.append(table([[para(k, cell_b), para(v, cell)] for k, v in glance],
-                       [1.7 * inch, width - 1.7 * inch], header=False))
+    story.append(
+        table(
+            [[para(k, cell_b), para(v, cell)] for k, v in glance],
+            [1.7 * inch, width - 1.7 * inch],
+            header=False,
+        )
+    )
 
     # ---- Results ----------------------------------------------------------
     story.append(Paragraph("Package results", h2))
-    rows: list[list[Any]] = [[para("Package", head), para("Status", head),
-                              para("Version", head), para("Notes", head)]]
+    rows: list[list[Any]] = [
+        [
+            para("Package", head),
+            para("Status", head),
+            para("Version", head),
+            para("Notes", head),
+        ]
+    ]
     status_cells: list[tuple[int, str]] = []
     for index, (name, entry) in enumerate(results.items(), start=1):
         notes = entry.get("reason") or entry.get("note") or ""
-        rows.append([para(name, cell_b), para(entry["status"], cell_b),
-                     para(entry.get("version", "-"), cell), para(notes, cell)])
+        rows.append(
+            [
+                para(name, cell_b),
+                para(entry["status"], cell_b),
+                para(entry.get("version", "-"), cell),
+                para(notes, cell),
+            ]
+        )
         status_cells.append((index, entry["status"]))
     res_table = table(rows, [1.25 * inch, 0.8 * inch, 1.0 * inch, width - 3.05 * inch])
-    res_table.setStyle(TableStyle([("BACKGROUND", (1, i), (1, i), tint.get(s, colors.white))
-                                   for i, s in status_cells]))
+    res_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (1, i), (1, i), tint.get(s, colors.white))
+                for i, s in status_cells
+            ]
+        )
+    )
     story.append(res_table)
 
     # ---- Changes vs previous ----------------------------------------------
@@ -401,20 +492,41 @@ def build_pdf(
         change_rows, unchanged = classify_changes(manifest, previous)
         story.append(Paragraph(f"Changes since {previous['release']}", h2))
         if change_rows:
-            data: list[list[Any]] = [[para(h, head) for h in
-                                      ("Change", "Package", "Was", "Now", "Version")]]
+            data: list[list[Any]] = [
+                [para(h, head) for h in ("Change", "Package", "Was", "Now", "Version")]
+            ]
             for kind, name, old, new, version in change_rows:
-                data.append([para(kind, cell_b), para(name, cell), para(old, cell),
-                             para(new, cell_b), para(version, cell)])
-            story.append(table(data, [1.3 * inch, 1.5 * inch, 1.0 * inch, 1.0 * inch,
-                                      width - 4.8 * inch]))
+                data.append(
+                    [
+                        para(kind, cell_b),
+                        para(name, cell),
+                        para(old, cell),
+                        para(new, cell_b),
+                        para(version, cell),
+                    ]
+                )
+            story.append(
+                table(
+                    data,
+                    [
+                        1.3 * inch,
+                        1.5 * inch,
+                        1.0 * inch,
+                        1.0 * inch,
+                        width - 4.8 * inch,
+                    ],
+                )
+            )
         story.append(Spacer(1, 4))
         story.append(para(f"{unchanged} package(s) unchanged."))
         story.append(Spacer(1, 3))
-        story.append(para(
-            "Coverage changes (moving into or out of SKIP) are reported separately from "
-            "compatibility changes: a package that was not measured before is not evidence "
-            "of a regression or an improvement in Python itself."))
+        story.append(
+            para(
+                "Coverage changes (moving into or out of SKIP) are reported separately from "
+                "compatibility changes: a package that was not measured before is not evidence "
+                "of a regression or an improvement in Python itself."
+            )
+        )
 
     # ---- Limitations -------------------------------------------------------
     limits: list[str] = []
@@ -423,30 +535,38 @@ def build_pdf(
             limits.append(f"Environment constraint violation: {violation}")
         limits.append(
             "A package that declares no support for this Python can still import and run; the "
-            "suite classifies it INCOMPAT on declared support, not on smoke-test outcome.")
+            "suite classifies it INCOMPAT on declared support, not on smoke-test outcome."
+        )
     tag = str(manifest["docker_image"]).split(":")[-1]
     docker_names = docker_sourced(manifest)
     for name in docker_names:
         limits.append(
             f"{name} was exercised inside the Docker image tagged '{tag}', not on the "
             f"{manifest['python_runtime']} runtime. It shows the package works in that "
-            "container; it is not Python 3.15 evidence.")
+            "container; it is not Python 3.15 evidence."
+        )
     if docker_names:
         # Be explicit about how much of the headline number rests on those
         # results: recompute with them treated as not measured (SKIP).
         adjusted: Counter[str] = Counter(
             "SKIP" if name in docker_names else entry["status"]
-            for name, entry in results.items())
+            for name, entry in results.items()
+        )
         limits.append(
             f"The headline {pct}% counts those Docker-sourced results as PASS. Treating them as "
             f"not measured (SKIP) instead, readiness would be "
-            f"{round(compute_readiness(adjusted, len(results)))}%.")
+            f"{round(compute_readiness(adjusted, len(results)))}%."
+        )
     for name, entry in results.items():
         if entry["status"] == "SKIP":
-            limits.append(f"{name} was not measured ({entry.get('reason') or entry.get('version')}); "
-                          "it is excluded from the readiness score.")
+            limits.append(
+                f"{name} was not measured ({entry.get('reason') or entry.get('version')}); "
+                "it is excluded from the readiness score."
+            )
         elif entry["status"] == "BLOCKED":
-            limits.append(f"{name} is BLOCKED: {entry.get('reason', 'no reason recorded')}.")
+            limits.append(
+                f"{name} is BLOCKED: {entry.get('reason', 'no reason recorded')}."
+            )
 
     if limits:
         story.append(Paragraph("Evidence and limitations", h2))
@@ -454,30 +574,42 @@ def build_pdf(
             story.append(Paragraph(escape(item), bullet, bulletText="-"))
 
     # ---- Method ------------------------------------------------------------
-    story.append(KeepTogether([
-        Paragraph("How readiness is calculated", h2),
-        para("Readiness = (PASS + 0.50 x BLOCKED + 0.25 x INCOMPAT) / (packages - SKIP), "
-             "rounded to a whole percent. SKIP is excluded because an unmeasured package is "
-             "neither compatible nor incompatible. The weights are this project's convention, "
-             "not an industry standard, and the score summarises this suite's probes only; it "
-             "is not a certification of any package or deployment."),
-    ]))
+    story.append(
+        KeepTogether(
+            [
+                Paragraph("How readiness is calculated", h2),
+                para(
+                    "Readiness = (PASS + 0.50 x BLOCKED + 0.25 x INCOMPAT) / (packages - SKIP), "
+                    "rounded to a whole percent. SKIP is excluded because an unmeasured package is "
+                    "neither compatible nor incompatible. The weights are this project's convention, "
+                    "not an industry standard, and the score summarises this suite's probes only; it "
+                    "is not a certification of any package or deployment."
+                ),
+            ]
+        )
+    )
 
     def footer(canvas: Any, doc: Any) -> None:
         canvas.saveState()
         canvas.setFont("Helvetica", 7.5)
         canvas.setFillColor(muted)
-        canvas.drawString(0.8 * inch, 0.5 * inch,
-                          f"{manifest['project']} - {release} - manifest sha256 {digest[:12]}")
+        canvas.drawString(
+            0.8 * inch,
+            0.5 * inch,
+            f"{manifest['project']} - {release} - manifest sha256 {digest[:12]}",
+        )
         canvas.drawRightString(letter[0] - 0.8 * inch, 0.5 * inch, f"Page {doc.page}")
         canvas.restoreState()
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = out_path.with_suffix(".pdf.tmp")
     doc = SimpleDocTemplate(
-        str(tmp_path), pagesize=letter,
-        leftMargin=0.8 * inch, rightMargin=0.8 * inch,
-        topMargin=0.8 * inch, bottomMargin=0.8 * inch,
+        str(tmp_path),
+        pagesize=letter,
+        leftMargin=0.8 * inch,
+        rightMargin=0.8 * inch,
+        topMargin=0.8 * inch,
+        bottomMargin=0.8 * inch,
         title=f"Python {manifest['python_runtime']} Data Engineering Readiness Assessment",
         author=manifest["tester"],
         subject=f"Readiness assessment for Python {release}",
@@ -496,13 +628,25 @@ def build_pdf(
 # ---------------------------------------------------------------------------
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Render the readiness assessment PDF from a release manifest.")
-    parser.add_argument("--release", required=True, help="Release directory name, e.g. 3.15.0")
-    parser.add_argument("--previous", help="Earlier release to diff against, e.g. 3.15.0rc2")
-    parser.add_argument("--output", type=Path,
-                        help=f"Output path (default: reports/<release>/{PDF_NAME})")
-    parser.add_argument("--force", action="store_true", help="Overwrite an existing PDF")
-    parser.add_argument("--dry-run", action="store_true", help="Validate only; write nothing")
+        description="Render the readiness assessment PDF from a release manifest."
+    )
+    parser.add_argument(
+        "--release", required=True, help="Release directory name, e.g. 3.15.0"
+    )
+    parser.add_argument(
+        "--previous", help="Earlier release to diff against, e.g. 3.15.0rc2"
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help=f"Output path (default: reports/<release>/{PDF_NAME})",
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Overwrite an existing PDF"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Validate only; write nothing"
+    )
     return parser.parse_args(argv)
 
 
@@ -531,7 +675,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         import reportlab  # noqa: F401
     except ImportError:
-        log.error("[FAIL] ReportLab is not installed. Install it with: uv pip install reportlab")
+        log.error(
+            "[FAIL] ReportLab is not installed. Install it with: uv pip install reportlab"
+        )
         return 1
 
     build_pdf(manifest, digest, previous, out_path)
@@ -539,8 +685,12 @@ def main(argv: list[str] | None = None) -> int:
     if head != b"%PDF-" or out_path.stat().st_size == 0:
         log.error("[FAIL] output is not a valid PDF: %s", out_path)
         return 1
-    log.info("[PASS] wrote %s (%s bytes, manifest sha256 %s)",
-             out_path, f"{out_path.stat().st_size:,}", digest[:12])
+    log.info(
+        "[PASS] wrote %s (%s bytes, manifest sha256 %s)",
+        out_path,
+        f"{out_path.stat().st_size:,}",
+        digest[:12],
+    )
     return 0
 
 

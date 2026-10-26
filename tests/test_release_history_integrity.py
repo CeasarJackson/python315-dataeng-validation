@@ -133,8 +133,7 @@ def test_manifest_release_matches_runtime() -> None:
 
         if str(runtime) != release:
             mismatches.append(
-                f"{manifest.parent.name}: labelled {release} "
-                f"but ran on {runtime}"
+                f"{manifest.parent.name}: labelled {release} " f"but ran on {runtime}"
             )
 
     assert not mismatches, "Mislabelled reports:\n" + "\n".join(mismatches)
