@@ -750,12 +750,14 @@ def write_compat_report(release_dir, release, results, counts):
         handle.write("\n".join(lines))
 
 
-SCAFFOLD_FILES = frozenset({
-    "RELEASE_CHECKLIST.md",
-    "readiness_matrix.md",
-    "executive_summary.md",
-    "full_readiness_assessment.md",
-})
+SCAFFOLD_FILES = frozenset(
+    {
+        "RELEASE_CHECKLIST.md",
+        "readiness_matrix.md",
+        "executive_summary.md",
+        "full_readiness_assessment.md",
+    }
+)
 
 
 def is_scaffold_only_directory(release_dir):

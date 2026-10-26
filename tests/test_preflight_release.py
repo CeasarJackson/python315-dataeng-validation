@@ -67,7 +67,6 @@ def test_release_format_rejects_wrong_minor():
     assert result.status == "FAIL"
 
 
-
 def test_release_format_accepts_patch_release():
     """Verify Python 3.15 patch releases are accepted."""
     for release in ("3.15.1", "3.15.2", "3.15.10"):

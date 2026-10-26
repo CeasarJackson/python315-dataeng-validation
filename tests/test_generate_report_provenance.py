@@ -321,18 +321,13 @@ def test_publication_into_scaffold_preserves_documents(tmp_path):
         destination / "compatibility_report.md"
     ).read_text() == "compatibility_report.md"
 
-    assert {
-        name: (destination / name).read_text()
-        for name in originals
-    } == originals
+    assert {name: (destination / name).read_text() for name in originals} == originals
 
     with pytest.raises(FileExistsError):
         generator.publish_artifacts(staging, destination)
 
 
-def test_scaffold_publication_failure_preserves_documents(
-    tmp_path, monkeypatch
-):
+def test_scaffold_publication_failure_preserves_documents(tmp_path, monkeypatch):
     generator = load_generator()
     staging = staged_report(tmp_path)
     destination = tmp_path / "3.15.1"
@@ -356,9 +351,7 @@ def test_scaffold_publication_failure_preserves_documents(
     with pytest.raises(OSError, match="publication failure"):
         generator.publish_artifacts(staging, destination)
 
-    assert {
-        p.name for p in destination.iterdir()
-    } == generator.SCAFFOLD_FILES
+    assert {p.name for p in destination.iterdir()} == generator.SCAFFOLD_FILES
 
     for name in generator.SCAFFOLD_FILES:
         assert (destination / name).read_text() == name
