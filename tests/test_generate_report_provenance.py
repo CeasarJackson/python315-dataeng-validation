@@ -231,7 +231,7 @@ def test_manifest_dependency_consistency(tmp_path, status, rc, violations, consi
     generator.write_manifest(
         tmp_path, "3.15.0", {}, generator.tally({}), violations=check
     )
-    manifest = json.loads((tmp_path / "manifest.json").read_text())
+    manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["environment_consistent"] is consistent
     assert manifest["constraint_violations"] == violations
     assert manifest["dependency_check"]["returncode"] == rc
@@ -245,13 +245,22 @@ def test_legacy_empty_violations_are_unknown(tmp_path, violations):
     generator.write_manifest(
         tmp_path, "3.15.0", {}, generator.tally({}), violations=violations
     )
-    manifest = json.loads((tmp_path / "manifest.json").read_text())
+    manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["environment_consistent"] is None
     assert manifest["dependency_check"]["status"] == "UNKNOWN"
 
 
 def configure_main(generator, monkeypatch, reports, *extra):
     monkeypatch.setattr(generator, "REPORTS", reports)
+    # main() attaches the shared logger. Tests must never write into the real
+    # logs/ directory, so force the console-only sink while keeping the real
+    # configuration code path (the dry-run test reads the console output).
+    real_configure = generator._configure_logging
+    monkeypatch.setattr(
+        generator,
+        "_configure_logging",
+        lambda file_logging=True: real_configure(file_logging=False),
+    )
     monkeypatch.setattr(
         sys, "argv", ["generate_report.py", "--release", "3.15.0", *extra]
     )
@@ -296,7 +305,7 @@ def staged_report(tmp_path):
     staging = tmp_path / "staging"
     staging.mkdir()
     for name in ("manifest.json", "compatibility_report.md"):
-        (staging / name).write_text(name)
+        (staging / name).write_text(name, encoding="utf-8")
     return staging
 
 
@@ -309,19 +318,23 @@ def test_publication_into_scaffold_preserves_documents(tmp_path):
     originals = {}
     for name in generator.SCAFFOLD_FILES:
         content = f"preserve: {name}"
-        (destination / name).write_text(content)
+        (destination / name).write_text(content, encoding="utf-8")
         originals[name] = content
 
     assert generator.is_scaffold_only_directory(destination)
 
     generator.publish_artifacts(staging, destination)
 
-    assert (destination / "manifest.json").read_text() == "manifest.json"
-    assert (
-        destination / "compatibility_report.md"
-    ).read_text() == "compatibility_report.md"
+    assert (destination / "manifest.json").read_text(
+        encoding="utf-8"
+    ) == "manifest.json"
+    assert (destination / "compatibility_report.md").read_text(
+        encoding="utf-8"
+    ) == "compatibility_report.md"
 
-    assert {name: (destination / name).read_text() for name in originals} == originals
+    assert {
+        name: (destination / name).read_text(encoding="utf-8") for name in originals
+    } == originals
 
     with pytest.raises(FileExistsError):
         generator.publish_artifacts(staging, destination)
@@ -334,7 +347,7 @@ def test_scaffold_publication_failure_preserves_documents(tmp_path, monkeypatch)
     destination.mkdir()
 
     for name in generator.SCAFFOLD_FILES:
-        (destination / name).write_text(name)
+        (destination / name).write_text(name, encoding="utf-8")
 
     real_link = generator.os.link
     calls = 0
@@ -354,7 +367,7 @@ def test_scaffold_publication_failure_preserves_documents(tmp_path, monkeypatch)
     assert {p.name for p in destination.iterdir()} == generator.SCAFFOLD_FILES
 
     for name in generator.SCAFFOLD_FILES:
-        assert (destination / name).read_text() == name
+        assert (destination / name).read_text(encoding="utf-8") == name
 
 
 def test_scaffold_recognition_rejects_unexpected_files(tmp_path):
@@ -363,16 +376,16 @@ def test_scaffold_recognition_rejects_unexpected_files(tmp_path):
     destination.mkdir()
 
     for name in generator.SCAFFOLD_FILES:
-        (destination / name).write_text(name)
+        (destination / name).write_text(name, encoding="utf-8")
 
-    (destination / "unexpected.txt").write_text("preserve")
+    (destination / "unexpected.txt").write_text("preserve", encoding="utf-8")
 
     assert not generator.is_scaffold_only_directory(destination)
 
     with pytest.raises(FileExistsError):
         generator.publish_artifacts(staged_report(tmp_path), destination)
 
-    assert (destination / "unexpected.txt").read_text() == "preserve"
+    assert (destination / "unexpected.txt").read_text(encoding="utf-8") == "preserve"
 
 
 def test_publication_success_and_refusal(tmp_path):
@@ -380,12 +393,14 @@ def test_publication_success_and_refusal(tmp_path):
     staging = staged_report(tmp_path)
     destination = tmp_path / "release"
     generator.publish_artifacts(staging, destination)
-    assert {p.name: p.read_text() for p in destination.iterdir()} == {
-        p.name: p.read_text() for p in staging.iterdir()
+    assert {p.name: p.read_text(encoding="utf-8") for p in destination.iterdir()} == {
+        p.name: p.read_text(encoding="utf-8") for p in staging.iterdir()
     }
     with pytest.raises(FileExistsError):
         generator.publish_artifacts(staging, destination)
-    assert (destination / "manifest.json").read_text() == "manifest.json"
+    assert (destination / "manifest.json").read_text(
+        encoding="utf-8"
+    ) == "manifest.json"
 
 
 @pytest.mark.parametrize("failure_call", [1, 2])
@@ -416,15 +431,15 @@ def test_publication_preserves_unexpected_evidence(tmp_path, monkeypatch):
     destination = tmp_path / "release"
 
     def concurrent_file(source, target):
-        target.write_text("unexpected evidence")
+        target.write_text("unexpected evidence", encoding="utf-8")
         raise FileExistsError(target)
 
     monkeypatch.setattr(generator.os, "link", concurrent_file)
     with pytest.raises(FileExistsError):
         generator.publish_artifacts(staging, destination)
-    assert (
-        destination / "compatibility_report.md"
-    ).read_text() == "unexpected evidence"
+    assert (destination / "compatibility_report.md").read_text(
+        encoding="utf-8"
+    ) == "unexpected evidence"
 
 
 def test_generation_failure_never_publishes(tmp_path, monkeypatch):
@@ -502,7 +517,9 @@ def test_main_staging_and_publication(tmp_path, monkeypatch, fail_publication):
     else:
         generator.main()
         assert [p.name for p in reports.iterdir()] == ["3.15.0"]
-        manifest = json.loads((reports / "3.15.0" / "manifest.json").read_text())
+        manifest = json.loads(
+            (reports / "3.15.0" / "manifest.json").read_text(encoding="utf-8")
+        )
         assert manifest["environment_consistent"] is True
         assert manifest["docker_image"] == "custom-image"
 

@@ -48,6 +48,7 @@ from __future__ import annotations
 import argparse
 import importlib.metadata
 import json
+import logging
 import os
 import platform
 import re
@@ -61,6 +62,36 @@ from pathlib import Path
 REPO = Path(__file__).parent.parent
 REPORTS = REPO / "reports"
 TEMPLATE = REPORTS / "template"
+
+# Named logger. It has no handlers until main() calls _configure_logging(), so
+# importing this module (tests, tools) never creates log files or writes output.
+LOG = logging.getLogger("generate_report")
+
+
+def _configure_logging(file_logging=True):
+    """Attach the shared colored console logger and, optionally, the file log.
+
+    A dry run must write nothing, so main() passes file_logging=False for it and
+    only the console sink is attached. The shared logger registers a name once per
+    process, so the first call decides which sinks exist.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from logger import get_logger  # noqa: E402
+
+    get_logger("generate_report", file_logging=file_logging)
+
+
+def _log_result(label, status, detail=""):
+    """Log one probe result at a severity that matches its status."""
+    text = f"{label}: {status} ({detail})" if detail else f"{label}: {status}"
+    if status == "PASS":
+        LOG.info(text)
+    elif status == "FAIL":
+        LOG.error(text)
+    else:
+        # INCOMPAT, BLOCKED, SKIP and UNKNOWN are upstream or coverage gaps, not
+        # faults in this tool, so they warn instead of erroring.
+        LOG.warning(text)
 
 
 def run(cmd, cwd=None, capture=True):
@@ -180,7 +211,7 @@ def check_declared_support(results):
 
     Mutates ``results`` in place and returns list-compatible violations with diagnostics.
     """
-    print("  Verifying declared support constraints...")
+    LOG.info("Verifying declared support constraints...")
 
     # `uv pip check` reports findings on stderr, not stdout, so the shared
     # run() helper (stdout only) cannot see them. Merge both streams here.
@@ -199,7 +230,7 @@ def check_declared_support(results):
             stderr=_diagnostic_text(getattr(exc, "stderr", "")),
             error=f"{type(exc).__name__}: {exc}",
         )
-        print(f"    uv pip check: UNKNOWN ({check.error})")
+        _log_result("uv pip check", "UNKNOWN", check.error)
         return check
 
     output = f"{proc.stdout or ''}\n{proc.stderr or ''}".strip()
@@ -228,7 +259,7 @@ def check_declared_support(results):
         stdout=proc.stdout or "",
         stderr=proc.stderr or "",
     )
-    print(f"    uv pip check: {status} (exit {proc.returncode})")
+    _log_result("uv pip check", status, f"exit {proc.returncode}")
 
     for line in violations:
         match = re.match(r"The package `([^`]+)` requires (.+)", line)
@@ -238,7 +269,7 @@ def check_declared_support(results):
         key = _result_key_for_dist(dist, results)
 
         if key is None:
-            print(f"    {dist}: constraint violation (not tracked in report)")
+            LOG.warning("%s: constraint violation (not tracked in report)", dist)
             continue
 
         previous = results[key].get("status")
@@ -251,7 +282,7 @@ def check_declared_support(results):
             "version": results[key].get("version", get_version(dist)),
             "reason": f"declared unsupported: requires {detail}",
         }
-        print(f"    {key}: {previous} -> INCOMPAT (declared unsupported)")
+        LOG.warning("%s: %s -> INCOMPAT (declared unsupported)", key, previous)
 
     return check
 
@@ -305,9 +336,126 @@ def _probe_prefect():
         )
 
 
+def _is_absent(exc, *names):
+    """True only when one of the named modules itself is missing.
+
+    A ModuleNotFoundError for some other module means the package is installed
+    but a dependency is broken, which is an incompatibility, not a skip.
+    """
+    return isinstance(exc, ModuleNotFoundError) and exc.name in names
+
+
+def _probe_pyarrow():
+    """Classify pyarrow; absence means no cp315 wheel, anything else is a break."""
+    try:
+        import pyarrow as pa
+
+        return {"status": "PASS", "version": pa.__version__}, pa.__version__
+    except ImportError as e:
+        if _is_absent(e, "pyarrow"):
+            return (
+                {
+                    "status": "BLOCKED",
+                    "version": "unavailable",
+                    "reason": "no cp315 wheels on PyPI; source build fails at CMake config",
+                },
+                "no cp315 wheels",
+            )
+        return (
+            {
+                "status": "INCOMPAT",
+                "version": get_version("pyarrow"),
+                "reason": f"pyarrow import failed: {e}",
+            },
+            f"import failed: {e}",
+        )
+
+
+def _probe_dask():
+    """Classify dask.dataframe; its known failure is the runtime pyarrow dependency."""
+    try:
+        import dask.dataframe  # noqa: F401
+
+        return {"status": "PASS", "version": get_version("dask")}, ""
+    except ImportError as e:
+        if "pyarrow" in str(e):
+            return (
+                {
+                    "status": "INCOMPAT",
+                    "version": get_version("dask"),
+                    "reason": "runtime pyarrow dep",
+                },
+                "pyarrow dep",
+            )
+        if _is_absent(e, "dask", "dask.dataframe"):
+            return {"status": "SKIP", "version": "not installed"}, ""
+        return (
+            {
+                "status": "INCOMPAT",
+                "version": get_version("dask"),
+                "reason": f"dask.dataframe import failed: {e}",
+            },
+            f"import failed: {e}",
+        )
+
+
+def _probe_mlflow():
+    """Classify mlflow; pyarrow (hard dependency since 2.17) is the known blocker."""
+    try:
+        import mlflow  # noqa: F401
+
+        return {"status": "PASS", "version": get_version("mlflow")}, ""
+    except Exception as e:  # noqa: BLE001
+        if "pyarrow" in str(e).lower() or "opentelemetry" in str(e).lower():
+            return (
+                {
+                    "status": "INCOMPAT",
+                    "version": get_version("mlflow"),
+                    "reason": "pyarrow hard dep",
+                },
+                "pyarrow dep",
+            )
+        if _is_absent(e, "mlflow"):
+            return {"status": "SKIP", "version": "not installed"}, ""
+        return (
+            {
+                "status": "INCOMPAT",
+                "version": get_version("mlflow"),
+                "reason": f"mlflow import failed: {e}",
+            },
+            f"import failed: {e}",
+        )
+
+
+def _probe_ray():
+    """Classify ray; absence means no cp315 wheel, anything else is a break."""
+    try:
+        import ray  # noqa: F401
+
+        return {"status": "PASS", "version": get_version("ray")}, ""
+    except ImportError as e:
+        if _is_absent(e, "ray"):
+            return (
+                {
+                    "status": "BLOCKED",
+                    "version": "unavailable",
+                    "reason": "no cp315 wheels on PyPI",
+                },
+                "no cp315 wheels",
+            )
+        return (
+            {
+                "status": "INCOMPAT",
+                "version": get_version("ray"),
+                "reason": f"ray import failed: {e}",
+            },
+            f"import failed: {e}",
+        )
+
+
 def collect_results(docker_image="pyarrow-dataeng:py314"):
     """Run quick import probes for all tracked packages."""
-    print("  Probing core stack...")
+    LOG.info("Probing core stack...")
 
     results = {}
 
@@ -325,88 +473,33 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
     ]:
         status, ver = probe_package(pkg)
         results[pkg] = {"status": status, "version": ver}
-        print(f"    {pkg}: {status} ({ver})")
+        _log_result(pkg, status, ver)
 
     # sqlite3 — stdlib
     try:
         import sqlite3
 
         results["sqlite3"] = {"status": "PASS", "version": sqlite3.sqlite_version}
-        print(f"    sqlite3: PASS ({sqlite3.sqlite_version})")
+        _log_result("sqlite3", "PASS", sqlite3.sqlite_version)
     except Exception:  # noqa: BLE001
         results["sqlite3"] = {"status": "FAIL", "version": "stdlib"}
+        _log_result("sqlite3", "FAIL", "stdlib import failed")
 
-    # pyarrow — known blocker
-    print("  Probing extended stack...")
-    try:
-        import pyarrow as pa
-
-        results["pyarrow"] = {"status": "PASS", "version": pa.__version__}
-        print(f"    pyarrow: PASS ({pa.__version__})")
-    except ImportError:
-        results["pyarrow"] = {
-            "status": "BLOCKED",
-            "version": "unavailable",
-            "reason": "no cp315 wheels on PyPI; source build fails at CMake config",
-        }
-        print("    pyarrow: BLOCKED (no cp315 wheels)")
-
-    # dask
-    try:
-        import dask.dataframe  # noqa: F401
-
-        results["dask.dataframe"] = {"status": "PASS", "version": get_version("dask")}
-        print("    dask.dataframe: PASS")
-    except ImportError as e:
-        if "pyarrow" in str(e):
-            results["dask.dataframe"] = {
-                "status": "INCOMPAT",
-                "version": get_version("dask"),
-                "reason": "runtime pyarrow dep",
-            }
-            print("    dask.dataframe: INCOMPAT (pyarrow dep)")
-        else:
-            results["dask.dataframe"] = {"status": "SKIP", "version": "not installed"}
-            print("    dask.dataframe: SKIP")
-
-    # prefect: import-level probe (see _probe_prefect for what it does not prove)
-    results["prefect"], prefect_detail = _probe_prefect()
-    print(f"    prefect: {results['prefect']['status']} ({prefect_detail})")
-    # mlflow
-    try:
-        import mlflow  # noqa: F401
-
-        results["mlflow"] = {"status": "PASS", "version": get_version("mlflow")}
-        print("    mlflow: PASS")
-    except (ImportError, Exception) as e:  # noqa: BLE001
-        if "pyarrow" in str(e).lower() or "opentelemetry" in str(e).lower():
-            results["mlflow"] = {
-                "status": "INCOMPAT",
-                "version": get_version("mlflow"),
-                "reason": "pyarrow hard dep",
-            }
-            print("    mlflow: INCOMPAT (pyarrow dep)")
-        else:
-            results["mlflow"] = {"status": "SKIP", "version": "not installed"}
-            print("    mlflow: SKIP")
-
-    # ray
-    try:
-        import ray  # noqa: F401
-
-        results["ray"] = {"status": "PASS", "version": get_version("ray")}
-        print("    ray: PASS")
-    except ImportError:
-        results["ray"] = {
-            "status": "BLOCKED",
-            "version": "unavailable",
-            "reason": "no cp315 wheels on PyPI",
-        }
-        print("    ray: BLOCKED (no cp315 wheels)")
+    # Extended stack. Order matters: it is the key order of the manifest.
+    LOG.info("Probing extended stack...")
+    for key, probe in (
+        ("pyarrow", _probe_pyarrow),
+        ("dask.dataframe", _probe_dask),
+        ("prefect", _probe_prefect),
+        ("mlflow", _probe_mlflow),
+        ("ray", _probe_ray),
+    ):
+        results[key], detail = probe()
+        _log_result(key, results[key]["status"], detail)
 
     # pyspark via docker — uses file mount to avoid stdin hang
     if check_docker_image(docker_image):
-        print("  Testing PySpark via Docker...")
+        LOG.info("Testing PySpark via Docker...")
         import os as _os
         import tempfile
 
@@ -461,28 +554,28 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
                     "version": payload["version"],
                     "note": "via Docker py314 + OpenJDK 21",
                 }
-                print(f"    pyspark: PASS ({payload['version']} via Docker)")
+                _log_result("pyspark", "PASS", f"{payload['version']} via Docker")
             else:
                 results["pyspark"] = {
                     "status": "FAIL",
                     "version": "unknown",
                     "reason": "Docker test failed",
                 }
-                print("    pyspark: FAIL")
+                _log_result("pyspark", "FAIL")
         except Exception:  # noqa: BLE001
             results["pyspark"] = {
                 "status": "INCOMPAT",
                 "version": "unknown",
                 "reason": "Docker test error",
             }
-            print("    pyspark: INCOMPAT")
+            _log_result("pyspark", "INCOMPAT")
     else:
         results["pyspark"] = {
             "status": "SKIP",
             "version": "unknown",
             "reason": "Docker image not available",
         }
-        print("    pyspark: SKIP (Docker image not found)")
+        _log_result("pyspark", "SKIP", "Docker image not found")
 
     # apache-airflow
     try:
@@ -499,21 +592,21 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
             "version": _af.__version__,
             "note": "DAG + PythonOperator; operators moved to providers.standard in 3.x",
         }
-        print(f"    airflow: PASS ({_af.__version__})")
+        _log_result("airflow", "PASS", _af.__version__)
     except ImportError:
         results["apache-airflow"] = {
             "status": "SKIP",
             "version": "not installed",
             "reason": "not installed",
         }
-        print("    airflow: SKIP (not installed)")
+        _log_result("airflow", "SKIP", "not installed")
     except Exception as e:  # noqa: BLE001
         results["apache-airflow"] = {
             "status": "INCOMPAT",
             "version": "unknown",
             "reason": str(e),
         }
-        print(f"    airflow: INCOMPAT ({e})")
+        _log_result("airflow", "INCOMPAT", str(e))
 
     return results
 
@@ -564,13 +657,13 @@ def verify_release_matches_runtime(release, allow_mismatch=False):
         f"\n  Interpreter path   : {sys.executable}"
     )
     if allow_mismatch:
-        print(f"\nWARNING: interpreter does not match --release.{banner}")
-        print("  Continuing because --allow-version-mismatch was passed.")
-        print("  The resulting report is NOT a validation of " f"{release}.\n")
+        LOG.warning("Interpreter does not match --release.%s", banner)
+        LOG.warning("Continuing because --allow-version-mismatch was passed.")
+        LOG.warning("The resulting report is NOT a validation of %s.", release)
         return
 
-    print(f"\nERROR: interpreter does not match --release.{banner}")
-    print(
+    LOG.error("Interpreter does not match --release.%s", banner)
+    LOG.error(
         "\n  Refusing to write a report labelled with a release that was not"
         "\n  exercised. To fix:"
         f"\n      uv python install {release}"
@@ -866,35 +959,40 @@ def main():
         parser.error("--release must be a Python 3.15 release identifier")
     release_dir = REPORTS / release
 
+    # A dry run must not create a log file, so it gets the console sink only.
+    _configure_logging(file_logging=not args.dry_run)
+
     if args.dry_run:
-        print(
+        LOG.info(
             f"Dry run: would verify runtime {release}, probe packages and dependencies,"
         )
-        print(
+        LOG.info(
             f"stage manifest.json and compatibility_report.md, then publish to {release_dir}."
         )
-        print("Existing destinations would be refused. No probes run or files written.")
+        LOG.info(
+            "Existing destinations would be refused. No probes run or files written."
+        )
         if args.auto_commit:
-            print("Would stage and commit the generated report (--auto-commit).")
+            LOG.info("Would stage and commit the generated report (--auto-commit).")
         return
 
     if os.path.lexists(release_dir) and not is_scaffold_only_directory(release_dir):
         parser.error(f"Refusing to overwrite existing report: {release_dir}")
     verify_release_matches_runtime(release, args.allow_version_mismatch)
 
-    print(f"\nGenerating compatibility report for Python {release}")
-    print(f"Output: {release_dir}")
-    print("=" * 60)
+    LOG.info("Generating compatibility report for Python %s", release)
+    LOG.info("Output: %s", release_dir)
+    LOG.info("=" * 60)
 
     results = collect_results(docker_image=args.docker_image)
     violations = check_declared_support(results)
     counts = tally(results)
-    print(
-        f"\nResults: PASS={counts['PASS']}  FAIL={counts['FAIL']}  "
+    LOG.info(
+        f"Results: PASS={counts['PASS']}  FAIL={counts['FAIL']}  "
         f"INCOMPAT={counts['INCOMPAT']}  BLOCKED={counts.get('BLOCKED', 0)}  "
         f"SKIP={counts['SKIP']}"
     )
-    print(f"Dependency check: {violations.status}")
+    _log_result("Dependency check", violations.status)
 
     REPORTS.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".report-stage-", dir=REPORTS) as staging:
@@ -910,16 +1008,16 @@ def main():
         write_compat_report(staging_dir, release, results, counts)
         publish_artifacts(staging_dir, release_dir)
 
-    print(f"\nReport written to reports/{release}/")
+    LOG.info("Report written to reports/%s/", release)
     for f in sorted(release_dir.iterdir()):
-        print(f"  {f.name}  ({f.stat().st_size:,} bytes)")
+        LOG.info("  %s  (%s bytes)", f.name, f"{f.stat().st_size:,}")
 
     if args.auto_commit:
         run(f"git add reports/{release}/", capture=False)
         run(
             f'git commit -m "report: add {release} compatibility report"', capture=False
         )
-        print(f"\nCommitted: report: add {release} compatibility report")
+        LOG.info("Committed: report: add %s compatibility report", release)
 
 
 if __name__ == "__main__":

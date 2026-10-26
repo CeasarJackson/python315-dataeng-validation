@@ -44,6 +44,7 @@ from __future__ import annotations
 #
 import logging
 import logging.handlers
+import os
 import sys
 from pathlib import Path
 
@@ -83,7 +84,31 @@ _LOG_COLORS: dict[str, str] = {
 _configured_loggers: set[str] = set()
 
 
-def get_logger(name: str, level: int = logging.DEBUG) -> logging.Logger:
+class _StdoutProxy:
+    """File-like object that always writes to the *current* ``sys.stdout``.
+
+    A StreamHandler binds its stream once, when it is created. Under pytest the
+    captured stdout is replaced for every test, so a handler bound during one test
+    would write to a stale, closed stream in the next and the output would never be
+    captured. Looking ``sys.stdout`` up at write time avoids that, and also follows
+    any deliberate redirect (``contextlib.redirect_stdout``).
+    """
+
+    def write(self, text: str) -> int:
+        return sys.stdout.write(text)
+
+    def flush(self) -> None:
+        sys.stdout.flush()
+
+    def isatty(self) -> bool:
+        # colorlog uses this to decide whether to emit ANSI escapes, so piped or
+        # redirected output stays free of escape codes.
+        return bool(getattr(sys.stdout, "isatty", lambda: False)())
+
+
+def get_logger(
+    name: str, level: int = logging.DEBUG, file_logging: bool = True
+) -> logging.Logger:
     """Return a configured logger for *name*.
 
     Parameters
@@ -96,6 +121,11 @@ def get_logger(name: str, level: int = logging.DEBUG) -> logging.Logger:
         Minimum log level for both handlers.  Defaults to DEBUG so that all
         messages are captured in the log file; the terminal handler uses the
         same level by default.
+    file_logging:
+        When False only the console sink is attached and nothing is written to
+        disk. Dry runs use this so that "write nothing" is literally true. Even
+        when True the file sink is best-effort: a read-only filesystem downgrades
+        to console-only with a warning instead of raising.
 
     Returns
     -------
@@ -114,10 +144,13 @@ def get_logger(name: str, level: int = logging.DEBUG) -> logging.Logger:
     # ------------------------------------------------------------------
     # 1. Terminal handler — colored via colorlog
     # ------------------------------------------------------------------
+    console_stream = _StdoutProxy()
+    # NO_COLOR (https://no-color.org) disables escapes even on a terminal.
+    no_color = bool(os.environ.get("NO_COLOR"))
     try:
         import colorlog
 
-        terminal_handler = colorlog.StreamHandler(stream=sys.stdout)
+        terminal_handler = colorlog.StreamHandler(stream=console_stream)
         terminal_handler.setLevel(level)
         terminal_formatter = colorlog.ColoredFormatter(
             fmt=_TERMINAL_FORMAT,
@@ -125,6 +158,8 @@ def get_logger(name: str, level: int = logging.DEBUG) -> logging.Logger:
             log_colors=_LOG_COLORS,
             reset=True,
             style="%",
+            stream=console_stream,
+            no_color=no_color,
         )
         terminal_handler.setFormatter(terminal_formatter)
 
@@ -132,7 +167,7 @@ def get_logger(name: str, level: int = logging.DEBUG) -> logging.Logger:
         # Graceful degradation — plain StreamHandler without colors.
         # This allows scripts to run before colorlog is installed (e.g.,
         # during validate_core.py's initial tool check).
-        terminal_handler = logging.StreamHandler(stream=sys.stdout)
+        terminal_handler = logging.StreamHandler(stream=console_stream)
         terminal_handler.setLevel(level)
         plain_formatter = logging.Formatter(
             fmt=_FILE_FORMAT,
@@ -152,36 +187,43 @@ def get_logger(name: str, level: int = logging.DEBUG) -> logging.Logger:
     logger.addHandler(terminal_handler)
 
     # ------------------------------------------------------------------
-    # 2. Rotating file handler
+    # 2. Rotating file handler (optional, best-effort)
     # ------------------------------------------------------------------
-    _LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    log_path = None
+    if file_logging:
+        # Derive a safe filename stem from the logger name.
+        # e.g. "scripts.validate_stack" -> "validate_stack"
+        if name == "__main__":
+            import sys as _sys
+            from pathlib import Path as _Path
 
-    # Derive a safe filename stem from the logger name.
-    # e.g. "scripts.validate_stack" → "validate_stack"
-    if name == "__main__":
-        import sys as _sys
-        from pathlib import Path as _Path
-
-        main_path = getattr(_sys.modules.get("__main__"), "__file__", None)
-        log_stem = _Path(main_path).stem if main_path else "__main__"
-    else:
-        log_stem = name.rsplit(".", maxsplit=1)[-1] if "." in name else name
-    log_path = _LOGS_DIR / f"{log_stem}.log"
-
-    file_handler = logging.handlers.RotatingFileHandler(
-        filename=log_path,
-        mode="a",
-        maxBytes=5 * 1024 * 1024,  # 5 MB
-        backupCount=3,
-        encoding="utf-8",
-    )
-    file_handler.setLevel(level)
-    file_formatter = logging.Formatter(
-        fmt=_FILE_FORMAT,
-        datefmt=_FILE_DATE_FORMAT,
-    )
-    file_handler.setFormatter(file_formatter)
-    logger.addHandler(file_handler)
+            main_path = getattr(_sys.modules.get("__main__"), "__file__", None)
+            log_stem = _Path(main_path).stem if main_path else "__main__"
+        else:
+            log_stem = name.rsplit(".", maxsplit=1)[-1] if "." in name else name
+        candidate = _LOGS_DIR / f"{log_stem}.log"
+        try:
+            _LOGS_DIR.mkdir(parents=True, exist_ok=True)
+            file_handler = logging.handlers.RotatingFileHandler(
+                filename=candidate,
+                mode="a",
+                maxBytes=5 * 1024 * 1024,  # 5 MB
+                backupCount=3,
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            # A read-only checkout or full disk must not stop a validation run;
+            # the console log still carries everything.
+            logger.warning("File logging disabled (%s); continuing console-only", exc)
+        else:
+            file_handler.setLevel(level)
+            file_formatter = logging.Formatter(
+                fmt=_FILE_FORMAT,
+                datefmt=_FILE_DATE_FORMAT,
+            )
+            file_handler.setFormatter(file_formatter)
+            logger.addHandler(file_handler)
+            log_path = candidate
 
     # ------------------------------------------------------------------
     # Mark as configured and return
@@ -189,7 +231,10 @@ def get_logger(name: str, level: int = logging.DEBUG) -> logging.Logger:
     _configured_loggers.add(name)
 
     # Announce where logs are being written (INFO so it appears in green)
-    logger.info("Logging initialized — file: %s", log_path)
+    if log_path is not None:
+        logger.info("Logging initialized — file: %s", log_path)
+    else:
+        logger.info("Logging initialized — console only")
 
     return logger
 
