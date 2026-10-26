@@ -560,6 +560,14 @@ MEDIUM
   `<3.15` per `uv pip check`, so it stays INCOMPAT on declared support. Unlike
   rc2, a `@flow`/`@task` smoke run completed successfully; the environment
   had beartype 0.23.0 where rc2's failing run had 0.22.9)
+- Python 3.15.1 (update 2026-10-26 — prefect 3.9.0 in an isolated environment:
+  `uv pip check` clean (no `<3.15` declaration), and flow, task, retry and
+  aggregation checks passed 4/4. Recorded PASS at Functional evidence level in
+  `reports/3.15.1/evidence.json`, so this issue applies to prefect 3.7.x. The
+  `typing.no_type_check_decorator` removal itself is confirmed in the 3.15
+  What's New. Status stays OPEN until the baseline environment is upgraded.
+  Separately, EventsWorker log errors reproduce on 3.14.10 and are not
+  3.15-specific)
 
 ## Summary
 

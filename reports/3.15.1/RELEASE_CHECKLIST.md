@@ -72,13 +72,28 @@
 ## 3. VERIFY before publishing
 
 - [x] Prefect INCOMPAT reason (`typing.no_type_check_decorator` removed):
-      SUPERSEDED 2026-10-26. Prefect imports and runs flows on 3.15.1; the
-      removed-decorator claim does not hold. Remaining EventsWorker log errors
+      CONFIRMED REMOVED in 3.15 (What's New > Removed > typing). Mechanism, per
+      docs/KNOWN_ISSUES.md: prefect 3.7.x reached it through a transitive
+      import (beartype 0.22.9; 0.23.0 no longer fails), and 3.7.7 declares
+      `<3.15`. Current prefect 3.9.0 has a clean `uv pip check` and runs flows
+      on 3.15.1 (evidence level Functional). Remaining EventsWorker log errors
       reproduce on 3.14.10, so they are not 3.15-specific. See
       READINESS_RECONCILIATION_2026-10-26_v2.md
-- [ ] Any other Removed entries (ast, collections.abc, ctypes, datetime, glob,
-      importlib, importlib.resources, pathlib, platform, sysconfig, threading,
-      types, wave, zipimport) against packages in the tested stack
+- [x] Other Removed entries (ast, collections.abc, ctypes, datetime, glob,
+      http.server, importlib, importlib.resources, pathlib, platform, sre_*,
+      sysconfig, threading, types, typing, wave, zipimport) checked 2026-10-26
+      against the official Removed list: a name scan of `scripts/`, `tools/`,
+      `tests/` and `.venv3151` site-packages (5,636 files) found no use of any
+      removed API. All hits were text only (a WebIDL type name, comments,
+      docstrings, the string checks for the Prefect case above), plus six's own
+      `load_module`, which also defines `exec_module`. Not statically
+      checkable: ast node construction rules. Scope: the baseline venv only;
+      the isolated Prefect, MLflow, Airflow and PySpark environments were
+      validated by running workloads instead
+      NOTE: `tools/build_reports_system.py` and `tools/fix_repo_docs.py` still
+      carry the Prefect 3.7.x text; they generate the 3.15.0b1-era documents and
+      are period-accurate, so they were left unchanged. The release scaffold
+      template (`scripts/scaffold_release.py`) was updated
 - [x] JIT speedup claims: none made. Checked 2026-10-26: no JIT or speedup
       figure appears in the 3.15.1 reports or the README. Measure with
       `benchmark_pandas_polars.py` before adding one

@@ -172,13 +172,16 @@ def checklist_text(release: str, previous: str | None) -> str:
 
 ## 3. VERIFY before publishing
 
-- [ ] Prefect INCOMPAT reason (`typing.no_type_check_decorator` removed):
-      the changelog's **Removed > typing** section was not reachable when
-      this checklist was written. Confirm against
-      docs.python.org/3.15/whatsnew/3.15.html#removed and the changelog
-- [ ] Any other Removed entries (ast, collections.abc, ctypes, datetime, glob,
-      importlib, importlib.resources, pathlib, platform, sysconfig, threading,
-      types, wave, zipimport) against packages in the tested stack
+- [ ] Prefect and `typing.no_type_check_decorator`: its removal in 3.15 is
+      confirmed (What's New > Removed > typing). It broke prefect 3.7.x through
+      a transitive beartype import, and 3.7.7 declares `<3.15`. Re-test the
+      current prefect and require a clean `uv pip check` before recording PASS
+      (see docs/KNOWN_ISSUES.md)
+- [ ] Scan the stack for every name on the official Removed list
+      (docs.python.org/3.15/whatsnew/3.15.html#removed): ast, collections.abc,
+      ctypes, datetime, glob, http.server, importlib, importlib.resources,
+      pathlib, platform, sre_*, sysconfig, threading, types, typing, wave,
+      zipimport
 - [ ] JIT speedup claims: measure with `benchmark_pandas_polars.py`; do not
       quote a figure from a course or blog
 
