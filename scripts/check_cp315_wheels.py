@@ -42,7 +42,7 @@ download directory and the project log file.
 
 Usage
 -----
-    python scripts/check_cp315_wheels.py
+    python scripts/check_cp315_wheels.py          # any interpreter that has pip
     python scripts/check_cp315_wheels.py --packages pyarrow ray duckdb
     python scripts/check_cp315_wheels.py --python-version 3.16 --abi cp316
     python scripts/check_cp315_wheels.py --platforms manylinux_2_28_aarch64
@@ -53,6 +53,8 @@ Exit Codes
 0   Every requested package resolved to some installable wheel.
 1   At least one package has no installable wheel for the target.
 2   Invalid command-line usage.
+3   Probe tooling failure: pip is missing from the running interpreter or the
+    index could not be reached, so no wheel verdict was reached.
 130 User interrupted execution.
 
 Log files
@@ -140,6 +142,18 @@ DEFAULT_PLATFORMS = [
 
 _WHEEL_RE = re.compile(r"[A-Za-z0-9_.+-]+\.whl")
 
+# What pip prints when the index was reachable but holds no wheel for the target.
+# Only these mean "genuinely no installable wheel"; any other pip failure is a
+# tooling problem and must not be reported as a blocker.
+_NO_WHEEL_MARKERS = (
+    "No matching distribution found",
+    "Could not find a version that satisfies the requirement",
+)
+
+
+class ProbeError(RuntimeError):
+    """pip could not give a verdict (missing, offline, or failing for other reasons)."""
+
 
 @dataclass
 class ProbeResult:
@@ -220,7 +234,20 @@ def _probe_one(
         return None
 
     if proc.returncode != 0:
-        return None
+        output = f"{proc.stdout}\n{proc.stderr}"
+        if any(marker in output for marker in _NO_WHEEL_MARKERS):
+            return None
+        # pip failed for a reason that says nothing about wheel availability. If
+        # this were returned as "no wheel", an interpreter without pip (for example
+        # a uv venv) would report every package as BLOCKED.
+        last_line = next(
+            (line for line in reversed(output.splitlines()) if line.strip()),
+            "no output",
+        )
+        raise ProbeError(
+            f"pip failed for {package} on {platform} (exit {proc.returncode}): "
+            f"{last_line.strip()}"
+        )
 
     match = _WHEEL_RE.search(proc.stdout)
     return match.group(0) if match else None
@@ -273,6 +300,26 @@ def _report(result: ProbeResult) -> None:
         )
 
 
+def require_pip() -> None:
+    """Fail fast, once, if the running interpreter has no usable pip."""
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-m", "pip", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise ProbeError(f"cannot run pip with {sys.executable}: {exc}") from exc
+    if proc.returncode != 0:
+        raise ProbeError(
+            f"{sys.executable} has no usable pip ({proc.stderr.strip() or 'no output'}). "
+            "Run this script with an interpreter that has pip; the target Python "
+            "version is set by --python-version, not by the interpreter running it."
+        )
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -320,10 +367,15 @@ def main(argv: list[str] | None = None) -> int:
     log.info("Probing %d package(s)", len(args.packages))
 
     results: list[ProbeResult] = []
-    for package in args.packages:
-        result = probe(package, args.platforms, args.python_version, args.abi)
-        _report(result)
-        results.append(result)
+    try:
+        require_pip()
+        for package in args.packages:
+            result = probe(package, args.platforms, args.python_version, args.abi)
+            _report(result)
+            results.append(result)
+    except ProbeError as exc:
+        log.error("[FAIL] Cannot determine wheel availability: %s", exc)
+        return 3
 
     blocked = [r.package for r in results if r.blocked]
     native = [r.package for r in results if r.kind == NATIVE]
