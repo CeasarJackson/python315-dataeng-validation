@@ -56,7 +56,10 @@
       `scripts/profile_with_tachyon.py` wraps `python -m profiling.sampling run`
       and leaves the benchmarks unchanged. Output goes to `outputs/profiles/`
       (gitignored). Unit-tested without the profiler (`tests/test_profile_with_tachyon.py`).
-      NOT YET RUN on 3.15.1: macOS may need root or the debugger entitlement
+      First run on 3.15.1 (2026-10-26, commit 4295bb0): Tachyon refused without
+      elevated permission (macOS), so `run` needs root or the debugger
+      entitlement, not just `attach`. The wrapper exited 1 and reported it.
+      No profile has been captured yet; run it with `sudo -E` to get one
 - [x] `profile` module is deprecated, removal in 3.17; confirmed 2026-10-26
       that no script, tool or test imports it
 
@@ -68,8 +71,13 @@
       `scripts/logger.py` honors `NO_COLOR` and emits no escapes when stdout is
       not a terminal; the file log is always plain text
       (`tests/test_logger_sinks.py`, verified on 3.15.1 with colorlog 6.12.0)
-- [ ] GC: 3.15 uses the generational GC (the incremental GC was reverted);
+- [x] GC: 3.15 uses the generational GC (the incremental GC was reverted);
       re-baseline any memory numbers taken on 3.14.0-3.14.4
+      Checked 2026-10-26: nothing to re-baseline. The benchmark CSVs record
+      time only (`pandas_s`, `polars_s`, `duckdb_s`, `pyarrow_s`), and no script,
+      report or README contains a memory, RSS or tracemalloc figure or uses the
+      `gc` module. Add memory measurements deliberately if wanted, and label
+      the GC in use
 - [x] `importlib.metadata.metadata()` now raises `MetadataNotFound` for a
       metadata directory with no metadata file. Confirmed on 3.15.1 (2026-10-26):
       `MetadataNotFound` subclasses `FileNotFoundError`, NOT `PackageNotFoundError`,
