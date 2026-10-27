@@ -51,7 +51,12 @@
       `object_pairs_hook=frozendict` (json now accepts it)
 
 ### Profiling package (PEP 799)
-- [ ] Add a Tachyon (`profiling.sampling`) run to the benchmark scripts
+- [x] Add a Tachyon (`profiling.sampling`) run to the benchmark scripts
+      Done 2026-10-26: Tachyon is CLI-only (no Python API), so
+      `scripts/profile_with_tachyon.py` wraps `python -m profiling.sampling run`
+      and leaves the benchmarks unchanged. Output goes to `outputs/profiles/`
+      (gitignored). Unit-tested without the profiler (`tests/test_profile_with_tachyon.py`).
+      NOT YET RUN on 3.15.1: macOS may need root or the debugger entitlement
 - [x] `profile` module is deprecated, removal in 3.17; confirmed 2026-10-26
       that no script, tool or test imports it
 
@@ -126,9 +131,13 @@
 - [x] `python -m pytest -q` (177 passed on Python 3.15.1, commit a1a2fea, 2026-10-26)
 
 ### Generation order and guards
-- [ ] `generate_report.py` refuses to label a report with a release the
-      running interpreter is not. Rebuild `.venv` first, then reinstall
-      dependencies (`colorlog` included) before generating
+- [x] `generate_report.py` refuses to label a report with a release the
+      running interpreter is not. Guard tested 2026-10-26
+      (`tests/test_release_runtime_guard.py`: mismatch exits 1 before any probe
+      or write; override warns the report is not a validation; confirmed the
+      tests fail if the guard is disabled). For every future cycle:
+      rebuild `.venv` first, then reinstall dependencies (`colorlog`
+      included) before generating
 - [ ] Run `tools/sync_readiness.py` after report generation so the manifest
       and Markdown readiness markers are synchronized
 - [x] `generate_report.py` and `tools/sync_readiness.py` use the same readiness
