@@ -67,6 +67,7 @@ init_log() {
 # log LEVEL COLOR message...
 log() {
   local level="$1" color="$2"; shift 2
+  local IFS=' '  # "$*"/"${a[*]}" join with IFS's first char; the global IFS starts with a newline
   printf '%s[%-4s]%s %s\n' "${color}" "${level}" "${C_RESET}" "$*"
   if [[ -n "${LOG_FILE}" ]]; then
     printf '[%-4s] %s\n' "${level}" "$*" >>"${LOG_FILE}" 2>/dev/null || true
@@ -133,6 +134,7 @@ done
 # run_step "Label" script_name -- echoes the command, runs it, tees to the log.
 run_step() {
   local label="$1" script="$2"
+  local IFS=' '  # "$*"/"${a[*]}" join with IFS's first char; the global IFS starts with a newline
   local cmd=("${PY}" "airflow_tests/${script}.py")
   # `|| return 1` is deliberate: bash disables set -e inside a function that
   # is called from `if !`, so without it a failing step would fall through to

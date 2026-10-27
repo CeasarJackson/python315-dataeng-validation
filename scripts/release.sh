@@ -60,22 +60,27 @@ else
 fi
 
 log() {
+  local IFS=' '  # "$*"/"${a[*]}" join with IFS's first char; the global IFS starts with a newline
   printf "%b\n" "$*"
 }
 
 info() {
+  local IFS=' '  # "$*"/"${a[*]}" join with IFS's first char; the global IFS starts with a newline
   log "${BLUE}INFO:${NC} $*"
 }
 
 ok() {
+  local IFS=' '  # "$*"/"${a[*]}" join with IFS's first char; the global IFS starts with a newline
   log "${GREEN}OK:${NC} $*"
 }
 
 warn() {
+  local IFS=' '  # "$*"/"${a[*]}" join with IFS's first char; the global IFS starts with a newline
   log "${YELLOW}WARN:${NC} $*"
 }
 
 err() {
+  local IFS=' '  # "$*"/"${a[*]}" join with IFS's first char; the global IFS starts with a newline
   log "${RED}ERROR:${NC} $*" >&2
 }
 
@@ -108,6 +113,7 @@ USAGE
 }
 
 run() {
+  local IFS=' '  # "$*"/"${a[*]}" join with IFS's first char; the global IFS starts with a newline
   if [[ "${DRY_RUN}" -eq 1 ]]; then
     info "DRY_RUN: $*"
   else
@@ -287,8 +293,13 @@ build_archive() {
     )
   fi
 
-  ok "Archive built: ${archive_path}"
-  ok "Checksum built: ${checksum_path}"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    info "DRY_RUN: Archive would be built: ${archive_path}"
+    info "DRY_RUN: Checksum would be written: ${checksum_path}"
+  else
+    ok "Archive built: ${archive_path}"
+    ok "Checksum built: ${checksum_path}"
+  fi
 }
 
 print_next_steps() {
@@ -296,7 +307,11 @@ print_next_steps() {
   local notes_file="RELEASE_NOTES_${VERSION}.md"
 
   log "${GREEN}====================================================${NC}"
-  log "${GREEN}Release Build Complete${NC}"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    log "${YELLOW}Release Dry Run Complete - no artifacts created${NC}"
+  else
+    log "${GREEN}Release Build Complete${NC}"
+  fi
   log "${GREEN}====================================================${NC}"
   log "Version : ${VERSION}"
   log "Archive : ${RELEASE_DIR}/${archive_name}"

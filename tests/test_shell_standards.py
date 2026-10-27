@@ -144,6 +144,11 @@ def test_runner_dry_run_executes_nothing(script: Path, tmp_path: Path) -> None:
     assert result.returncode == 0, result.stdout + result.stderr
     assert not marker.exists(), "DRY_RUN=1 must not execute any step"
     assert "DRY RUN COMPLETE" in result.stdout
+    # Each echoed command must be ONE line. With IFS=$'\n\t', "${cmd[*]}" joins
+    # words with a newline unless the function resets IFS locally.
+    echoed = [ln for ln in result.stdout.splitlines() if ln.startswith("+ ")]
+    assert echoed, "runner must echo each command"
+    assert all(ln.endswith(".py") for ln in echoed), echoed
 
 
 @needs_bash

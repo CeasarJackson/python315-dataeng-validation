@@ -66,6 +66,7 @@ log() {
 }
 
 fail() {
+    local IFS=' '  # "$*"/"${a[*]}" join with IFS's first char; the global IFS starts with a newline
     log "${RED}ERROR:${NC} $*"
     exit 1
 }
