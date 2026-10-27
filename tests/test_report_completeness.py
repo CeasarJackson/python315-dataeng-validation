@@ -37,6 +37,7 @@ EXTENDED_REPORTS = [
     REPORTS_DIR / "3.15.0b2",
     REPORTS_DIR / "3.15.0",
     REPORTS_DIR / "3.15.1",
+    REPORTS_DIR / "3.15.2",
 ]
 
 EXTENDED_FILES = [

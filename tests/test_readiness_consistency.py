@@ -25,6 +25,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 REPORT_DIR = PROJECT_ROOT / "reports" / "3.15.1"
 
@@ -123,3 +125,55 @@ def test_pdf_exists() -> None:
 def test_pdf_not_empty() -> None:
     """PDF should not be empty."""
     assert PDF_REPORT.stat().st_size > 0
+
+
+# ---------------------------------------------------------------------------
+# Releases that follow the baseline -> evidence -> reconciled -> sync flow.
+# The checks above stay pinned to 3.15.1 because that release is published
+# with every artifact, including readiness_matrix.json and the PDF. 3.15.2
+# does not carry those two yet, so asserting them there would fail for a
+# reason unrelated to consistency. The checks below cover what 3.15.2 does
+# have, and the parametrization makes adding 3.15.3 a one-line change.
+# ---------------------------------------------------------------------------
+RECONCILED_RELEASES = ["3.15.1", "3.15.2"]
+READINESS_DOCS = [
+    "readiness_matrix.md",
+    "executive_summary.md",
+    "full_readiness_assessment.md",
+]
+
+
+def _load_release_manifest(release: str) -> dict:
+    path = PROJECT_ROOT / "reports" / release / "manifest.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("release", RECONCILED_RELEASES)
+def test_release_manifest_counts_are_consistent(release: str) -> None:
+    """Counters must sum to packages_tested for every reconciled release."""
+    manifest = _load_release_manifest(release)
+
+    total = sum(
+        manifest[key]
+        for key in (
+            "packages_pass",
+            "packages_fail",
+            "packages_incompat",
+            "packages_blocked",
+            "packages_skip",
+        )
+    )
+
+    assert total == manifest["packages_tested"], release
+
+
+@pytest.mark.parametrize("release", RECONCILED_RELEASES)
+@pytest.mark.parametrize("filename", READINESS_DOCS)
+def test_release_docs_state_manifest_readiness(release: str, filename: str) -> None:
+    """Each readiness document must carry the manifest's exact percentage."""
+    manifest = _load_release_manifest(release)
+    expected = f"Production Readiness: {manifest['production_readiness_pct']}%"
+
+    text = (PROJECT_ROOT / "reports" / release / filename).read_text(encoding="utf-8")
+
+    assert expected in text, f"{release}/{filename} lacks '{expected}'"
