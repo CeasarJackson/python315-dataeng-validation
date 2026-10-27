@@ -1,0 +1,102 @@
+{
+  "project": "Python 3.15 Data Engineering Validation Suite",
+  "release": "3.15.2",
+  "release_type": "ga",
+  "test_date": "2026-10-27",
+  "platform": "macOS 27.0.1 ARM64",
+  "python_build": "cpython-3.15.2-macos-arm64-none",
+  "python_runtime": "3.15.2",
+  "package_manager": "uv",
+  "docker_image": "pyarrow-dataeng:py3152",
+  "tester": "Dr. Ceasar Jackson Jr.",
+  "suite_version": "1.2.0",
+  "packages_tested": 17,
+  "packages_pass": 11,
+  "packages_incompat": 0,
+  "packages_blocked": 1,
+  "packages_skip": 4,
+  "packages_fail": 1,
+  "environment_consistent": true,
+  "dependency_check": {
+    "status": "PASS",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "Using Python 3.15.2 environment at: .venv3152\nChecked 30 packages in 0.91ms\nAll installed packages are compatible\n",
+    "error": null
+  },
+  "constraint_violations": [],
+  "results": {
+    "numpy": {
+      "status": "PASS",
+      "version": "2.5.4"
+    },
+    "pandas": {
+      "status": "PASS",
+      "version": "3.1.0"
+    },
+    "polars": {
+      "status": "PASS",
+      "version": "1.41.2"
+    },
+    "duckdb": {
+      "status": "PASS",
+      "version": "2.0.0"
+    },
+    "sqlalchemy": {
+      "status": "PASS",
+      "version": "2.0.50"
+    },
+    "pydantic": {
+      "status": "PASS",
+      "version": "2.14.1"
+    },
+    "matplotlib": {
+      "status": "PASS",
+      "version": "3.11.2"
+    },
+    "plotly": {
+      "status": "PASS",
+      "version": "6.7.0"
+    },
+    "jupyterlab": {
+      "status": "FAIL",
+      "version": "not installed"
+    },
+    "sqlite3": {
+      "status": "PASS",
+      "version": "3.54.1"
+    },
+    "pyarrow": {
+      "status": "PASS",
+      "version": "26.0.0"
+    },
+    "dask.dataframe": {
+      "status": "SKIP",
+      "version": "not installed"
+    },
+    "prefect": {
+      "status": "SKIP",
+      "version": "not installed"
+    },
+    "mlflow": {
+      "status": "SKIP",
+      "version": "not installed"
+    },
+    "ray": {
+      "status": "BLOCKED",
+      "version": "unavailable",
+      "reason": "no cp315 wheels on PyPI"
+    },
+    "pyspark": {
+      "status": "PASS",
+      "version": "4.2.0",
+      "note": "via Docker image pyarrow-dataeng:py3152 (Python 3.15.2) + OpenJDK 21"
+    },
+    "apache-airflow": {
+      "status": "SKIP",
+      "version": "not installed",
+      "reason": "not installed"
+    }
+  },
+  "production_readiness_pct": 88
+}
