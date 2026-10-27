@@ -504,7 +504,7 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
         import tempfile
 
         _spark_script = (
-            "import json, pyspark\n"
+            "import json, sys, pyspark\n"
             "from pyspark.sql import SparkSession\n"
             "spark = SparkSession.builder.master('local[1]')"
             ".appName('report').config('spark.ui.enabled','false')"
@@ -513,7 +513,8 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
             "df = spark.createDataFrame([(1,'ok')],['id','s'])\n"
             "assert df.count()==1\n"
             "spark.stop()\n"
-            "print(json.dumps({'status':'pass','version':pyspark.__version__}))\n"
+            "print(json.dumps({'status':'pass','version':pyspark.__version__,"
+            "'python':sys.version.split()[0]}))\n"
         )
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".py", delete=False, prefix="spark_probe_"
@@ -548,20 +549,45 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
             payload = json.loads(
                 [line for line in out.splitlines() if line.strip()][-1]
             )
-            if rc == 0 and payload.get("status") == "pass":
+            expected_python = (
+                "3.15.1" if docker_image == "pyarrow-dataeng:py315" else None
+            )
+            version_matches = (
+                expected_python is None or payload.get("python") == expected_python
+            )
+            if rc == 0 and payload.get("status") == "pass" and version_matches:
                 results["pyspark"] = {
                     "status": "PASS",
                     "version": payload["version"],
-                    "note": "via Docker py314 + OpenJDK 21",
+                    # Record the container's own interpreter and image: the
+                    # host Python says nothing about what ran inside Docker.
+                    "note": (
+                        f"via Docker image {docker_image} "
+                        f"(Python {payload.get('python', 'unknown')}) + OpenJDK 21"
+                    ),
                 }
-                _log_result("pyspark", "PASS", f"{payload['version']} via Docker")
+                _log_result(
+                    "pyspark",
+                    "PASS",
+                    f"{payload['version']} via Docker (Python "
+                    f"{payload.get('python', 'unknown')})",
+                )
             else:
+                # Say WHY: a probe that passed on the wrong interpreter must not
+                # read as a generic failure.
+                if rc == 0 and payload.get("status") == "pass":
+                    reason = (
+                        f"Docker image {docker_image} ran Python "
+                        f"{payload.get('python', 'unknown')}, expected {expected_python}"
+                    )
+                else:
+                    reason = "Docker test failed"
                 results["pyspark"] = {
                     "status": "FAIL",
                     "version": "unknown",
-                    "reason": "Docker test failed",
+                    "reason": reason,
                 }
-                _log_result("pyspark", "FAIL")
+                _log_result("pyspark", "FAIL", reason)
         except Exception:  # noqa: BLE001
             results["pyspark"] = {
                 "status": "INCOMPAT",

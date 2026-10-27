@@ -56,10 +56,10 @@ def _is_installed(package: str) -> bool:
 
 
 def test_pyspark() -> str:
-    """Test PySpark via the pyarrow-dataeng:py314 Docker container.
+    """Test PySpark via a Docker container (default pyarrow-dataeng:py314).
 
-    PySpark requires JDK 17 which is not on the Python 3.15 host. The Docker
-    image includes OpenJDK 17 and PySpark, so validation runs inside the
+    PySpark requires a JDK which is not on the Python 3.15 host. The Docker
+    image includes OpenJDK 21 and PySpark, so validation runs inside the
     container and returns results via JSON stdout — the same pattern used by
     the Phase 7 DuckDB/PyArrow benchmark.
 
@@ -75,7 +75,9 @@ def test_pyspark() -> str:
     import json as _json  # noqa: PLC0415
     import subprocess  # noqa: PLC0415
 
-    DOCKER_IMAGE = "pyarrow-dataeng:py314"
+    # DATAENG_DOCKER_IMAGE selects the image, for example pyarrow-dataeng:py315
+    # (docker/pyarrow_lab_py315), which runs Python 3.15.1 instead of 3.14.x.
+    DOCKER_IMAGE = os.environ.get("DATAENG_DOCKER_IMAGE", "pyarrow-dataeng:py314")
 
     try:
         check = subprocess.run(
@@ -87,7 +89,8 @@ def test_pyspark() -> str:
         if check.returncode != 0:
             log.warning(
                 "[SKIP] pyspark — Docker image %s not found. "
-                "Build with: cd docker_pyarrow_lab && docker build -t %s .",
+                "Build from docker/pyarrow_lab_py315 (py315) or docker_pyarrow_lab "
+                "(py314): docker build -t %s <dir>",
                 DOCKER_IMAGE,
                 DOCKER_IMAGE,
             )
@@ -162,18 +165,31 @@ except Exception as exc:
             )
             return FAIL
         payload = _json.loads(lines[-1])
-        if payload.get("status") == "pass":
+        expected_python = "3.15.1" if DOCKER_IMAGE == "pyarrow-dataeng:py315" else None
+        version_matches = (
+            expected_python is None or payload.get("python_version") == expected_python
+        )
+        if payload.get("status") == "pass" and version_matches:
             log.info(
-                "[PASS] pyspark %s (Python %s in Docker py314) — "
+                "[PASS] pyspark %s (Python %s in Docker %s) — "
                 "rows=%d  agg_groups=%d  filtered=%d  sql_products=%d",
                 payload["pyspark_version"],
                 payload["python_version"],
+                DOCKER_IMAGE,
                 payload["rows"],
                 payload["agg_groups"],
                 payload["filtered"],
                 payload["sql_products"],
             )
             return PASS
+        elif payload.get("status") == "pass":
+            log.error(
+                "[FAIL] pyspark — image %s ran Python %s, expected %s",
+                DOCKER_IMAGE,
+                payload.get("python_version"),
+                expected_python,
+            )
+            return FAIL
         else:
             log.error("[FAIL] pyspark — error in container: %s", payload.get("error"))
             return FAIL

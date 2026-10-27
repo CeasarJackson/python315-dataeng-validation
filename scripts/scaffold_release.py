@@ -170,7 +170,8 @@ def checklist_text(release: str, previous: str | None) -> str:
 - [ ] Re-check PyPI for `cp315` wheels of the BLOCKED packages (pyarrow, ray)
 - [ ] Free-threaded wheels are separate (`cp315t`); `abi3t` is not yet
       supported by common build backends per the changelog
-- [ ] Re-run the Docker PySpark probe; the image tag is still `py314`
+- [ ] Re-run the Docker PySpark probe with an image that runs the release's own
+      Python (docker/pyarrow_lab_py315 for 3.15.x); py314 tests Python 3.14
 
 ## 3. VERIFY before publishing
 

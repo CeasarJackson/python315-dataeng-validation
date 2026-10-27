@@ -114,7 +114,15 @@
       cp315t (its abi3 wheels do not cover free-threaded builds); ray has none.
       Availability only: no free-threaded build was run, and nothing here claims
       free-threaded support
-- [ ] Re-run the Docker PySpark probe; the image tag is still `py314`
+- [x] Re-run the Docker PySpark probe; the old `py314` image ran Python 3.14.5,
+      so it never tested 3.15.1. Built `pyarrow-dataeng:py315`
+      (docker/pyarrow_lab_py315, python:3.15.1-slim, linux/arm64, OpenJDK 21).
+      Build-time smoke test: Python 3.15.1, PySpark 4.2.0, PyArrow 26.0.0, a
+      Python UDF ran on a worker with the same interpreter as the driver.
+      `validate_extended.py` with DATAENG_DOCKER_IMAGE=pyarrow-dataeng:py315:
+      PySpark PASS (Python 3.15.1 in Docker). PySpark warns that it does not yet
+      fully support pandas >= 3.0 (pandas 3.1.0 installed); worked in this probe
+      but is a compatibility risk. `evidence.json` is NOT changed by this item
 
 ## 3. VERIFY before publishing
 
