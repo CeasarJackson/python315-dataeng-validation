@@ -89,17 +89,17 @@ Generated artifacts include:
 
 Current Readiness Assessment:
 
-- PASS: 13
+- PASS: 15
 - FAIL: 0
-- INCOMPAT: 1
-- BLOCKED: 1
-- SKIP: 2
-- (3.15.0 manifest, 17 packages tested)
+- INCOMPAT: 0
+- BLOCKED: 2 (MLflow, Ray; both upstream)
+- SKIP: 0
+- (3.15.1 manifest, 17 packages tested; PROVISIONAL)
 
-- Automated Tests: 105/105 PASS
-- Production Readiness: 92% (91% excluding the Docker-sourced PySpark result)
+- Automated Tests: 299 passed, 1 skipped (opt-in Docker integration test)
+- Production Readiness: 94% (PROVISIONAL; formula and evidence in `reports/3.15.1/`)
 - Latest: Python 3.15.1 validation (unreleased, PROVISIONAL): 94% readiness, 15 PASS and 2 BLOCKED (MLflow, Ray; both upstream), 0 FAIL; evidence and reproducible ingestion in `reports/3.15.1/`.
-- Current Release: v1.10.0
+- Current Release: v2.1.0
 - Validation Frameworks: 9
 - Repository Status: Fully Validated
 
@@ -146,11 +146,11 @@ Objectives include:
 
 | Metric | Value |
 |----------|----------|
-| Current Release | v1.10.0 |
-| Python Version | 3.15.0 (GA) |
-| Automated Tests | 105/105 PASS |
-| Compatibility Score | 92% |
-| Production Readiness | 92% |
+| Current Release | v2.1.0 |
+| Python Version | 3.15.1 |
+| Automated Tests | 299 passed, 1 skipped |
+| Compatibility Score | 94% (PROVISIONAL) |
+| Production Readiness | 94% (PROVISIONAL) |
 | Validation Suites | 9 |
 
 ---
@@ -331,13 +331,13 @@ logs/              Validation and benchmark logs
 
 ## Executive Assessment
 
-Current readiness stands at 92% on Python 3.15.0 GA with 105/105 automated tests passing.
+Current readiness stands at 94% (PROVISIONAL) on Python 3.15.1 with 299 automated tests passing and 1 opt-in Docker integration test skipped.
 
-Latest: Python 3.15.1 validation (unreleased, PROVISIONAL): 94% readiness, 15 PASS and 2 BLOCKED (MLflow, Ray; both upstream), 0 FAIL; evidence and reproducible ingestion in `reports/3.15.1/`. The 92% figure above describes the shipped v1.10.0 baseline.
+Python 3.15.1 validation (PROVISIONAL): 94% readiness, 15 PASS and 2 BLOCKED (MLflow, Ray; both upstream), 0 FAIL; evidence and reproducible ingestion in `reports/3.15.1/`. The earlier 92% figure was the Python 3.15.0 result shipped in v1.10.0; the 3.15.1 baseline run scored 17% before the environment was reconciled (`manifest.baseline.json`).
 
-All validation suites, report integrity checks, manifest validation checks, release history verification, repository standards validation, and readiness synchronization tests are passing successfully (105/105 on Python 3.15.0).
+All validation suites, report integrity checks, manifest validation checks, release history verification, repository standards validation, and readiness synchronization tests are passing successfully (299 passed, 1 skipped, on Python 3.15.1).
 
-Remaining compatibility concerns are isolated to external ecosystem dependencies including Ray (no cp315 wheel) and Prefect (declared support ends at Python 3.14).
+Remaining compatibility concerns are isolated to external ecosystem dependencies: MLflow and Ray are BLOCKED upstream, and the Prefect declared-support issue (PRE-001) is tracked in `docs/KNOWN_ISSUES.md`.
 
 The platform now includes:
 - Automated readiness synchronization
