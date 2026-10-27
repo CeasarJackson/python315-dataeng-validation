@@ -24,12 +24,19 @@ satisfy the request with a ``py3-none-any`` pure-Python wheel or a
 3.15. Reading only pip's exit status therefore produces false positives — a
 pure-Python package looks like it "has a cp315 wheel" when it has no compiled
 artifact at all. We parse the returned filename and classify it into one of
-four kinds so the distinction survives into the report:
+five kinds so the distinction survives into the report:
 
     native   cp315-cp315-<platform>   purpose-built for 3.15, the real signal
     abi3     cpXX-abi3-<platform>     stable ABI, forward-compatible, fine
     pure     py3-none-any             no compiled code, platform-irrelevant
+    sdist    source distribution only no wheel, but pip can install from source
     none     nothing resolved         genuinely blocked
+
+``sdist`` exists because pip is run with ``--only-binary=:all:``, which makes a
+package that publishes only a source tarball (PySpark does) look blocked even
+though ``pip install`` works. Such a package is reported as a warning, not a
+blocker: whether it builds on 3.15 is a question for an install test, not for
+a wheel check.
 
 Only ``none`` is a blocker. Only ``native`` proves upstream has cut 3.15
 builds. Conflating the middle two is what makes casual wheel checks wrong.
@@ -50,8 +57,9 @@ Usage
 
 Exit Codes
 ----------
-0   Every requested package resolved to some installable wheel.
-1   At least one package has no installable wheel for the target.
+0   No package is blocked. Every package resolved to a wheel or, as a warning,
+    is published as a source distribution only.
+1   At least one package has neither an installable wheel nor an sdist.
 2   Invalid command-line usage.
 3   Probe tooling failure: pip is missing from the running interpreter or the
     index could not be reached, so no wheel verdict was reached.
@@ -79,6 +87,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.error
+import urllib.request
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -100,7 +110,11 @@ log = get_logger(__name__)
 NATIVE = "native"  # cp315-cp315 — upstream cut a 3.15-specific build
 ABI3 = "abi3"  # stable ABI — installable on 3.15, built against an older cp
 PURE = "pure"  # py3-none-any — no compiled extension at all
+SDIST = "sdist"  # no wheel, but an sdist exists — pip can build/install from source
 NONE = "none"  # nothing resolved — this is the blocker state
+
+# Public JSON API used only to tell "sdist only" apart from "nothing published".
+_PYPI_JSON_URL = "https://pypi.org/pypi/{package}/json"
 
 # The June assessment's blocker set, plus the core stack it depends on. Kept
 # here rather than in a config file so the script is self-contained when
@@ -167,6 +181,22 @@ class ProbeResult:
     @property
     def blocked(self) -> bool:
         return self.kind == NONE
+
+
+def _has_sdist(package: str) -> bool:
+    """Return True when PyPI lists a source distribution for *package*.
+
+    Called only after the wheel sweep found nothing. A network or parse failure
+    raises ``ProbeError``: guessing "no sdist" would turn a tooling problem into
+    a BLOCKED finding, which is the failure mode this script is built to avoid.
+    """
+    url = _PYPI_JSON_URL.format(package=package)
+    try:
+        with urllib.request.urlopen(url, timeout=30) as response:  # noqa: S310
+            payload = json.loads(response.read().decode("utf-8"))
+    except (OSError, ValueError, urllib.error.URLError) as exc:
+        raise ProbeError(f"cannot query {url} for an sdist: {exc}") from exc
+    return any(f.get("packagetype") == "sdist" for f in payload.get("urls", []))
 
 
 def _classify(wheel_name: str, abi: str) -> str:
@@ -270,6 +300,9 @@ def probe(
             if wheel:
                 kind = _classify(wheel, abi)
                 return ProbeResult(package, kind, wheel, platform)
+        # No wheel for the target. Distinguish "source only" from "nothing".
+        if _has_sdist(package):
+            return ProbeResult(package, SDIST, None, None)
         return ProbeResult(package, NONE, None, None)
     finally:
         shutil.rmtree(dest, ignore_errors=True)
@@ -292,6 +325,12 @@ def _report(result: ProbeResult) -> None:
             "[PASS] %-16s pure-Python wheel, no compiled extension — %s",
             result.package,
             result.wheel,
+        )
+    elif result.kind == SDIST:
+        log.warning(
+            "[WARN] %-16s no wheel; published as a source distribution only. "
+            "pip builds it from source, so verify with an install test",
+            result.package,
         )
     else:
         log.error(
@@ -379,15 +418,19 @@ def main(argv: list[str] | None = None) -> int:
 
     blocked = [r.package for r in results if r.blocked]
     native = [r.package for r in results if r.kind == NATIVE]
+    sdist_only = [r.package for r in results if r.kind == SDIST]
 
     log.info("-" * 70)
     log.info(
-        "Summary: %d probed | %d native %s | %d blocked",
+        "Summary: %d probed | %d native %s | %d sdist-only | %d blocked",
         len(results),
         len(native),
         args.abi,
+        len(sdist_only),
         len(blocked),
     )
+    if sdist_only:
+        log.warning("Source-only (not blocked): %s", ", ".join(sdist_only))
     if blocked:
         log.error("Blocked: %s", ", ".join(blocked))
 

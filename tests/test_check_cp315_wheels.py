@@ -53,6 +53,9 @@ def load_checker(monkeypatch, tmp_path) -> ModuleType:
     # so the module must be registered before it executes.
     monkeypatch.setitem(sys.modules, name, module)
     spec.loader.exec_module(module)
+    # Never touch the network from tests: default to "no sdist published".
+    module._real_has_sdist = module._has_sdist
+    monkeypatch.setattr(module, "_has_sdist", lambda package: False)
     return module
 
 
@@ -157,3 +160,41 @@ def test_main_exit_codes_for_blocked_and_clean(monkeypatch, tmp_path) -> None:
 
     monkeypatch.setattr(checker.subprocess, "run", fake_run)
     assert checker.main(["--packages", "ray", "--platforms", "macosx_11_0_arm64"]) == 1
+
+
+def test_source_only_package_is_a_warning_not_a_blocker(monkeypatch, tmp_path) -> None:
+    checker = load_checker(monkeypatch, tmp_path)
+    miss = completed(1, stderr="ERROR: No matching distribution found for pyspark")
+    monkeypatch.setattr(checker.subprocess, "run", lambda *a, **k: miss)
+    monkeypatch.setattr(checker, "_has_sdist", lambda package: True)
+    result = checker.probe("pyspark", ["macosx_11_0_arm64"], "3.15", "cp315")
+    assert result.kind == checker.SDIST
+    assert not result.blocked
+
+
+def test_main_exits_0_when_only_sdist_only_packages_lack_wheels(
+    monkeypatch, tmp_path
+) -> None:
+    checker = load_checker(monkeypatch, tmp_path)
+
+    def fake_run(cmd, *args, **kwargs):
+        if "--version" in cmd:
+            return completed(stdout="pip 26.2.2")
+        return completed(1, stderr="ERROR: No matching distribution found for pyspark")
+
+    monkeypatch.setattr(checker.subprocess, "run", fake_run)
+    monkeypatch.setattr(checker, "_has_sdist", lambda package: True)
+    argv = ["--packages", "pyspark", "--platforms", "macosx_11_0_arm64"]
+    assert checker.main(argv) == 0
+
+
+def test_sdist_lookup_failure_is_an_error_not_a_blocker(monkeypatch, tmp_path) -> None:
+    checker = load_checker(monkeypatch, tmp_path)
+
+    def boom(*args, **kwargs):
+        raise OSError("network down")
+
+    monkeypatch.setattr(checker, "_has_sdist", checker._real_has_sdist)
+    monkeypatch.setattr(checker.urllib.request, "urlopen", boom)
+    with pytest.raises(checker.ProbeError):
+        checker._has_sdist("pyspark")
