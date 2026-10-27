@@ -59,7 +59,13 @@
       First run on 3.15.1 (2026-10-26, commit 4295bb0): Tachyon refused without
       elevated permission (macOS), so `run` needs root or the debugger
       entitlement, not just `attach`. The wrapper exited 1 and reported it.
-      No profile has been captured yet; run it with `sudo -E` to get one
+      Under sudo the run works: two flame graphs captured (about 0.8 MB each,
+      60 s at 1 kHz). Side effect found and fixed: the benchmark rewrites its
+      own results CSV on every run, so those profiled runs overwrote
+      `data/benchmark_pandas_polars.csv` with overhead-inflated timings. The
+      wrapper now runs the target in a scratch directory with
+      `BENCHMARK_OUTPUT_DIR` set (`tests/test_benchmark_output_dir.py`).
+      Restore the CSV with `git restore` before committing data/
 - [x] `profile` module is deprecated, removal in 3.17; confirmed 2026-10-26
       that no script, tool or test imports it
 
@@ -86,8 +92,13 @@
       `validate_dataeng_stack.py`; tests in `tests/test_get_version_metadata.py`
 - [x] `.pth` `import` lines are silently deprecated in favour of `.start`
       files (PEP 829); checked 2026-10-26: `.venv3151` contains no `.pth` files
-- [ ] Frame pointers are on by default (PEP 831); expect small build/perf
+- [x] Frame pointers are on by default (PEP 831); expect small build/perf
       differences versus rc builds if they were compiled differently
+      Checked 2026-10-26 on the Homebrew 3.15.1 build used here: CFLAGS has
+      `-fno-omit-frame-pointer -mno-omit-leaf-frame-pointer`; configured with
+      `--enable-optimizations --with-lto --with-tail-call-interp --with-dtrace`.
+      Not compared with an rc build (no rc benchmark numbers are kept). Treat
+      benchmark timings from different builds as not comparable
 
 ### Packaging / ABI
 - [ ] Re-check PyPI for `cp315` wheels of the BLOCKED packages (pyarrow, ray)

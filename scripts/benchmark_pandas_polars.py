@@ -12,6 +12,7 @@ python -m py_compile benchmark_pandas_polars.py
 from __future__ import annotations
 
 import csv
+import os
 import random
 import statistics
 import sys
@@ -35,8 +36,16 @@ SIZES: list[int] = [100_000, 1_000_000, 5_000_000]
 RUNS: int = 3  # Median over this many runs per operation
 
 CATEGORIES = ["alpha", "beta", "gamma", "delta", "epsilon"]
+# BENCHMARK_OUTPUT_DIR redirects the results file. scripts/profile_with_tachyon.py
+# sets it so a profiled run (whose timings include sampling overhead) can never
+# overwrite the committed results in data/. Unset, behavior is unchanged.
 OUTPUT_CSV = (
-    Path(__file__).resolve().parent.parent / "data" / "benchmark_pandas_polars.csv"
+    Path(
+        os.environ.get(
+            "BENCHMARK_OUTPUT_DIR", Path(__file__).resolve().parent.parent / "data"
+        )
+    )
+    / "benchmark_pandas_polars.csv"
 )
 
 
@@ -256,8 +265,12 @@ def main() -> int:
     # ------------------------------------------------------------------
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     with OUTPUT_CSV.open("w", newline="", encoding="utf-8") as f:
+        # lineterminator="\n": csv defaults to CRLF, which made every run show
+        # up as a whole-file diff against the LF file committed in git.
         writer = csv.DictWriter(
-            f, fieldnames=["size", "operation", "pandas_s", "polars_s", "speedup_x"]
+            f,
+            fieldnames=["size", "operation", "pandas_s", "polars_s", "speedup_x"],
+            lineterminator="\n",
         )
         writer.writeheader()
         writer.writerows(all_rows)

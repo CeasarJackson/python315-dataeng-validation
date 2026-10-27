@@ -18,6 +18,12 @@ benchmark files stay unchanged, so their timing numbers are never affected by
 profiling code. The profiler samples from a separate process, which is also why
 profiled timings must not be compared with the unprofiled benchmark numbers.
 
+Because of that overhead, a profiled run must never overwrite real results. The
+benchmark writes its CSV on every run, so the target is started in a scratch
+directory next to the profile and told, through BENCHMARK_OUTPUT_DIR, to write
+its results there. (The first real run, before this was added, overwrote the
+committed data/benchmark_pandas_polars.csv with overhead-inflated timings.)
+
 Compatibility decisions
 -----------------------
 * Tachyon exists only on 3.15+. On older interpreters the script stops with
@@ -72,6 +78,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import os
 import re
 import subprocess
 import sys
@@ -133,6 +140,11 @@ def tachyon_available() -> tuple[bool, str]:
 def build_output_path(target: Path, fmt: str, output_dir: Path, stamp: str) -> Path:
     """Timestamped output path, so repeated runs never collide."""
     return output_dir / f"{target.stem}_{stamp}{FORMATS[fmt][1]}"
+
+
+def build_run_dir(target: Path, output_dir: Path, stamp: str) -> Path:
+    """Scratch directory that receives the target's own output files."""
+    return output_dir / f"{target.stem}_{stamp}_run"
 
 
 def build_command(
@@ -202,12 +214,14 @@ def main(argv: list[str] | None = None) -> int:
     cmd = build_command(
         target, args.format, args.rate, args.duration, output, args.extra
     )
+    run_dir = build_run_dir(target, args.output_dir, stamp)
 
     if args.dry_run:
         # Dry run reports the plan even on interpreters without Tachyon, so the
         # command can be reviewed anywhere.
         log.info("Dry run: would run: %s", " ".join(cmd))
         log.info("Dry run: would write %s. Nothing was executed.", output)
+        log.info("Dry run: target output would go to %s, not data/.", run_dir)
         return 0
 
     available, reason = tachyon_available()
@@ -221,9 +235,9 @@ def main(argv: list[str] | None = None) -> int:
         log.error("[FAIL] Refusing to overwrite existing profile %s", output)
         return 2
     try:
-        args.output_dir.mkdir(parents=True, exist_ok=True)
+        run_dir.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
-        log.error("[FAIL] Cannot create output directory %s: %s", args.output_dir, exc)
+        log.error("[FAIL] Cannot create output directory %s: %s", run_dir, exc)
         return 2
 
     log.info("Profiling %s with Tachyon (%s, %s)", target.name, args.format, args.rate)
@@ -231,7 +245,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         proc = subprocess.run(
             cmd,
-            cwd=PROJECT_ROOT,
+            # Scratch cwd catches any target that writes relative to the
+            # working directory; the env var covers targets that resolve their
+            # results path from __file__.
+            cwd=run_dir,
+            env={**os.environ, "BENCHMARK_OUTPUT_DIR": str(run_dir)},
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -264,6 +282,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     log.info("[PASS] Profile written: %s (%d bytes)", output, output.stat().st_size)
+    log.info("Target output files (not data/) are in %s", run_dir)
     log.info(
         "Profiled timings include sampling overhead; do not compare them with benchmark CSVs."
     )

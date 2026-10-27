@@ -181,6 +181,25 @@ def test_timeout_exits_1(monkeypatch, tmp_path) -> None:
     assert mod.main(argv(tmp_path, "--timeout", "1")) == 1
 
 
+def test_target_output_is_redirected_away_from_the_repo(monkeypatch, tmp_path) -> None:
+    mod = load_wrapper(monkeypatch, tmp_path)
+    seen = {}
+    monkeypatch.setattr(mod, "tachyon_available", lambda: (True, ""))
+
+    def fake_run(cmd, **kwargs):
+        seen.update(kwargs)
+        Path(cmd[cmd.index("-o") + 1]).write_text("x", encoding="utf-8")
+        return completed()
+
+    monkeypatch.setattr(mod.subprocess, "run", fake_run)
+    assert mod.main(argv(tmp_path)) == 0
+    run_dir = Path(seen["env"]["BENCHMARK_OUTPUT_DIR"])
+    assert run_dir.parent == tmp_path / "profiles"
+    assert run_dir.is_dir()
+    assert Path(seen["cwd"]) == run_dir
+    assert run_dir.is_relative_to(tmp_path)  # nothing lands in the repo
+
+
 def test_arguments_after_double_dash_reach_the_target(monkeypatch, tmp_path) -> None:
     mod = load_wrapper(monkeypatch, tmp_path)
     seen = {}
