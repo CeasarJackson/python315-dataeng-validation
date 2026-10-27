@@ -181,8 +181,13 @@
       tests fail if the guard is disabled). For every future cycle:
       rebuild `.venv` first, then reinstall dependencies (`colorlog`
       included) before generating
-- [ ] Run `tools/sync_readiness.py` after report generation so the manifest
+- [x] Run `tools/sync_readiness.py` after report generation so the manifest
       and Markdown readiness markers are synchronized
+      Verified 2026-10-26 on a scratch copy of `reports/` (not in the repo):
+      the script processed 13 directories and changed 0 of 62 JSON/Markdown
+      files (3.15.1 recomputes to 94%; historical releases unchanged), so it is
+      a no-op on current content and `release.sh` calling it is safe. Re-check
+      after any change to a manifest or readiness marker
 - [x] `generate_report.py` and `tools/sync_readiness.py` use the same readiness
       formula (SKIP excluded from the denominator, BLOCKED 0.50, INCOMPAT 0.25,
       capped at 100%). Verified 2026-10-26 by running both real implementations

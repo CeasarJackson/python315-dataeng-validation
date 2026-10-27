@@ -146,4 +146,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        # 130 = 128 + SIGINT, the shell convention for "stopped by Ctrl-C".
+        # Exit quietly instead of dumping a traceback over the user's terminal.
+        sys.stderr.write("\nInterrupted by user.\n")
+        raise SystemExit(130) from None

@@ -517,7 +517,11 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
             "'python':sys.version.split()[0]}))\n"
         )
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".py", delete=False, prefix="spark_probe_"
+            mode="w",
+            encoding="utf-8",
+            suffix=".py",
+            delete=False,
+            prefix="spark_probe_",
         ) as _f:
             _f.write(_spark_script)
             _tmp = _f.name
@@ -1047,4 +1051,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        # 130 = 128 + SIGINT, the shell convention for "stopped by Ctrl-C".
+        # Exit quietly instead of dumping a traceback over the user's terminal.
+        sys.stderr.write("\nInterrupted by user.\n")
+        raise SystemExit(130) from None

@@ -8,11 +8,15 @@ Author:
     Dr. Ceasar Jackson Jr.
 
 Purpose:
-    TODO: Describe purpose of compare_reports.py
+    Compare two release manifests under reports/ and print the compatibility
+    delta: improvements, regressions, coverage changes (SKIP/PENDING moving to a
+    tested status) and new packages. The report is the program's output, so it
+    goes to stdout rather than through the logger.
 
 Validation:
-    python -m py_compile /Users/ceasarjackson/Projects/python315_test/scripts/compare_reports.py
-    python /Users/ceasarjackson/Projects/python315_test/scripts/compare_reports.py --help
+    python -m py_compile scripts/compare_reports.py
+    python scripts/compare_reports.py --help
+    python scripts/compare_reports.py 3.15.0 3.15.1
 
 ==============================================================================
 """
@@ -20,6 +24,7 @@ Validation:
 #!/usr/bin/env python3
 import argparse
 import json
+import sys
 from pathlib import Path
 
 REPO = Path(__file__).parent.parent
@@ -291,4 +296,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        # 130 = 128 + SIGINT, the shell convention for "stopped by Ctrl-C".
+        # Exit quietly instead of dumping a traceback over the user's terminal.
+        sys.stderr.write("\nInterrupted by user.\n")
+        raise SystemExit(130) from None

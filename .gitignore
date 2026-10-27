@@ -16,6 +16,7 @@ env/
 
 # Logs
 logs/*.log
+logs/**/*.log
 
 # Output Artifacts
 outputs/

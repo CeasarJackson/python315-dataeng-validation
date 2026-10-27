@@ -22,9 +22,20 @@
 #   - This script intentionally builds a zip archive directly from Git HEAD.
 #   - It does not leave exploded release folders under releases/.
 #   - It refuses to run on a dirty tree unless --allow-dirty is supplied.
+#   - --dry-run prints every mutating command instead of running it.
+#
+# Exit Codes:
+#   0    Success (or --help / --dry-run completed).
+#   1    Prerequisite, git-state, validation or build failure.
+#   2    Invalid command-line usage.
+#   130  Interrupted by Ctrl-C (shell convention: 128 + SIGINT).
 # =============================================================================
 
-set -euo pipefail
+# -E: ERR traps reach functions; -u: typos fail loudly; pipefail: a failing
+# stage in `a | tee b` cannot be hidden by tee's success.
+# IFS without a space: an unquoted expansion can never word-split a path.
+set -Eeuo pipefail
+IFS=$'\n\t'
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RELEASE_DIR="${PROJECT_ROOT}/releases"
@@ -36,11 +47,17 @@ DRY_RUN=0
 SKIP_TESTS=0
 PYTHON_BIN="${PYTHON_BIN:-}"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# Color only on a real terminal and when NO_COLOR is unset, so piped output and
+# log files never contain raw escape sequences.
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[1;33m'
+  BLUE='\033[0;34m'
+  NC='\033[0m'
+else
+  RED=''; GREEN=''; YELLOW=''; BLUE=''; NC=''
+fi
 
 log() {
   printf "%b\n" "$*"

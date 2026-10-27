@@ -1,66 +1,187 @@
 #!/usr/bin/env bash
 # =============================================================================
-# SQLite Validation Suite Runner
 # Project : Python 3.15 Data Engineering Validation Suite
 # Author  : Dr. Ceasar Jackson Jr.
-# =============================================================================
+# File    : sqlite_tests/run_sqlite_validation.sh
 #
 # Purpose
 #   Run the full SQLite per-library validation suite against Python 3.15.
-#   Executes all test scripts and the benchmark in sequence, reporting
-#   pass/fail status for each step.
+#   Executes each test script and the benchmark in sequence, stops at the
+#   first failure, and reports PASS/FAIL for every step.
 #
 # Usage
-#   From the repository root:
+#   From any directory (the script moves to the repository root itself):
 #     bash sqlite_tests/run_sqlite_validation.sh
-#
-#   With a custom Python interpreter:
+#     DRY_RUN=1 bash sqlite_tests/run_sqlite_validation.sh   # print, do not run
 #     PYTHON=/path/to/python bash sqlite_tests/run_sqlite_validation.sh
+#   Interpreter order: $PYTHON, then <repo>/.venv/bin/python, then python.
+#   Set NO_COLOR=1 to disable color; color is off automatically when piped.
 #
 # Validation
 #   Runs: test_sqlite_version, test_sqlite_crud, test_sqlite_aggregate, test_sqlite_file_db, benchmark_sqlite
 #
 # Exit Codes
-#   0 all tests pass | 1 one or more tests fail
+#   0   every step passed (or DRY_RUN=1 listed them)
+#   1   a prerequisite is missing or a step failed
+#   2   invalid command-line usage
+#   130 interrupted (Ctrl-C)
 #
+# Log files
+#   logs/sqlite_validation_<YYYYmmdd_HHMMSS>.log (plain text), flat in logs/ to match
+#   the repo logger and the logs/*.log .gitignore rule.
+#   Best-effort: a read-only filesystem downgrades to console-only output.
 # =============================================================================
 
-set -euo pipefail
+# -E so the ERR trap fires inside functions; -u catches typos; pipefail so the
+# `| tee` used for the log file cannot hide a failing step. Without these a
+# failed step could still end in "VALIDATION PASSED".
+set -Eeuo pipefail
+IFS=$'\n\t'
 
-echo
-echo "============================================================"
-echo "SQLITE VALIDATION SUITE"
-echo "============================================================"
-echo
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+SUITE="sqlite_validation"
+DRY_RUN="${DRY_RUN:-0}"
 
-python sqlite_tests/test_sqlite_version.py
+# --- logging ----------------------------------------------------------------
+# Color only on a real terminal and when NO_COLOR is unset; the file sink is
+# always plain text so logs stay greppable.
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+  C_RESET=$'\033[0m'; C_CYAN=$'\033[36m'; C_GREEN=$'\033[32m'
+  C_YELLOW=$'\033[33m'; C_RED=$'\033[31m'
+else
+  C_RESET=""; C_CYAN=""; C_GREEN=""; C_YELLOW=""; C_RED=""
+fi
 
-echo
-echo "✓ Version Validation Complete"
-echo
+LOG_FILE=""
+init_log() {
+  local dir="${PROJECT_ROOT}/logs"
+  local file
+  file="${dir}/${SUITE}_$(date +%Y%m%d_%H%M%S).log"
+  # Best-effort: never let an unwritable logs/ directory abort validation.
+  if mkdir -p -- "${dir}" 2>/dev/null && : >"${file}" 2>/dev/null; then
+    LOG_FILE="${file}"
+  fi
+}
 
-python sqlite_tests/test_sqlite_crud.py
+# log LEVEL COLOR message...
+log() {
+  local level="$1" color="$2"; shift 2
+  printf '%s[%-4s]%s %s\n' "${color}" "${level}" "${C_RESET}" "$*"
+  if [[ -n "${LOG_FILE}" ]]; then
+    printf '[%-4s] %s\n' "${level}" "$*" >>"${LOG_FILE}" 2>/dev/null || true
+  fi
+}
+log_info() { log INFO "${C_CYAN}" "$@"; }
+log_pass() { log PASS "${C_GREEN}" "$@"; }
+log_warn() { log WARN "${C_YELLOW}" "$@"; }
+log_fail() { log FAIL "${C_RED}" "$@" >&2; }
 
-echo
-echo "✓ CRUD Validation Complete"
-echo
+usage() {
+  sed -n '/^# Usage/,/^# Validation/p' "${BASH_SOURCE[0]}" | sed '$d; s/^# \{0,1\}//'
+}
 
-python sqlite_tests/test_sqlite_aggregate.py
+# 130 = 128 + SIGINT, the shell convention for "stopped by Ctrl-C".
+trap 'printf "\n" >&2; log_warn "Interrupted by user."; exit 130' INT
 
-echo
-echo "✓ Aggregation Validation Complete"
-echo
+# --- arguments ----------------------------------------------------------------
+case "${1:-}" in
+  "") ;;
+  -h|--help) usage; exit 0 ;;
+  *) printf 'Unknown argument: %s (this runner takes none; use DRY_RUN=1 or PYTHON=...)\n' "$1" >&2
+     usage >&2; exit 2 ;;
+esac
+if [[ "${DRY_RUN}" != "0" && "${DRY_RUN}" != "1" ]]; then
+  printf 'DRY_RUN must be 0 or 1. Got %q.\n' "${DRY_RUN}" >&2
+  exit 2
+fi
 
-python sqlite_tests/test_sqlite_file_db.py
+# --- prerequisites ------------------------------------------------------------
+# Resolve the interpreter once, up front, so a bad PYTHON fails with a fix
+# instead of halfway through the suite. The documented PYTHON override wins.
+if [[ -n "${PYTHON:-}" ]]; then
+  PY="${PYTHON}"
+elif [[ -x "${PROJECT_ROOT}/.venv/bin/python" ]]; then
+  PY="${PROJECT_ROOT}/.venv/bin/python"
+else
+  PY="python"
+fi
 
-echo
-echo "✓ File Database Validation Complete"
-echo
+STEPS=(
+  test_sqlite_version
+  test_sqlite_crud
+  test_sqlite_aggregate
+  test_sqlite_file_db
+  benchmark_sqlite
+)
 
-python sqlite_tests/benchmark_sqlite.py
+init_log
+# Tests use paths relative to the repo root, so run from there.
+cd -- "${PROJECT_ROOT}"
 
-echo
-echo "✓ Benchmark Validation Complete"
-echo
-echo "SQLITE VALIDATION PASSED"
-echo
+if ! command -v -- "${PY}" >/dev/null 2>&1; then
+  log_fail "Python interpreter not found: ${PY}. Create .venv or run: PYTHON=/path/to/python bash ${BASH_SOURCE[0]}"
+  exit 1
+fi
+for step in "${STEPS[@]}"; do
+  if [[ ! -f "sqlite_tests/${step}.py" ]]; then
+    log_fail "Missing script: sqlite_tests/${step}.py. Restore it with: git checkout -- sqlite_tests/${step}.py"
+    exit 1
+  fi
+done
+
+# run_step "Label" script_name -- echoes the command, runs it, tees to the log.
+run_step() {
+  local label="$1" script="$2"
+  local cmd=("${PY}" "sqlite_tests/${script}.py")
+  # `|| return 1` is deliberate: bash disables set -e inside a function that
+  # is called from `if !`, so without it a failing step would fall through to
+  # the PASS line below and the suite could report success after a failure.
+  printf '+ %s\n' "${cmd[*]}"
+  if [[ "${DRY_RUN}" == "1" ]]; then
+    log_info "DRY_RUN: would run ${script}.py"
+    return 0
+  fi
+  if [[ -n "${LOG_FILE}" ]]; then
+    printf '+ %s\n' "${cmd[*]}" >>"${LOG_FILE}" 2>/dev/null || true
+    "${cmd[@]}" 2>&1 | tee -a "${LOG_FILE}" || return 1
+  else
+    "${cmd[@]}" || return 1
+  fi
+  log_pass "${label} validation complete"
+}
+
+printf '\n============================================================\n'
+printf 'SQLITE VALIDATION SUITE\n'
+printf 'Python %s\n' "$("${PY}" --version 2>&1 | cut -d' ' -f2)"
+[[ -n "${LOG_FILE}" ]] && printf 'Log: %s\n' "${LOG_FILE}"
+printf '============================================================\n\n'
+
+FAILED=0
+for entry in "${STEPS[@]}"; do
+  case "${entry}" in
+    test_sqlite_version) label="Version" ;;
+    test_sqlite_crud) label="CRUD" ;;
+    test_sqlite_aggregate) label="Aggregation" ;;
+    test_sqlite_file_db) label="File database" ;;
+    benchmark_sqlite) label="Benchmark" ;;
+  esac
+  # An `if` guards the call so set -e does not abort before we can name the
+  # failing step in the log.
+  if ! run_step "${label}" "${entry}"; then
+    log_fail "${label} validation FAILED (sqlite_tests/${entry}.py)"
+    FAILED=1
+    break
+  fi
+  printf '\n'
+done
+
+if [[ "${FAILED}" -ne 0 ]]; then
+  log_fail "SQLITE VALIDATION FAILED"
+  exit 1
+fi
+if [[ "${DRY_RUN}" == "1" ]]; then
+  log_info "SQLITE DRY RUN COMPLETE (nothing was executed)"
+  exit 0
+fi
+log_pass "SQLITE VALIDATION PASSED"

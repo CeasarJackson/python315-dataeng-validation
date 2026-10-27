@@ -308,5 +308,8 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except KeyboardInterrupt:
-        log_error("Interrupted by user")
-        raise SystemExit(1) from None
+        # 130 = 128 + SIGINT, the shell convention for "stopped by Ctrl-C".
+        # It must differ from 1 so callers can tell a deliberate stop from a
+        # failed synchronization.
+        log_warning("Interrupted by user")
+        raise SystemExit(130) from None
