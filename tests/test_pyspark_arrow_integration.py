@@ -234,9 +234,9 @@ finally:
     )
 
     assert completed.returncode == 0, (
-        f"Docker exit code: {completed.returncode}\\n"
-        f"STDOUT:\\n{completed.stdout}\\n"
-        f"STDERR:\\n{completed.stderr}"
+        f"Docker exit code: {completed.returncode}\n"
+        f"STDOUT:\n{completed.stdout}\n"
+        f"STDERR:\n{completed.stderr}"
     )
 
     assert "PASS: pandas UDF" in completed.stdout
