@@ -47,8 +47,14 @@
 - [x] Grep for `isinstance(x, dict)` (audited 2026-10-26: 5 sites, all on
       `json.loads` output, always a plain dict; no change needed); use `collections.abc.Mapping` where a
       frozen mapping could legitimately arrive
-- [ ] Decide whether manifest `results` should load with
+- [x] Decide whether manifest `results` should load with
       `object_pairs_hook=frozendict` (json now accepts it)
+      Decided 2026-10-26: NO, keep plain `dict`. `scripts/ingest_evidence.py`
+      loads the baseline manifest and then assigns `results`, the package
+      counts, `production_readiness_pct` and `reconciliation` on it, which a
+      frozen mapping would reject. `compare_reports.py` only reads, so it gains
+      nothing. Revisit only if a reader needs to guarantee a manifest is never
+      mutated after loading
 
 ### Profiling package (PEP 799)
 - [x] Add a Tachyon (`profiling.sampling`) run to the benchmark scripts
