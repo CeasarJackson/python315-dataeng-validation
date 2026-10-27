@@ -5,9 +5,10 @@
 #
 # Purpose
 # -------
-# Linux arm64 image on the SAME Python as the host validation (3.15.1), so the
-# report generator's Docker PySpark/PyArrow probe tests 3.15.1 and not the
-# 3.14.x runtime inside the older pyarrow-dataeng:py314 image.
+# Linux arm64 image on the SAME Python as the host validation, so the report
+# generator's Docker PySpark/PyArrow probe tests 3.15.x and not the 3.14.x
+# runtime inside the older pyarrow-dataeng:py314 image. The Python version is a
+# build argument (default 3.15.1) so one definition serves every 3.15.x cycle.
 #
 # Why a new directory
 # -------------------
@@ -17,12 +18,16 @@
 #
 # Build (from the repo root; needs network, roughly 1 GB)
 # -------------------------------------------------------
-#   docker build -t pyarrow-dataeng:py315 docker/pyarrow_lab_py315
+#   docker build -t pyarrow-dataeng:py315 docker/pyarrow_lab_py315      # 3.15.1
+#   docker build --build-arg PYTHON_VERSION=3.15.2 \
+#       -t pyarrow-dataeng:py3152 docker/pyarrow_lab_py315            # 3.15.2
+#   The 3.15.1 tag is left untouched so that evidence stays reproducible.
 #
 # Use
 # ---
 #   python scripts/generate_report.py --release 3.15.1 --docker-image pyarrow-dataeng:py315
 #   DATAENG_DOCKER_IMAGE=pyarrow-dataeng:py315 python scripts/validate_extended.py
+#   python scripts/generate_report.py --release 3.15.2 --docker-image pyarrow-dataeng:py3152
 #
 # Compatibility decisions
 # -----------------------
@@ -36,10 +41,16 @@
 #   installed separately without --only-binary.
 # * JAVA_HOME is resolved at build time instead of hardcoding the arm64 path.
 # =============================================================================
-FROM python:3.15.1-slim
+ARG PYTHON_VERSION=3.15.1
+FROM python:${PYTHON_VERSION}-slim
+
+# ARG values do not survive FROM, so declare it again for the labels and for
+# the smoke test, which fails the build if the container is not this exact Python.
+ARG PYTHON_VERSION
+ENV EXPECTED_PYTHON=${PYTHON_VERSION}
 
 LABEL maintainer="Dr. Ceasar Jackson Jr."
-LABEL description="Python 3.15.1 + OpenJDK 21 + PyArrow + PySpark (validation probe image)"
+LABEL description="Python ${PYTHON_VERSION} + OpenJDK 21 + PyArrow + PySpark (validation probe image)"
 LABEL project="python315_test"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

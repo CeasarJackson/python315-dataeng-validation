@@ -12,7 +12,8 @@ Usage:
         tests/test_pyspark_arrow_integration.py -v
 
 Prerequisites:
-    Docker daemon and pyarrow-dataeng:py315 image.
+    Docker daemon and the pyarrow-dataeng:py315 image (or the image named by
+    DATAENG_DOCKER_IMAGE, for example pyarrow-dataeng:py3152).
 
 Validation:
     python -m py_compile tests/test_pyspark_arrow_integration.py
@@ -31,7 +32,9 @@ import subprocess
 
 import pytest
 
-IMAGE = "pyarrow-dataeng:py315"
+# DATAENG_DOCKER_IMAGE selects the image under test (for example
+# pyarrow-dataeng:py3152 for a 3.15.2 cycle); the default is the 3.15.1 image.
+IMAGE = os.environ.get("DATAENG_DOCKER_IMAGE", "pyarrow-dataeng:py315")
 
 pytestmark = [
     pytest.mark.integration,
@@ -66,7 +69,11 @@ from pyspark.sql.types import (
     TimestampType,
 )
 
-assert sys.version_info[:3] == (3, 15, 1)
+import os
+expected_python = os.environ["EXPECTED_PYTHON"]
+assert sys.version.split()[0] == expected_python, (
+    f"Expected Python {expected_python}, got {sys.version.split()[0]}"
+)
 
 spark = (
     SparkSession.builder
@@ -228,6 +235,7 @@ finally:
         command,
         input=probe,
         text=True,
+        encoding="utf-8",
         capture_output=True,
         timeout=180,
         check=False,

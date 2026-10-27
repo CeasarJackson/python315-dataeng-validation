@@ -26,6 +26,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from logger import get_logger  # noqa: E402
 
+# Python each probe image must report. The check exists so a probe that passed
+# on the wrong interpreter (for example the 3.14.x runtime in the old py314
+# image) can never be recorded as evidence for 3.15. An image missing from this
+# table is not version-checked. Keep in sync with scripts/generate_report.py
+# (tests/test_docker_pyspark_probe.py asserts the two tables are equal).
+DOCKER_IMAGE_PYTHON = {
+    "pyarrow-dataeng:py315": "3.15.1",
+    "pyarrow-dataeng:py3152": "3.15.2",
+}
+
 log = get_logger(__name__)
 
 
@@ -76,7 +86,8 @@ def test_pyspark() -> str:
     import subprocess  # noqa: PLC0415
 
     # DATAENG_DOCKER_IMAGE selects the image, for example pyarrow-dataeng:py315
-    # (docker/pyarrow_lab_py315), which runs Python 3.15.1 instead of 3.14.x.
+    # (docker/pyarrow_lab_py315, Python 3.15.1) or pyarrow-dataeng:py3152 (same
+    # directory built with --build-arg PYTHON_VERSION=3.15.2), instead of 3.14.x.
     DOCKER_IMAGE = os.environ.get("DATAENG_DOCKER_IMAGE", "pyarrow-dataeng:py314")
 
     try:
@@ -165,7 +176,7 @@ except Exception as exc:
             )
             return FAIL
         payload = _json.loads(lines[-1])
-        expected_python = "3.15.1" if DOCKER_IMAGE == "pyarrow-dataeng:py315" else None
+        expected_python = DOCKER_IMAGE_PYTHON.get(DOCKER_IMAGE)
         version_matches = (
             expected_python is None or payload.get("python_version") == expected_python
         )

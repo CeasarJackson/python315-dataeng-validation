@@ -25,6 +25,7 @@ Validation:
 
 from __future__ import annotations
 
+import ast
 import builtins
 import importlib.util
 import json
@@ -126,3 +127,38 @@ def test_py315_image_with_no_python_field_is_a_fail(monkeypatch) -> None:
     result = run_probe(monkeypatch, out, image="pyarrow-dataeng:py315")
     assert result["status"] == "FAIL"
     assert "unknown" in result["reason"]
+
+
+def test_py3152_image_passes_on_3152(monkeypatch) -> None:
+    out = json.dumps({"status": "pass", "version": "4.2.0", "python": "3.15.2"})
+    result = run_probe(monkeypatch, out, image="pyarrow-dataeng:py3152")
+    assert result["status"] == "PASS"
+    assert "Python 3.15.2" in result["note"]
+
+
+def test_py3152_image_running_3151_is_a_fail_with_a_reason(monkeypatch) -> None:
+    """Each image tag is bound to one interpreter: no cross-version evidence."""
+    out = json.dumps({"status": "pass", "version": "4.2.0", "python": "3.15.1"})
+    result = run_probe(monkeypatch, out, image="pyarrow-dataeng:py3152")
+    assert result["status"] == "FAIL"
+    assert "3.15.1" in result["reason"]
+    assert "3.15.2" in result["reason"]
+
+
+def test_py315_image_running_3152_is_a_fail(monkeypatch) -> None:
+    out = json.dumps({"status": "pass", "version": "4.2.0", "python": "3.15.2"})
+    result = run_probe(monkeypatch, out, image="pyarrow-dataeng:py315")
+    assert result["status"] == "FAIL"
+
+
+def test_image_python_tables_match_in_both_scripts() -> None:
+    """generate_report.py and validate_extended.py each carry the table."""
+    scripts = GENERATOR_PATH.parent
+    tables = []
+    for name in ("generate_report.py", "validate_extended.py"):
+        text = (scripts / name).read_text(encoding="utf-8")
+        start = text.index("DOCKER_IMAGE_PYTHON = {")
+        block = text[start : text.index("}", start) + 1]
+        tables.append(ast.literal_eval(block.split("=", 1)[1].strip()))
+    assert tables[0] == tables[1]
+    assert tables[0]["pyarrow-dataeng:py3152"] == "3.15.2"

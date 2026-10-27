@@ -8,7 +8,7 @@ File    : docker/pyarrow_lab_py315/smoke_test.py
 Purpose
 -------
 Build-time smoke test for the py315 probe image. Confirms the container really
-runs Python 3.15, that PySpark can start a local session, and that a Python UDF
+runs the exact Python it was built for (EXPECTED_PYTHON), that PySpark can start a local session, and that a Python UDF
 runs on a worker with the same interpreter as the driver.
 
 Usage
@@ -24,12 +24,20 @@ Exit Codes
 
 from __future__ import annotations
 
+import os
 import sys
 
 
 def main() -> int:
-    if sys.version_info[:3] != (3, 15, 1):
-        print(f"FAIL: expected Python 3.15.1, got {sys.version.split()[0]}")
+    # The Dockerfile sets EXPECTED_PYTHON from its PYTHON_VERSION build argument,
+    # so the image can never silently run a different 3.15.x than its tag claims.
+    expected = os.environ.get("EXPECTED_PYTHON", "")
+    if not expected:
+        print("FAIL: EXPECTED_PYTHON is not set (build with the Dockerfile)")
+        return 1
+    actual = sys.version.split()[0]
+    if actual != expected:
+        print(f"FAIL: expected Python {expected}, got {actual}")
         return 1
 
     import pyarrow

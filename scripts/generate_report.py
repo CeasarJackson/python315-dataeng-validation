@@ -68,6 +68,17 @@ TEMPLATE = REPORTS / "template"
 LOG = logging.getLogger("generate_report")
 
 
+# Python each probe image must report. The check exists so a probe that passed
+# on the wrong interpreter (for example the 3.14.x runtime in the old py314
+# image) can never be recorded as evidence for 3.15. An image missing from this
+# table is not version-checked. Keep in sync with scripts/validate_extended.py
+# (tests/test_docker_pyspark_probe.py asserts the two tables are equal).
+DOCKER_IMAGE_PYTHON = {
+    "pyarrow-dataeng:py315": "3.15.1",
+    "pyarrow-dataeng:py3152": "3.15.2",
+}
+
+
 def _configure_logging(file_logging=True):
     """Attach the shared colored console logger and, optionally, the file log.
 
@@ -553,9 +564,7 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
             payload = json.loads(
                 [line for line in out.splitlines() if line.strip()][-1]
             )
-            expected_python = (
-                "3.15.1" if docker_image == "pyarrow-dataeng:py315" else None
-            )
+            expected_python = DOCKER_IMAGE_PYTHON.get(docker_image)
             version_matches = (
                 expected_python is None or payload.get("python") == expected_python
             )
