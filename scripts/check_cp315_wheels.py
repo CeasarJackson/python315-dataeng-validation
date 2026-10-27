@@ -308,12 +308,14 @@ def probe(
         shutil.rmtree(dest, ignore_errors=True)
 
 
-def _report(result: ProbeResult) -> None:
-    """Emit one classified result at the severity its meaning deserves."""
+def _report(result: ProbeResult, abi: str = "cp315") -> None:
+    """Emit one classified result at the severity its meaning deserves.
+
+    *abi* is the target ABI tag, so a free-threaded run (``--abi cp315t``) is
+    labelled cp315t instead of always saying cp315.
+    """
     if result.kind == NATIVE:
-        log.info(
-            "[PASS] %-16s native %s wheel — %s", result.package, "cp315", result.wheel
-        )
+        log.info("[PASS] %-16s native %s wheel — %s", result.package, abi, result.wheel)
     elif result.kind == ABI3:
         log.info(
             "[PASS] %-16s stable-ABI wheel, installable on target — %s",
@@ -410,7 +412,7 @@ def main(argv: list[str] | None = None) -> int:
         require_pip()
         for package in args.packages:
             result = probe(package, args.platforms, args.python_version, args.abi)
-            _report(result)
+            _report(result, args.abi)
             results.append(result)
     except ProbeError as exc:
         log.error("[FAIL] Cannot determine wheel availability: %s", exc)

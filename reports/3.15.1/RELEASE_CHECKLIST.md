@@ -101,9 +101,19 @@
       benchmark timings from different builds as not comparable
 
 ### Packaging / ABI
-- [ ] Re-check PyPI for `cp315` wheels of the BLOCKED packages (pyarrow, ray)
-- [ ] Free-threaded wheels are separate (`cp315t`); `abi3t` is not yet
-      supported by common build backends per the changelog
+- [x] Re-check PyPI for `cp315` wheels of the BLOCKED packages (pyarrow, ray)
+      Done 2026-10-26 with `scripts/check_cp315_wheels.py` (macOS arm64, run on
+      the Mac, 21:09): pyarrow 26.0.0 has a native cp315 wheel; ray 2.59.0 has
+      none and no sdist, so Ray stays BLOCKED. MLflow's wheel is pure-Python but
+      pins `pyarrow<26`, which the script cannot see (it probes with `--no-deps`)
+- [x] Free-threaded wheels are separate (`cp315t`); `abi3t` is not yet
+      supported by common build backends per the changelog.
+      Checked 2026-10-26 (`check_cp315_wheels.py --abi cp315t`, macOS arm64):
+      native cp315t wheels exist for numpy 2.5.4, pandas 3.1.0 and pyarrow
+      26.0.0; polars is pure-Python; duckdb has only a source distribution for
+      cp315t (its abi3 wheels do not cover free-threaded builds); ray has none.
+      Availability only: no free-threaded build was run, and nothing here claims
+      free-threaded support
 - [ ] Re-run the Docker PySpark probe; the image tag is still `py314`
 
 ## 3. VERIFY before publishing
