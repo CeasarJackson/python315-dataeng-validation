@@ -16,8 +16,9 @@
 #   incremental installs that left at least one package's constraints violated.
 #   See ENV-002 — historical results from that environment are suspect.
 #
-#   Versions below are a mutually consistent set resolved against Python 3.15
-#   on 2026-07-21. They are deliberately NOT the b2 versions.
+#   Versions below are a mutually consistent set resolved against Python 3.15.
+#   dask was resolved on 2026-07-21 and prefect was re-pinned on 2026-10-27
+#   (see the prefect note below). They are deliberately NOT the b2 versions.
 #
 # Usage:
 #   uv pip install -r requirements-py315-build.txt
@@ -30,23 +31,36 @@
 #   After a successful install, verify no constraints were violated:
 #     uv pip check
 #
-# Known blocked (intentionally NOT pinned here):
-#   pyarrow  -> ARW-001, no cp315 wheels; source build fails at CMake config
-#   ray      -> RAY-001, no cp315 wheels
-#   mlflow   -> MLF-001, requires pandas<3; conflicts with the pinned core
-#               stack (pandas 3.0.3). Installing it downgrades pandas and
-#               invalidates core-stack results. Test in a separate venv.
+# Not pinned here, and why (retested 2026-10-27 on Python 3.15.2; evidence in
+# reports/3.15.2/READINESS_RECONCILIATION_2026-10-27.md):
+#   ray      -> RAY-001, no cp315 wheel (ray 2.59.0 publishes cp310-cp314 only).
+#   mlflow   -> MLF-001, every release from 3.15.0 caps pyarrow<26 and pyarrow
+#               25.x has no cp315 wheel; pyarrow 26.0.0 (which has one) is
+#               excluded by that cap. The older pandas<3 conflict recorded in
+#               MLF-001 was not rechecked. Test mlflow in a separate venv.
+#   airflow  -> installs and runs a DAG on 3.15.2 in a separate isolated env
+#               (apache-airflow 3.3.2; libcst 1.9.0 installed without the pyo3
+#               build failure recorded in PYO3-001; PyYAML builds from source,
+#               so a binary-only install policy fails). Not pinned here to keep
+#               this environment small.
 #
-# pyspark is validated via Docker (pyarrow-dataeng image), not installed
-# into this venv, so it is not pinned here.
-
-#   airflow  -> PYO3-001, depends on libcst -> pyo3 0.26.0, which hard-caps
-#               at Python 3.14 and refuses to build on 3.15. Genuine
-#               interpreter incompatibility, not a packaging gap.
+# pyarrow is no longer blocked: cp315 wheels exist since 3.15.0 and it is part
+# of the core stack (requirements-py315-core-3.15.2.lock.txt).
+# pyspark is validated via Docker (pyarrow-dataeng:py3152), not installed into
+# this venv, so it is not pinned here.
+#
+# prefect: 3.7.x is unusable on a current resolve. It requires starlette>=1.0.1
+# but calls Body(..., min_items=1), which FastAPI 0.162.0 rejects, and an older
+# FastAPI (0.115.12 in a dry run) cannot satisfy starlette>=1.0.1. 3.9.0
+# resolves with FastAPI 0.150.0 and passed the flow, task and retry checks.
+# See PRE-001 in docs/KNOWN_ISSUES.md.
+#
+# The exact validated set (127 packages) is in
+# requirements-py315-extended-3.15.2.lock.txt.
 #
 # Install these one at a time. uv installs atomically, so a single build
-# failure rolls back the entire transaction — including packages that would
+# failure rolls back the entire transaction - including packages that would
 # otherwise have succeeded.
 
 dask==2026.7.1
-prefect==3.7.7
+prefect==3.9.0

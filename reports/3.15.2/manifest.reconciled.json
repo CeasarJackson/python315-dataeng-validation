@@ -1,0 +1,172 @@
+{
+  "project": "Python 3.15 Data Engineering Validation Suite",
+  "release": "3.15.2",
+  "release_type": "ga",
+  "test_date": "2026-10-27",
+  "platform": "macOS 27.0.1 ARM64",
+  "python_build": "cpython-3.15.2-macos-arm64-none",
+  "python_runtime": "3.15.2",
+  "package_manager": "uv",
+  "docker_image": "pyarrow-dataeng:py3152",
+  "tester": "Dr. Ceasar Jackson Jr.",
+  "suite_version": "1.2.0",
+  "packages_tested": 17,
+  "packages_pass": 15,
+  "packages_incompat": 0,
+  "packages_blocked": 2,
+  "packages_skip": 0,
+  "packages_fail": 0,
+  "environment_consistent": true,
+  "dependency_check": {
+    "status": "PASS",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "Using Python 3.15.2 environment at: .venv3152\nChecked 30 packages in 0.91ms\nAll installed packages are compatible\n",
+    "error": null
+  },
+  "constraint_violations": [],
+  "results": {
+    "numpy": {
+      "status": "PASS",
+      "version": "2.5.4",
+      "evidence_level": "Functional",
+      "evidence": "Core functional smoke on 3.15.2 (11/11 PASS): reduction and linear-algebra checks"
+    },
+    "pandas": {
+      "status": "PASS",
+      "version": "3.1.0",
+      "evidence_level": "Functional",
+      "evidence": "Core functional smoke on 3.15.2 (11/11 PASS): groupby aggregation"
+    },
+    "polars": {
+      "status": "PASS",
+      "version": "1.41.2",
+      "evidence_level": "Functional",
+      "evidence": "Core functional smoke on 3.15.2 (11/11 PASS): group_by aggregation; validate_all polars suite PASS"
+    },
+    "duckdb": {
+      "status": "PASS",
+      "version": "2.0.0",
+      "evidence_level": "Functional",
+      "evidence": "Core functional smoke on 3.15.2 (11/11 PASS): SQL aggregate through the 2.0 relation API; validate_all duckdb suite PASS"
+    },
+    "sqlalchemy": {
+      "status": "PASS",
+      "version": "2.0.50",
+      "evidence_level": "Functional",
+      "evidence": "Core functional smoke on 3.15.2 (11/11 PASS): in-memory SQLite create, insert, aggregate; validate_all sqlalchemy suite PASS"
+    },
+    "pydantic": {
+      "status": "PASS",
+      "version": "2.14.1",
+      "evidence_level": "Functional",
+      "evidence": "Core functional smoke on 3.15.2 (11/11 PASS): coercion and ValidationError on invalid input"
+    },
+    "matplotlib": {
+      "status": "PASS",
+      "version": "3.11.2",
+      "evidence_level": "Functional",
+      "evidence": "Core functional smoke on 3.15.2 (11/11 PASS): Agg render to PNG bytes"
+    },
+    "plotly": {
+      "status": "PASS",
+      "version": "6.7.0",
+      "evidence_level": "Functional",
+      "evidence": "Core functional smoke on 3.15.2 (11/11 PASS): figure construction and JSON serialization"
+    },
+    "jupyterlab": {
+      "status": "PASS",
+      "version": "4.6.4",
+      "note": "No persistent server session tested; the kernel logged an unencrypted-TCP-transport warning. Version differs from 3.15.1 (4.5.7).",
+      "evidence_level": "Integration",
+      "evidence": "Isolated env, 101 packages, integrity clean; install, import, notebook execution through a registered kernel, kernel isolation (5/5 probe checks)"
+    },
+    "sqlite3": {
+      "status": "PASS",
+      "version": "3.54.1",
+      "evidence_level": "Functional",
+      "evidence": "Core functional smoke on 3.15.2 (11/11 PASS): file database create, insert, aggregate; validate_all sqlite suite PASS"
+    },
+    "pyarrow": {
+      "status": "PASS",
+      "version": "26.0.0",
+      "evidence_level": "Functional",
+      "evidence": "Core functional smoke on 3.15.2 (11/11 PASS): Parquet round-trip and Arrow interop with pandas, polars and DuckDB"
+    },
+    "dask.dataframe": {
+      "status": "PASS",
+      "version": "2026.7.1",
+      "note": "dask/config.py opens a file without encoding=, which raises EncodingWarning under -X warn_default_encoding (an error with -W error). Upstream, informational.",
+      "evidence_level": "Integration",
+      "evidence": "DataFrame Parquet round-trip inside a notebook kernel (isolated JupyterLab env, pyarrow 26.0.0); array and DataFrame aggregation in the extended env"
+    },
+    "prefect": {
+      "status": "PASS",
+      "version": "3.9.0",
+      "note": "Prefect 3.7.x is unusable: it requires starlette>=1.0.1 but calls Body(min_items=...), which FastAPI 0.162.0 rejects, and no FastAPI satisfying starlette>=1.0.1 and accepting it resolves; 3.9.0 resolves with FastAPI 0.150.0. Some runs log a telemetry-heartbeat 'database is locked' error (absent with telemetry disabled) and intermittent EventsWorker errors. The EventsWorker errors reproduced identically on Python 3.14.10 with the same Prefect version during the 3.15.1 cycle (not rerun for 3.15.2); root cause undetermined; results were correct in every run.",
+      "evidence_level": "Functional",
+      "evidence": "Isolated env (103 packages) and extended env (127 packages), integrity clean; flow, task, retry-recovery and aggregation checks passed in every run"
+    },
+    "mlflow": {
+      "status": "BLOCKED",
+      "version": "unavailable",
+      "reason": "Upstream pin pyarrow<26 (every release from 3.15.0) plus no cp315 wheel for pyarrow 25.x; pyarrow 26.0.0, which has one, is excluded by the cap. The 3.15.1 workarounds (mlflow-skinny; full mlflow with a pyarrow>=26 override, which fails uv pip check) and the pyarrow 25.x source-build failure were not re-run on 3.15.2.",
+      "evidence_level": "Resolution",
+      "evidence": "Binary-only dry-run resolve on a fresh 3.15.2 venv failed: pyarrow<=25.0.1 has no cp315 wheel and mlflow>=3.15.0 depends on pyarrow<26"
+    },
+    "ray": {
+      "status": "BLOCKED",
+      "version": "unavailable",
+      "reason": "no cp315 wheels on the configured index",
+      "evidence_level": "Resolution",
+      "evidence": "Binary-only resolve failed: ray 2.59.0 offers cp310-cp314 wheels but not cp315; source builds not evaluated"
+    },
+    "pyspark": {
+      "status": "PASS",
+      "version": "4.2.0",
+      "note": "Local mode only; cluster mode not tested. Evidence is from the py3152 Docker image, not the macOS venv.",
+      "evidence_level": "Functional",
+      "evidence": "Docker image pyarrow-dataeng:py3152 (python:3.15.2-slim), local mode: baseline probe PASS with the worker interpreter reporting Python 3.15.2; PySpark/Arrow integration test passed"
+    },
+    "apache-airflow": {
+      "status": "PASS",
+      "version": "3.3.2",
+      "note": "dags test runs tasks in-process; scheduler and api-server not exercised. Binary-only resolution fails only because PyYAML 6.0.3 is sdist-only; the install builds it from source (libcst 1.9.0 resolved).",
+      "evidence_level": "Functional",
+      "evidence": "Isolated env, 129 packages, integrity clean; db migrate; two-task DAG (extract -> transform, XCom value 120) run with airflow dags test: state success, exit 0; dag-processor run registered the DAG with no import errors"
+    }
+  },
+  "production_readiness_pct": 94,
+  "reconciliation": {
+    "status": "PROVISIONAL - not an official release score",
+    "evidence_date": "2026-10-27",
+    "baseline_manifest": "manifest.baseline.json",
+    "baseline_sha256": "b7e4668ed29cec839640243d69e34f88756b6e154f1f65832aa55f6feee6889a",
+    "baseline_production_readiness_pct": 88,
+    "evidence_file": "evidence.json",
+    "evidence_sha256": "04bae52bb4b1c411b0c1cdc5d167afb4e9c6b61f6adbfdf9367c2b3db7b25c7f",
+    "standard": {
+      "pass_requires": "A workload actually executed on Python 3.15.2 (evidence_level Functional or Integration).",
+      "evidence_levels": [
+        "Resolution",
+        "Install",
+        "Import",
+        "Functional",
+        "Integration"
+      ],
+      "rules": [
+        "A resolver success is never a PASS.",
+        "A failed install caused by an upstream pin or missing wheel is BLOCKED, not INCOMPAT.",
+        "Test-design errors are not counted against a package.",
+        "Baselines and prior reports are never rewritten."
+      ]
+    },
+    "carried_over_from_baseline": [
+      "dependency_check",
+      "docker_image",
+      "environment_consistent",
+      "constraint_violations"
+    ],
+    "note": "Carried-over fields describe the baseline run and were not re-verified by this reconciliation."
+  }
+}

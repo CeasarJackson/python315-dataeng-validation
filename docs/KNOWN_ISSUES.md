@@ -568,6 +568,17 @@ MEDIUM
   What's New. Status stays OPEN until the baseline environment is upgraded.
   Separately, EventsWorker log errors reproduce on 3.14.10 and are not
   3.15-specific)
+- Python 3.15.2 (update 2026-10-27 — prefect 3.9.0 passed flow, task, retry and
+  aggregation checks in an isolated environment and in the extended environment
+  alongside dask 2026.7.1, with a clean `uv pip check`; PASS recorded in
+  `reports/3.15.2/evidence.json`. prefect 3.7.7 also fails on a current resolve for
+  a reason unrelated to the interpreter: it requires `starlette>=1.0.1` but calls
+  `Body(..., min_items=1)` in `prefect/server/api/concurrency_limits_v2.py`, which
+  FastAPI 0.162.0 rejects, and the older FastAPI 0.115.12 tried in a dry run cannot
+  satisfy `starlette>=1.0.1`. `requirements-py315-dataeng-extended.txt` now pins
+  prefect 3.9.0. Status stays OPEN: the issue still describes prefect 3.7.x and
+  its Requires-Python gate. Intermittent EventsWorker and telemetry-heartbeat
+  log errors did not affect results)
 
 ## Summary
 
