@@ -1,13 +1,60 @@
 # Project Status
 
-**Version:** 1.10.0
-**Status:** ACTIVE — Enterprise Validation & Release Platform Operational
-**Production Readiness:** 92% (3.15.0 manifest; 91% if the Docker-sourced PySpark result is not counted)
-**Latest Validation (unreleased):** Python 3.15.1, PROVISIONAL: 94% readiness, 15 PASS and 2 BLOCKED (MLflow, Ray; both upstream), 0 FAIL; evidence and reproducible ingestion in `reports/3.15.1/`.
-**Last Updated:** October 2026
-**Current Python Version:** 3.15.0 (GA)
-**Overall Validation Status:** 105/105 Automated Tests Passing
-**Current Compatibility Score:** 92%
+**Published suite release:** v2.2.1 (release artifacts unchanged)
+**Status:** ACTIVE — Python 3.15.2 post-release evidence checkpoint
+**Last Updated:** October 28, 2026
+**Current Python Version:** 3.15.2
+**Production Readiness:** 94% **PROVISIONAL — not an official release score**
+**Package Results:** 15 PASS / 2 BLOCKED (MLflow, Ray) / 0 FAIL / 0 INCOMPAT / 0 SKIP
+**Overall Validation Status:** 331 passed, one skipped (Python 3.15.2 full-suite verification, October 28)
+
+Current sources: [3.15.2 manifest](reports/3.15.2/manifest.json),
+[reconciliation](reports/3.15.2/READINESS_RECONCILIATION_2026-10-27.md), and
+[post-release evidence checkpoint](docs/POST_RELEASE_EVIDENCE_2026-10-28.md).
+The manifest records the October 27 reconciliation; the checkpoint adds October 28
+interoperability evidence and full-suite verification. No reports or release artifacts
+were regenerated for the checkpoint.
+
+## Current Compatibility and Limits
+
+| Component | Result | Evidence and scope |
+|-----------|--------|--------------------|
+| PyArrow 26.0.0 | PASS | Executed Parquet round-trip and pandas, Polars and DuckDB interoperability workloads on Python 3.15.2 |
+| Dask DataFrame 2026.7.1 | PASS | Executed Parquet round-trip and aggregation workloads in isolated environments |
+| Prefect 3.9.0 | PASS | Flow, task, retry-recovery and aggregation checks; recorded telemetry/EventsWorker issues remain qualified in the manifest |
+| Apache Airflow 3.3.2 | PASS | Isolated-environment DAG execution and registration; scheduler and API server not exercised |
+| PySpark 4.2.0 | PASS | Docker local mode, Python 3.15.2 / PyArrow 26.0.0 / pandas 3.1.0, Linux ARM64; cluster mode not tested |
+| MLflow | BLOCKED | Recorded resolve excludes PyArrow 26 via `pyarrow<26`; eligible PyArrow versions lack cp315 wheels |
+| Ray | BLOCKED | Recorded binary-only resolve found no cp315 wheels on the configured index; source builds not evaluated |
+
+The [targeted-run transcript](docs/evidence/targeted_pyspark_arrow_2026-10-28.txt)
+confirms **8/8 PASS**, including nullable data, explicit schemas, pandas UDFs,
+Arrow enabled with fallback disabled, and driver/worker consistency. Advanced
+**5/5 PASS** remains conversation-reported because its original transcript is
+unavailable. The combined 13/13 claim has mixed provenance and is separate from
+the pytest suite. PySpark warns that pandas >=3.0 support is incomplete; PASS
+applies to the operations exercised.
+
+The full-suite result is **331 passed, one skipped**; the skip is opt-in Docker
+integration. Docker interoperability was not rerun during the documentation
+checkpoint. MLflow/Ray availability was not rechecked against the package index.
+The 94% value is the existing weighted readiness assessment, not a package pass
+percentage or production certification.
+
+## Next Evidence Work
+
+- Recover the original advanced interoperability transcript to strengthen provenance.
+- Validate cluster operation and broader pandas 3.x behavior in a separate checkpoint.
+- Reassess MLflow and Ray when new resolution evidence is available.
+
+## Historical Status Archive — through Python 3.15.0
+
+The sections below preserve the earlier status record, including its release history,
+readiness figures, blockers, test counts, packaging descriptions and planned milestones.
+They are historical and superseded for current status by the summary above.
+The former header recorded suite v1.10.0, Python 3.15.0, 92% readiness (91% excluding
+the older Docker-sourced PySpark result), 105/105 tests, and an unreleased Python
+3.15.1 provisional update. Those labels do not describe the current checkpoint.
 
 ---
 
