@@ -105,11 +105,15 @@
 - [ ] `generate_report.py` refuses to label a report with a release the
       running interpreter is not. Rebuild `.venv` first, then reinstall
       dependencies (`colorlog` included) before generating
-- [ ] Run `tools/sync_readiness.py` after report generation so the manifest
+- [x] Run `tools/sync_readiness.py` after report generation so the manifest
       and Markdown readiness markers are synchronized
-- [ ] Confirm `generate_report.py` and `tools/sync_readiness.py` still use the
+      DONE 2026-10-27 13:21 on the promoted manifest (backup of pre-sync files kept
+      locally); manifest and all three Markdown reports state 94%
+- [x] Confirm `generate_report.py` and `tools/sync_readiness.py` use the
       same readiness formula: SKIP excluded from the denominator, BLOCKED
-      weighted 0.50, INCOMPAT weighted 0.25, and readiness capped at 100%
+      weighted 0.50, INCOMPAT weighted 0.25, and readiness capped at 100%.
+      VERIFIED 2026-10-27: implementations inspected; readiness regression
+      suite 101 passed; baseline 88% and promoted provisional readiness 94%.
 
 ### Cleanup
 - [ ] `reports/3.15.0ga/` holds only `.gitkeep`; use canonical
