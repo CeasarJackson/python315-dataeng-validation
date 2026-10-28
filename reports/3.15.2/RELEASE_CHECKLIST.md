@@ -21,10 +21,17 @@
 ## 2. Interpreter changes that touch this suite
 
 ### UTF-8 is now the default encoding (PEP 686)
-- [ ] Add `encoding="utf-8"` to every `read_text()` / `write_text()` / `open()`
+- [x] Add `encoding="utf-8"` to every `read_text()` / `write_text()` / `open()`
+      DONE 2026-10-28: AST audit of all tracked .py files found 104 text-mode call sites,
+      0 missing `encoding=`; 1 binary open skipped. `subprocess` calls fixed in 09276aa.
+      Calls using **kwargs are not checked by the audit.
       call. Known gaps: `scripts/generate_report.py` (`write_text`),
       `scripts/compare_reports.py` (`read_text`), `scripts/fix_repository_headers.py`
-- [ ] Run once with `-X warn_default_encoding` to list any remaining calls
+- [x] Run once with `-X warn_default_encoding` to list any remaining calls
+      DONE 2026-10-28: suite run with `-X warn_default_encoding -W error::EncodingWarning`,
+      331 passed / 1 skipped. 12 `subprocess` text calls fixed in 09276aa. Covers only
+      code the tests exercise; CLI-only paths in generate_report.py and
+      check_cp315_wheels.py are not fully covered.
 
 ### Lazy imports (PEP 810)
 - [x] Confirm probes still fail eagerly under forced lazy imports.
@@ -75,7 +82,12 @@
       has a clean `uv pip check` and runs flows on 3.15.2 (PASS recorded). Prefect 3.7.x
       stays unusable on a current resolve (starlette/FastAPI conflict, not the
       interpreter). See READINESS_RECONCILIATION_2026-10-27.md and docs/KNOWN_ISSUES.md
-- [ ] Scan the stack for every name on the official Removed list
+- [x] Scan the stack for every name on the official Removed list
+      DONE 2026-10-28: regex + AST scan of 213 tracked text files, no first-party use of any
+      removed or pending-removal name. Only hit is `typing.no_type_check_decorator`, matched as
+      exception text in Prefect-incompat detection (superseded by Prefect 3.9.0). Name lists came
+      from readthedocs/joshthomas/zh-tw mirrors, not the final docs.python.org page. Installed
+      third-party packages not scanned; import validation covers those.
       (docs.python.org/3.15/whatsnew/3.15.html#removed): ast, collections.abc,
       ctypes, datetime, glob, http.server, importlib, importlib.resources,
       pathlib, platform, sre_*, sysconfig, threading, types, typing, wave,
