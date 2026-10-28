@@ -15,7 +15,8 @@
 - [x] `python tools/sync_readiness.py --release 3.15.2` (run on the promoted reconciled manifest)
 - [x] `python scripts/compare_reports.py 3.15.1 3.15.2` (2026-10-27: 15 PASS / 0 FAIL / 0 INCOMPAT
       on both; 17 packages unchanged in status. Version bumps are not part of the delta)
-- [ ] Copy `PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf` into this directory
+- [x] `PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf` generated from manifest.json with
+      scripts/build_assessment_pdf.py (commit fb1761a; sha256 9ff01e37...0e7b; deterministic)
 
 ## 2. Interpreter changes that touch this suite
 
