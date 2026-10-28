@@ -169,7 +169,5 @@ def test_pdf_dry_run_does_not_write(tmp_path):
         check=False,
     )
 
-    assert completed.returncode == 0, (
-        completed.stdout + completed.stderr
-    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
     assert not output.exists()
