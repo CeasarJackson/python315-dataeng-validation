@@ -1,5 +1,9 @@
 # Python 3.15 Data Engineering Validation Suite
 
+> **Current evidence checkpoint (2026-10-28):** Python 3.15.2 remains **94% PROVISIONAL**, with 15 packages PASS and two BLOCKED (MLflow and Ray). PyArrow 26.0.0 and Dask DataFrame passed executed workloads. PySpark 4.2.0 passed Docker local-mode checks with Python 3.15.2, PyArrow 26.0.0 and pandas 3.1.0 on Linux ARM64; pandas 3.x support remains incomplete. The saved targeted-run transcript confirms 8/8 PASS; advanced 5/5 is conversation-reported. The release checklist records 331 passed, one skipped. See the [post-release evidence checkpoint](docs/POST_RELEASE_EVIDENCE_2026-10-28.md) and [3.15.2 manifest](reports/3.15.2/manifest.json).
+>
+> **Historical material below:** all earlier “current” labels, versions, scores, blockers, test counts, benchmarks and commands describe their original checkpoints. They are superseded for current status by the checkpoint above; `STATUS.md` still contains older status summaries. MLflow remains blocked by its `pyarrow<26` cap combined with missing cp315 wheels for eligible PyArrow versions; Ray lacked cp315 wheels on the configured index at the recorded check. Published v2.2.1 artifacts are unchanged.
+
 > **PROJECT STATUS:** COMPLETE
 >
 > Python 3.15 Data Engineering Validation Suite
@@ -8,6 +12,7 @@
 > Docker Workaround Validated
 > Benchmarking Complete
 > Readiness Assessment Published
+
 
 **Author:** Dr. Ceasar Jackson Jr.
 **Platform:** macOS 26.5 ARM64

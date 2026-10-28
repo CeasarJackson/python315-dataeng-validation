@@ -1,0 +1,86 @@
+============================================================
+ PYTHON 3.15.2 — TARGETED ARROW / PANDAS UDF VALIDATION
+============================================================
+Timestamp: 2026-10-28 02:16:32 EDT
+
+===== 1. VERIFY RELEASE BASELINE =====
+PASS: Release references preserved
+
+===== 2. VERIFY EXPECTED WORKING TREE =====
+PASS: Four expected documentation modifications
+
+===== 3. VERIFY DOCKER IMAGE =====
+Image: sha256:399f6f34c8bd2c2b6b19b13eef1af0e98f7354499f06957bffb7556e3d877666 | Platform: linux/arm64
+
+===== 4. EXECUTE TARGETED TESTS =====
+WARNING: Using incubator modules: jdk.incubator.vector
+Using Spark's default log4j profile: org/apache/spark/log4j2-defaults.properties
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+/usr/local/lib/python3.15/site-packages/pyspark/testing/utils.py:127: FutureWarning: PySpark does not yet fully support pandas >= 3.0.0. Some features may not work correctly. It is recommended to use pandas < 3.0.0 for now.
+  require_minimum_pandas_version()
+26/10/28 06:16:34 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+26/10/28 06:16:35 WARN MacAddressUtil: Failed to find a usable hardware address from the network interfaces; using random bytes: df:68:d3:34:45:96:89:03
+/usr/local/lib/python3.15/site-packages/pyspark/sql/pandas/conversion.py:659: FutureWarning: PySpark does not yet fully support pandas >= 3.0.0. Some features may not work correctly. It is recommended to use pandas < 3.0.0 for now.
+  require_minimum_pandas_version()
+/usr/local/lib/python3.15/site-packages/pyspark/sql/pandas/conversion.py:936: FutureWarning: PySpark does not yet fully support pandas >= 3.0.0. Some features may not work correctly. It is recommended to use pandas < 3.0.0 for now.
+  require_minimum_pandas_version()
+/usr/local/lib/python3.15/site-packages/pyspark/sql/pandas/functions.py:777: FutureWarning: PySpark does not yet fully support pandas >= 3.0.0. Some features may not work correctly. It is recommended to use pandas < 3.0.0 for now.
+  require_minimum_pandas_version()
+/usr/local/lib/python3.15/site-packages/pyspark/sql/pandas/typehints.py:60: FutureWarning: PySpark does not yet fully support pandas >= 3.0.0. Some features may not work correctly. It is recommended to use pandas < 3.0.0 for now.
+  require_minimum_pandas_version()
+/usr/local/lib/python3.15/site-packages/pyspark/sql/pandas/conversion.py:298: FutureWarning: PySpark does not yet fully support pandas >= 3.0.0. Some features may not work correctly. It is recommended to use pandas < 3.0.0 for now.
+  require_minimum_pandas_version()
+Python : 3.15.2
+PySpark: 4.2.0
+PyArrow: 26.0.0
+pandas : 3.1.0
+
+===== TEST 1: ARROW CONFIGURATION =====
+PASS: Arrow enabled; fallback disabled
+
+===== TEST 2: NULLABLE PANDAS INPUT =====
+PASS: Nullable pandas input
+
+===== TEST 3: PANDAS TO SPARK =====
+PASS: Explicit Spark schema
+
+===== TEST 4: NULL PRESERVATION =====
+PASS: Nullable values preserved
+
+===== TEST 5: PANDAS UDF =====
+PASS: Nullable pandas UDF: [20, 40, None, 80]
+
+===== TEST 6: SPARK TO PANDAS =====
+PASS: Nullable round-trip
+
+===== TEST 7: SCHEMA PRESERVATION =====
+PASS: Spark schema preserved
+
+===== TEST 8: WORKER CONSISTENCY =====
+PASS: Worker Python versions: ['3.15.2', '3.15.2', '3.15.2', '3.15.2']
+
+================================================================
+ PASS: TARGETED PYSPARK / ARROW VALIDATION
+================================================================
+
+===== 5. VERIFY DEPENDENCY INTEGRITY =====
+Using Python 3.15.2 environment at: .venv3152
+Checked 30 packages in 9ms
+All installed packages are compatible
+
+===== 6. VERIFY RELEASE CHECKSUM =====
+python315-dataeng-validation-v2.2.1.zip: OK
+
+===== 7. VERIFY REPOSITORY UNCHANGED =====
+## main...origin/main
+ M PORTFOLIO_SUMMARY.md
+ M PROJECT_STRUCTURE.md
+ M PYTHON315_DATAENG_VALIDATION.md
+ M docs/COMPATIBILITY_MATRIX.md
+
+============================================================
+ PASS: PYTHON 3.15.2 TARGETED VALIDATION COMPLETE
+ Documentation modifications preserved.
+ Published v2.2.1 release unchanged.
+============================================================
