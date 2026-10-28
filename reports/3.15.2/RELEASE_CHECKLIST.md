@@ -13,7 +13,8 @@
 - [x] `python scripts/generate_report.py --release 3.15.2 --docker-image pyarrow-dataeng:py3152`
       (core-env baseline; extended packages reconciled through evidence.json)
 - [x] `python tools/sync_readiness.py --release 3.15.2` (run on the promoted reconciled manifest)
-- [ ] `python scripts/compare_reports.py 3.15.1 3.15.2`
+- [x] `python scripts/compare_reports.py 3.15.1 3.15.2` (2026-10-27: 15 PASS / 0 FAIL / 0 INCOMPAT
+      on both; 17 packages unchanged in status. Version bumps are not part of the delta)
 - [ ] Copy `PYTHON315_DATAENG_READINESS_ASSESSMENT.pdf` into this directory
 
 ## 2. Interpreter changes that touch this suite
@@ -90,11 +91,14 @@
 - [ ] `tests/test_release_progression.py` and
       `tests/test_release_history_integrity.py` auto-discover release
       directories from disk. No edit needed; just confirm `3.15.2` is picked up
-- [ ] `tests/test_report_completeness.py`: add this directory to
+- [x] `tests/test_report_completeness.py`: add this directory to
       `EXTENDED_REPORTS` (still hardcoded)
-- [ ] `tests/test_readiness_consistency.py`: `REPORT_DIR` is still hardcoded
+- [x] `tests/test_readiness_consistency.py`: `REPORT_DIR` is still hardcoded
       to `3.15.0b2`; point it at `3.15.2`
-- [x] `python -m pytest -q` (2026-10-27, Python 3.15.2: 307 passed, 1 skipped; the skip is the
+      DONE 2026-10-27 (commit 8e617b2): it was already on 3.15.1, which keeps the JSON/PDF
+      checks; new parametrized checks cover 3.15.1 and 3.15.2 manifests and readiness docs.
+      The JSON/PDF checks for 3.15.2 wait for those artifacts
+- [x] `python -m pytest -q` (2026-10-27, Python 3.15.2: 316 passed, 1 skipped after 8e617b2; the skip is the
       Docker integration test, which needs RUN_DOCKER_INTEGRATION=1)
 
 ### Generation order and guards
