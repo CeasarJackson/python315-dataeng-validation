@@ -97,14 +97,18 @@
       checks; new parametrized checks cover 3.15.1 and 3.15.2 manifests and readiness docs.
       The JSON/PDF checks for 3.15.2 wait for those artifacts
 - [x] `python -m pytest -q`: 316 passed, 1 skipped after commit 8e617b2.
-      UPDATED 2026-10-27: full suite 325 passed, 1 skipped; targeted
+      UPDATED 2026-10-27: full suite 331 passed, 1 skipped; targeted
       compatibility suite 59 passed. Docker integration requires
       RUN_DOCKER_INTEGRATION=1.
 
 ### Generation order and guards
-- [ ] `generate_report.py` refuses to label a report with a release the
+- [x] `generate_report.py` refuses to label a report with a release the
       running interpreter is not. Rebuild `.venv` first, then reinstall
-      dependencies (`colorlog` included) before generating
+      dependencies (`colorlog` included) before generating.
+      VERIFIED 2026-10-27: 54 generator regression tests passed;
+      Python 3.15.0 rejected for requested release 3.15.2 with
+      SystemExit(1). Existing reports and provisional readiness 94%
+      preserved. No environment rebuild or report regeneration performed.
 - [x] Run `tools/sync_readiness.py` after report generation so the manifest
       and Markdown readiness markers are synchronized
       DONE 2026-10-27 13:21 on the promoted manifest (backup of pre-sync files kept
@@ -116,7 +120,8 @@
       suite 101 passed; baseline 88% and promoted provisional readiness 94%.
 
 ### Cleanup
-- [ ] `reports/3.15.0ga/` holds only `.gitkeep`; use canonical
+- [x] `reports/3.15.0ga/` holds only `.gitkeep`; use canonical
       `reports/3.15.2` and remove the empty directory
+      CHECKED 2026-10-27: the directory no longer exists; nothing to remove
 - [ ] `bash scripts/release.sh <suite-version>` (the suite version, not the
       Python version)

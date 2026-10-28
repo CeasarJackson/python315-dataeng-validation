@@ -21,6 +21,10 @@ Purpose:
     failing interpreter yields exit 1 and no "VALIDATION PASSED" line; DRY_RUN=1
     executes nothing and exits 0; an unknown argument exits 2.
 
+    Release builder (``scripts/release.sh``): a real build without
+    ``--python-release`` exits 2, a malformed value exits 2, and an interpreter
+    that reports a different release exits 1 before anything is written.
+
 Validation:
     python -m py_compile tests/test_shell_standards.py
     python -m pytest tests/test_shell_standards.py -v
@@ -157,3 +161,63 @@ def test_runner_rejects_unknown_argument(script: Path) -> None:
     result = _run(script, {}, "--bogus")
     assert result.returncode == 2
     assert "Unknown argument" in result.stderr
+
+
+RELEASE_SCRIPT = PROJECT_ROOT / "scripts" / "release.sh"
+
+
+def _fake_interpreter(tmp_path: Path, release: str) -> Path:
+    # Answers the two probes release.sh makes (``--version`` and ``-c``) with a
+    # fixed release, so the guard is tested without needing a real 3.15.x build.
+    fake = tmp_path / f"python_{release}"
+    fake.write_text(
+        f"#!/bin/sh\ncase \"$1\" in --version) echo 'Python {release}';;"
+        f" -c) echo '{release}';; esac\n",
+        encoding="utf-8",
+    )
+    fake.chmod(0o755)
+    return fake
+
+
+@needs_bash
+def test_release_real_build_requires_python_release() -> None:
+    # Exits during argument parsing, before any git, archive or sync step runs.
+    result = _run(RELEASE_SCRIPT, {}, "v2.2.0", "--allow-dirty", "--skip-tests")
+    out = result.stdout + result.stderr
+    assert result.returncode == 2, out
+    assert "--python-release" in out
+
+
+@needs_bash
+@pytest.mark.parametrize("value", ["3.14.1", "3.15", "latest", ""])
+def test_release_rejects_malformed_python_release(value: str) -> None:
+    result = _run(
+        RELEASE_SCRIPT,
+        {},
+        "v2.2.0",
+        "--dry-run",
+        "--python-release",
+        value,
+    )
+    assert result.returncode == 2, result.stdout + result.stderr
+
+
+@needs_bash
+def test_release_refuses_interpreter_release_mismatch(tmp_path: Path) -> None:
+    # Regression test for the stale-.venv trap: a 3.15.0 interpreter must not be
+    # allowed to build a release declared as 3.15.2.
+    fake = _fake_interpreter(tmp_path, "3.15.0")
+    result = _run(
+        RELEASE_SCRIPT,
+        {"PYTHON_BIN": str(fake)},
+        "v2.2.0",
+        "--dry-run",
+        "--allow-dirty",
+        "--skip-tests",
+        "--python-release",
+        "3.15.2",
+    )
+    out = result.stdout + result.stderr
+    assert result.returncode == 1, out
+    assert "expected 3.15.2" in out
+    assert "Release Dry Run Complete" not in out

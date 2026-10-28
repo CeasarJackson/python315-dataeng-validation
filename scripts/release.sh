@@ -8,6 +8,7 @@
 #   bash scripts/release.sh <version>
 #   bash scripts/release.sh v1.8.3
 #   bash scripts/release.sh v1.8.3 --allow-dirty
+#   bash scripts/release.sh v2.2.0 --python-release 3.15.2
 #
 # Validation:
 #   bash -n scripts/release.sh
@@ -46,6 +47,8 @@ ALLOW_DIRTY=0
 DRY_RUN=0
 SKIP_TESTS=0
 PYTHON_BIN="${PYTHON_BIN:-}"
+PYTHON_RELEASE=""
+EXPECTED_PYTHON_RELEASE=""
 
 # Color only on a real terminal and when NO_COLOR is unset, so piped output and
 # log files never contain raw escape sequences.
@@ -96,6 +99,8 @@ Options:
   --allow-dirty          Permit release build when git working tree has changes
   --dry-run              Show intended actions without writing archive files
   --skip-tests           Skip validation/test commands
+  --python-release X.Y.Z Python release the build must run on (required
+                         unless --dry-run); refuses a mismatched interpreter
   -h, --help             Show this help text
 
 Examples:
@@ -146,6 +151,14 @@ parse_args() {
         SKIP_TESTS=1
         shift
         ;;
+      --python-release)
+        if [[ "$#" -lt 2 ]] || [[ ! "$2" =~ ^3\.15\.[0-9]+$ ]]; then
+          err "--python-release needs a value like 3.15.2."
+          exit 2
+        fi
+        EXPECTED_PYTHON_RELEASE="$2"
+        shift 2
+        ;;
       v[0-9]*.[0-9]*.[0-9]*)
         if [[ -n "${VERSION}" ]]; then
           err "Multiple version arguments provided: ${VERSION} and $1"
@@ -164,6 +177,13 @@ parse_args() {
 
   if [[ -z "${VERSION}" ]]; then
     err "Missing required version argument, for example v1.8.3."
+    exit 2
+  fi
+
+  # A stale .venv (3.15.0) is the silent fallback interpreter; making the
+  # target explicit on real builds stops it from stamping the wrong release.
+  if [[ "${DRY_RUN}" -eq 0 && -z "${EXPECTED_PYTHON_RELEASE}" ]]; then
+    err "Real builds require --python-release X.Y.Z, for example 3.15.2."
     exit 2
   fi
 }
@@ -210,6 +230,24 @@ resolve_python_bin() {
 
   info "Python interpreter: ${PYTHON_BIN}"
   info "Python runtime: $("${PYTHON_BIN}" --version 2>&1)"
+
+  PYTHON_RELEASE="$("${PYTHON_BIN}" -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')"
+  [[ "${PYTHON_RELEASE}" =~ ^3\.15\.[0-9]+$ ]] || {
+    err "Unsupported Python release: ${PYTHON_RELEASE}"
+    exit 1
+  }
+  info "Python report release: ${PYTHON_RELEASE}"
+
+  if [[ -n "${EXPECTED_PYTHON_RELEASE}" ]]; then
+    if [[ "${PYTHON_RELEASE}" != "${EXPECTED_PYTHON_RELEASE}" ]]; then
+      err "Interpreter is Python ${PYTHON_RELEASE}, expected ${EXPECTED_PYTHON_RELEASE}."
+      err "Set PYTHON_BIN or activate the matching venv, then rerun."
+      exit 1
+    fi
+    ok "Interpreter matches --python-release ${EXPECTED_PYTHON_RELEASE}"
+  else
+    warn "No --python-release given (dry run); interpreter release is unchecked."
+  fi
 }
 
 
@@ -253,13 +291,54 @@ run_validation() {
 }
 
 sync_readiness() {
-  if [[ -f "${PROJECT_ROOT}/tools/sync_readiness.py" ]]; then
-    info "Synchronizing readiness artifacts"
-    run "${PYTHON_BIN}" "${PROJECT_ROOT}/tools/sync_readiness.py"
-    ok "Readiness synchronization completed"
-  else
-    warn "tools/sync_readiness.py not found; skipping readiness synchronization."
+  local manifest="${PROJECT_ROOT}/reports/${PYTHON_RELEASE}/manifest.json"
+
+  if [[ ! -f "${manifest}" ]]; then
+    err "Canonical manifest missing: ${manifest}"
+    exit 1
   fi
+
+  if ! "${PYTHON_BIN}" -c '
+import json
+import sys
+from pathlib import Path
+
+manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+sys.exit(0 if manifest.get("release") == sys.argv[2] else 1)
+' "${manifest}" "${PYTHON_RELEASE}"; then
+    err "Canonical manifest release does not match ${PYTHON_RELEASE}"
+    exit 1
+  fi
+
+  if [[ ! -f "${PROJECT_ROOT}/tools/sync_readiness.py" ]]; then
+    err "Required readiness synchronizer is missing."
+    exit 1
+  fi
+
+  info "Synchronizing readiness for Python ${PYTHON_RELEASE}"
+  run "${PYTHON_BIN}" "${PROJECT_ROOT}/tools/sync_readiness.py" \
+    --release "${PYTHON_RELEASE}"
+  ok "Readiness synchronization completed"
+}
+
+preflight_release_destinations() {
+  # Reject occupied release destinations before running tests or modifying
+  # readiness reports. Include dangling symlinks, which -e alone misses.
+  local archive_name="python315-dataeng-validation-${VERSION}.zip"
+  local archive_path="${RELEASE_DIR}/${archive_name}"
+  local checksum_path="${archive_path}.sha256"
+
+  info "Preflight: checking release artifact destinations"
+
+  if [[ -e "${archive_path}" || -L "${archive_path}" ||
+        -e "${checksum_path}" || -L "${checksum_path}" ]]; then
+    err "Release artifacts already exist; refusing to overwrite."
+    err "Archive: ${archive_path}"
+    err "Checksum: ${checksum_path}"
+    exit 1
+  fi
+
+  ok "Release artifact destinations are available"
 }
 
 build_archive() {
@@ -272,8 +351,13 @@ build_archive() {
   run mkdir -p "${RELEASE_DIR}"
   run mkdir -p "${LOG_DIR}"
 
-  info "Removing prior same-version archive files"
-  run rm -f "${archive_path}" "${checksum_path}"
+  if [[ -e "${archive_path}" || -L "${archive_path}" ||
+        -e "${checksum_path}" || -L "${checksum_path}" ]]; then
+    err "Release artifacts already exist; refusing to overwrite."
+    err "Archive: ${archive_path}"
+    err "Checksum: ${checksum_path}"
+    exit 1
+  fi
 
   info "Building archive from Git HEAD"
   run git -C "${PROJECT_ROOT}" archive \
@@ -353,6 +437,7 @@ main() {
   require_command shasum
 
   validate_git_state
+  preflight_release_destinations
   run_validation
   sync_readiness
   build_archive
