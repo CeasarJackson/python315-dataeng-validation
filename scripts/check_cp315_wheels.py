@@ -257,7 +257,13 @@ def _probe_one(
     ]
     try:
         proc = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=180, check=False
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=180,
+            check=False,
         )
     except subprocess.TimeoutExpired:
         log.warning("[WARN] %s — pip timed out on %s", package, platform)
@@ -348,6 +354,8 @@ def require_pip() -> None:
             [sys.executable, "-m", "pip", "--version"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=60,
             check=False,
         )

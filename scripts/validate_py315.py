@@ -35,7 +35,9 @@ def print_section(title: str) -> None:
 def run_command(command: list[str], *, required: bool = False) -> None:
     """Run a command and report success/failure without crashing unless required."""
     print(f"$ {' '.join(command)}")
-    result = subprocess.run(command, text=True, capture_output=True, check=False)
+    result = subprocess.run(
+        command, text=True, encoding="utf-8", capture_output=True, check=False
+    )
 
     if result.stdout.strip():
         print(result.stdout.strip())

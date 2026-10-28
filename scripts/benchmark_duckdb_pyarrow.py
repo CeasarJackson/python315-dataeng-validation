@@ -232,6 +232,8 @@ def check_docker() -> bool:
         ["docker", "images", "-q", "pyarrow-dataeng:py314"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         check=False,
     )
     if not images.stdout.strip():
@@ -263,7 +265,14 @@ def bench_pyarrow_docker() -> list[tuple[str, float]]:
     with open(script_path, "w", encoding="utf-8") as f:
         f.write(_ARROW_SCRIPT)
 
-    r = subprocess.run(docker_cmd, capture_output=True, text=True, check=False)
+    r = subprocess.run(
+        docker_cmd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
     if r.returncode != 0:
         log.error(f"Docker PyArrow benchmark failed:\n{r.stderr}")
         return []

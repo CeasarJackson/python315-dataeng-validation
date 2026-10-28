@@ -165,6 +165,7 @@ def test_pdf_dry_run_does_not_write(tmp_path):
         cwd=ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
     )
 

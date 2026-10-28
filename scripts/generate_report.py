@@ -111,6 +111,7 @@ def run(cmd, cwd=None, capture=True):
         shell=True,
         capture_output=capture,
         text=True,
+        encoding="utf-8",
         cwd=cwd or REPO,
         check=False,
     )
@@ -231,6 +232,8 @@ def check_declared_support(results):
             ["uv", "pip", "check", "--python", sys.executable],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             cwd=REPO,
             check=False,
             timeout=60,
@@ -552,6 +555,8 @@ def collect_results(docker_image="pyarrow-dataeng:py314"):
                 ],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=120,
                 check=False,
             )
