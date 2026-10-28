@@ -71,6 +71,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -255,6 +256,20 @@ def docker_sourced(manifest: dict[str, Any]) -> list[str]:
         for name, entry in manifest["results"].items()
         if "docker" in str(entry.get("note", "")).lower()
     ]
+
+
+def docker_runtime_verified(evidence: str, runtime: str) -> bool:
+    """True only if *evidence* says the worker interpreter reported *runtime*.
+
+    An image tag (python:3.15.2-slim) does not prove which interpreter ran, and
+    a prefix match would accept 3.15.20 for 3.15.2, so the version must be
+    stated as the interpreter's own report and must end at a version boundary.
+    """
+    pattern = (
+        rf"\bworker interpreter reporting Python "
+        rf"{re.escape(runtime)}(?![0-9.])"
+    )
+    return bool(re.search(pattern, evidence, flags=re.IGNORECASE))
 
 
 # ---------------------------------------------------------------------------
@@ -539,12 +554,29 @@ def build_pdf(
         )
     tag = str(manifest["docker_image"]).split(":")[-1]
     docker_names = docker_sourced(manifest)
+    runtime = str(manifest["python_runtime"])
     for name in docker_names:
-        limits.append(
-            f"{name} was exercised inside the Docker image tagged '{tag}', not on the "
-            f"{manifest['python_runtime']} runtime. It shows the package works in that "
-            "container; it is not Python 3.15 evidence."
-        )
+        # Container evidence supports this release only when the recorded
+        # execution evidence explicitly identifies the tested interpreter.
+        # Image tags alone do not establish the runtime actually executed.
+        recorded = str(results[name].get("evidence", ""))
+
+        # Require explicit evidence that the tested interpreter reported
+        # the release runtime. A casual mention of the version is insufficient.
+        if docker_runtime_verified(recorded, runtime):
+            limits.append(
+                f"{name} was exercised inside the Docker image tagged '{tag}', not in the "
+                f"host virtual environment. Its recorded evidence reports Python "
+                f"{runtime} inside that image, so it is evidence for this release, "
+                "with the scope limits stated in its note."
+            )
+        else:
+            limits.append(
+                f"{name} was exercised inside the Docker image tagged '{tag}', not in the "
+                "host virtual environment. Its recorded evidence does not confirm the "
+                f"Python {runtime} interpreter inside that image. The container result "
+                f"therefore cannot be treated as verified Python {runtime} execution evidence."
+            )
     if docker_names:
         # Be explicit about how much of the headline number rests on those
         # results: recompute with them treated as not measured (SKIP).
@@ -553,8 +585,10 @@ def build_pdf(
             for name, entry in results.items()
         )
         limits.append(
-            f"The headline {pct}% counts those Docker-sourced results as PASS. Treating them as "
-            f"not measured (SKIP) instead, readiness would be "
+            f"Sensitivity analysis only: the headline {pct}% includes the recorded "
+            f"Docker-sourced results. Hypothetically excluding all of them from "
+            f"measurement (SKIP), regardless of whether their Python runtime was "
+            f"verified, would produce readiness of "
             f"{round(compute_readiness(adjusted, len(results)))}%."
         )
     for name, entry in results.items():
