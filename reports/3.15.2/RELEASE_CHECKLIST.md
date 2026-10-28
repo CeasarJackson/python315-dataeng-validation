@@ -123,5 +123,8 @@
 - [x] `reports/3.15.0ga/` holds only `.gitkeep`; use canonical
       `reports/3.15.2` and remove the empty directory
       CHECKED 2026-10-27: the directory no longer exists; nothing to remove
-- [ ] `bash scripts/release.sh <suite-version>` (the suite version, not the
+- [x] `bash scripts/release.sh <suite-version>` (the suite version, not the
       Python version)
+      DONE 2026-10-28: suite v2.2.0 built with --python-release 3.15.2
+      (331 passed, 1 skipped). Archive commit 0a55e86, tag v2.2.0, GitHub
+      release published with the zip and .sha256. zip sha256 648981de7b2a4f662aba5c06daaec73113e0bd106f84ecd60bfaf2f7094a429f
