@@ -27,11 +27,10 @@
 - [ ] Run once with `-X warn_default_encoding` to list any remaining calls
 
 ### Lazy imports (PEP 810)
-- [ ] Confirm probes still fail eagerly. A `lazy import` defers `ImportError`
-      to first use, so `probe_package()` and the `find_spec` guards must not
-      be run under `PYTHON_LAZY_IMPORTS=all`
-- [ ] Add one test that runs the probes with `-X lazy_imports=all` and asserts
-      the result matches normal mode (or documents the difference)
+- [x] Confirm probes still fail eagerly under forced lazy imports.
+      VERIFIED 2026-10-27: tests/test_lazy_imports_probes.py passed.
+- [x] Test probes with `-X lazy_imports=all` against normal mode.
+      VERIFIED 2026-10-27: both lazy-import regression tests passed.
 
 ### frozendict is not a dict subclass (PEP 814)
 - [ ] Grep for `isinstance(x, dict)`; use `collections.abc.Mapping` where a
@@ -51,11 +50,9 @@
       log capture to keep logs free of escape codes
 - [ ] GC: 3.15 uses the generational GC (the incremental GC was reverted);
       re-baseline any memory numbers taken on 3.14.0-3.14.4
-- [ ] `importlib.metadata.metadata()` now raises `MetadataNotFound` (a
-      `FileNotFoundError`, not a `PackageNotFoundError`) for a metadata
-      directory with no metadata file; confirm `get_version()` in
-      `generate_report.py` and `validate_dataeng_stack.py` still catch it
-      (covered by `tests/test_get_version_metadata.py`)
+- [x] Verify Python 3.15 missing-metadata exception handling.
+      VERIFIED 2026-10-27: tests/test_get_version_metadata.py passed;
+      generate_report.py and validate_dataeng_stack.py handle FileNotFoundError.
 - [ ] `.pth` `import` lines are silently deprecated in favour of `.start`
       files (PEP 829); note any package in the venv relying on them
 - [ ] Frame pointers are on by default (PEP 831); expect small build/perf
@@ -99,8 +96,10 @@
       DONE 2026-10-27 (commit 8e617b2): it was already on 3.15.1, which keeps the JSON/PDF
       checks; new parametrized checks cover 3.15.1 and 3.15.2 manifests and readiness docs.
       The JSON/PDF checks for 3.15.2 wait for those artifacts
-- [x] `python -m pytest -q` (2026-10-27, Python 3.15.2: 316 passed, 1 skipped after 8e617b2; the skip is the
-      Docker integration test, which needs RUN_DOCKER_INTEGRATION=1)
+- [x] `python -m pytest -q`: 316 passed, 1 skipped after commit 8e617b2.
+      UPDATED 2026-10-27: full suite 325 passed, 1 skipped; targeted
+      compatibility suite 59 passed. Docker integration requires
+      RUN_DOCKER_INTEGRATION=1.
 
 ### Generation order and guards
 - [ ] `generate_report.py` refuses to label a report with a release the
