@@ -17,17 +17,36 @@ This runbook defines the standard release workflow for the Python 3.15 Data Engi
 Replace vX.Y.Z with the target version.
 
 ```bash
-cd ~/Projects/python315_test
-git status --short
-python -m pytest -q
-bash -n scripts/release.sh
-bash scripts/release.sh vX.Y.Z --dry-run --skip-tests
-bash scripts/release.sh vX.Y.Z
+cd ~/Projects/python315_test || return 1
+
+PYTHON_BIN="$PWD/.venv3152/bin/python"
+
+"$PYTHON_BIN" --version || return 1
+"$PYTHON_BIN" -m pytest -q || return 1
+uv pip check --python "$PYTHON_BIN" || return 1
+bash -n scripts/release.sh || return 1
+
+# Commit documentation before building the archive.
+git add RELEASE_NOTES_vX.Y.Z.md docs/RELEASE_PROCESS.md releases/README.md
+git diff --cached --check || return 1
+git commit -m "docs: prepare vX.Y.Z release documentation" || return 1
+
+# The builder requires a clean working tree.
+[[ -z "$(git status --porcelain)" ]] || return 1
+
+# Dry run without creating artifacts.
+PYTHON_BIN="$PYTHON_BIN" bash scripts/release.sh \
+    vX.Y.Z --python-release 3.15.2 --dry-run || return 1
+
+# Build once, from committed Git HEAD.
+PYTHON_BIN="$PYTHON_BIN" bash scripts/release.sh \
+    vX.Y.Z --python-release 3.15.2 || return 1
+
+# Verify archive integrity before staging.
+(cd releases && shasum -a 256 -c \
+    python315-dataeng-validation-vX.Y.Z.zip.sha256) || return 1
 git add -f releases/python315-dataeng-validation-vX.Y.Z.zip releases/python315-dataeng-validation-vX.Y.Z.zip.sha256
 git commit -m "chore: add vX.Y.Z packaged release archive"
-git push origin main
-git add RELEASE_NOTES_vX.Y.Z.md
-git commit -m "docs: add vX.Y.Z release notes"
 git push origin main
 git tag -a vX.Y.Z -m "Python 3.15 data engineering validation vX.Y.Z"
 git push origin vX.Y.Z
